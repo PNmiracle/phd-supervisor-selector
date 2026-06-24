@@ -12,23 +12,37 @@ Build source-backed supervisor lists for doctoral applicants. Search current uni
 ## Core Workflow
 
 1. Parse the student's profile, preferred research directions, hard exclusions, target regions/schools, ranking constraints, and any existing workbook/screenshot columns.
-2. Search official university sources first: supervisor profile, department staff list, PhD/research degree page, and supervisor list if available.
-3. **For SPA/dynamic sites**: probe the JavaScript bundle for API endpoints before giving up (see `references/search-techniques.md`). Fetch complete datasets in one API call when possible.
-4. Verify each supervisor homepage by content: the page must open and visibly match the person's name, role, department, or team identity. Do not accept a plain 200 status, dynamic shell, 404 page, or generic search page.
-5. **Use the in-app browser** for content verification when curl is insufficient — especially for SPA personal pages, hidden tab content (Research Interest, Publications), and visual confirmation.
-6. Judge supervision suitability using `references/selection-rules.md`.
-7. Fill the spreadsheet using `references/spreadsheet-rules.md`.
-8. When a school from the user's list has been searched but no suitable supervisor is found, record the school-level reason in `排除或待确认` / screening sheet.
-9. Put uncertain, excluded, weak-fit, stale, or unverified people in a separate `排除或待确认` / screening sheet, not the main table.
-10. Before delivery, run compact checks: no empty key links, no broken obvious links, no banned note phrases, no formula errors, and render a preview of every sheet.
+2. **Detect the spreadsheet format** (see `references/spreadsheet-rules.md`): if the user provides a template, adopt its column structure. If not, use the default simplified format.
+3. Search official university sources first: supervisor profile, department staff list, PhD/research degree page, and supervisor list if available.
+4. **For SPA/dynamic sites**: probe the JavaScript bundle for API endpoints before giving up (see `references/search-techniques.md`). Fetch complete datasets in one API call when possible.
+5. Verify each supervisor homepage by content: the page must open and visibly match the person's name, role, department, or team identity. Do not accept a plain 200 status, dynamic shell, 404 page, or generic search page.
+6. **Use the in-app browser** for content verification when curl is insufficient — especially for SPA personal pages, hidden tab content (Research Interest, Publications), and visual confirmation.
+7. Judge supervision suitability using `references/selection-rules.md`.
+8. Fill the spreadsheet using `references/spreadsheet-rules.md`.
+9. When a school from the user's list has been searched but no suitable supervisor is found, record the school-level reason in `排除或待确认` / screening sheet.
+10. Put uncertain, excluded, weak-fit, stale, or unverified people in a separate `排除或待确认` / screening sheet, not the main table.
+11. Before delivery, run compact checks: no empty key links, no broken obvious links, no banned note phrases, no formula errors, and render a preview of every sheet.
 
 ## Required Output Columns
 
-Use these columns unless the user explicitly gives a different schema:
+Two output formats are supported; see `references/spreadsheet-rules.md` for the full decision logic.
+
+### Simplified Format (default, no template provided)
 
 `导师`, `Location`, `学校名字`, `QS排名`, `美国USNEWS排名`, `Department`, `导师主页`, `博士申请信息`, `其他导师信息`, `备注`
 
-`其他导师信息` should normally be the same department/school staff list used to find comparable supervisors.
+- `美国USNEWS排名`: **only include this column when US schools are present in the list.** When the entire list is non-US, omit it entirely.
+
+### Template Format (user provides an `.xlsx` template)
+
+Follow the template's exact column headers. The standard template uses:
+
+`导师`, `Location`, `美国学校`, `非美国学校`, `QS排名`, `美国学校的Usnews排名`, `Department`, `导师主页`, `博士申请信息`, `其他导师信息`, `备注`, `选导反馈`, `学生反馈`
+
+Key rules for template format:
+- US schools → fill `美国学校` + `美国学校的Usnews排名`; leave `非美国学校` empty
+- Non-US schools → fill `非美国学校` + `QS排名`; leave `美国学校` and `美国学校的Usnews排名` empty
+- Both `美国学校` and `非美国学校` can have data in the same spreadsheet but never in the same row
 
 ## Search Standards
 
@@ -82,6 +96,17 @@ For new or rebuilt lists, include:
 - Optional school screening sheet when the user asks to scan a region or all schools.
 
 Highlight each newly added search round with a distinct pale color and describe the color meaning in the legend.
+
+## Existing Workbook Handling
+
+When the user drops a template `.xlsx`:
+
+1. Read the template to detect its column structure. Do not overwrite column headers.
+2. Fill data into the existing columns, matching by header name.
+3. For mixed US/non-US lists, fill school names into the correct column (`美国学校` or `非美国学校`) based on the school's country.
+4. Fill US News rankings only for US schools; leave the cell empty for non-US schools.
+5. Append new rows for newly discovered supervisors; do not delete or rearrange existing rows.
+6. Add new sheets (`说明与颜色图例`, `排除或待确认`) if the template does not already have them.
 
 ## References
 
