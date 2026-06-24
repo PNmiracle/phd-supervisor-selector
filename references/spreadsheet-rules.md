@@ -1,23 +1,49 @@
 # Supervisor Spreadsheet Rules
 
-## Main Columns
+## Column Format Selection
 
-Use the exact column semantics below:
+### Decision Tree
+
+When starting work, decide the column structure:
+
+1. **User provided a template `.xlsx`?** → Use the template's exact column headers. Never rename or restructure them.
+2. **No template, list includes US schools?** → Use simplified format WITH `美国USNEWS排名` column.
+3. **No template, list is entirely non-US?** → Use simplified format WITHOUT `美国USNEWS排名` column.
+
+### Main Columns (Simplified Format, Default)
 
 - `导师`: supervisor name as shown on the profile.
 - `Location`: country/region, e.g. `Hong Kong`, `Australia`, `United Kingdom`.
 - `学校名字`: official English school name unless the user asks for Chinese.
 - `QS排名`: current QS rank; use `QS 2026约XX` or `QS 2026待复核` if not verified.
-- `美国USNEWS排名`: fill only if verified; otherwise use `待复核`.
+- `美国USNEWS排名`: **only include this column when at least one US school is in the list.** Omit entirely for all-non-US lists.
 - `Department`: department/school/center that owns the profile.
 - `导师主页`: official profile page, team page, or official staff entry that visibly matches the person.
 - `博士申请信息`: official PhD/research degree/program application page.
 - `其他导师信息`: same department/school staff list or official supervisor list.
 - `备注`: short Chinese note based on profile content.
 
-Never leave `导师主页`, `博士申请信息`, or `其他导师信息` empty in the main table.
+### Main Columns (Template Format)
 
-When PhD eligibility information is spread across sources, use the most specific official page or PDF in `博士申请信息`, and keep the broader staff/supervisor list in `其他导师信息`. If a supervisor PDF gives eligibility but the profile carries fit evidence, both links should be represented across the columns.
+When the user provides a template (typically `博士选导出选模版.xlsx`), match its headers exactly. The standard template has:
+
+- `美国学校`: US school name — fill ONLY for US schools.
+- `非美国学校`: Non-US school name — fill ONLY for non-US schools.
+- `QS排名`: fill for all schools.
+- `美国学校的Usnews排名`: fill ONLY for US schools; leave empty for non-US schools.
+
+**Row-level rules for template format:**
+- Each row belongs to exactly ONE school type (US or non-US).
+- For US schools: fill `美国学校` + `QS排名` + `美国学校的Usnews排名`. Leave `非美国学校` empty.
+- For non-US schools: fill `非美国学校` + `QS排名`. Leave `美国学校` and `美国学校的Usnews排名` empty.
+- Both school types coexist in the same sheet; one column pair is empty per row.
+
+### Column Detection on Existing Workbooks
+
+When opening an existing workbook:
+- Read the header row to detect which format is in use.
+- Match by column header name, not by position.
+- Do not assume the simplified format if a template format is detected.
 
 ## Homepage Link Rules
 
@@ -91,8 +117,9 @@ Before final delivery:
 2. Verify PhD application and staff/supervisor list links are official and non-empty.
 3. Search the workbook for banned note phrases.
 4. Scan for formula errors if the workbook contains formulas.
-5. Render every worksheet or key range and visually check column widths, wrapping, row colors, and clipped text.
-6. Keep existing user files unchanged; save a new workbook unless the user explicitly asks to overwrite.
+5. **For mixed US/non-US lists**: verify no row has both `美国学校` and `非美国学校` filled. Verify US News ranking is only filled for US schools.
+6. Render every worksheet or key range and visually check column widths, wrapping, row colors, and clipped text.
+7. Keep existing user files unchanged; save a new workbook unless the user explicitly asks to overwrite.
 
 ## Common Edge Cases
 
@@ -103,3 +130,5 @@ Before final delivery:
 - If a profile has several links, inspect the most topic-specific link first. For example, a lab/project page may show stronger fit than the general staff page, while the staff page may be better for identity verification.
 - If a person appears relevant but outside the student's keywords, use a neutral note that invites review, such as `方向相关，可让学生判断兴趣`.
 - If a candidate is likely unsuitable only because of title or supervision uncertainty, keep them out of the main table unless the user asked for borderline options.
+- **When filling a template with mixed US/non-US schools**: sort rows so US schools are grouped together, non-US schools grouped together. This makes the empty cells less visually jarring.
+- **When all schools are non-US in a template**: the `美国学校` and `美国学校的Usnews排名` columns remain in the header but all rows have them empty. This is correct behavior.
