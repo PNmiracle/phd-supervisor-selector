@@ -1,61 +1,63 @@
-# PhD Supervisor Selector — 博士选导助手
+# PhD Supervisor Selector · 博士选导助手
 
-一个 Codex / ChatGPT / Claude 等 AI coding agent 可用的 skill（技能包），自动帮你搜索、筛选、验证海外/中外合办院校的博士导师，生成结构化的导师遴选表格。
+让 AI 自动帮你搜索、筛选、验证博士导师，生成带个人主页链接和匹配分析的选导表格。
 
-## 小白使用指南（一句话上手）
+---
 
-把你的导师表 + GitHub 链接交给 AI 助手：
-```
-帮我用这个 skill 找导师：https://github.com/PNmiracle/phd-supervisor-selector
-我的方向是城市规划（交通、智慧城市），不喜欢设计建模，偏好分析类
-目标学校：西交利物浦、港科广、宁诺、港中深
-```
+## 一句话上手
 
-AI 助手会自动执行：搜索学校官网 → 筛选合适导师 → 验证个人主页 → 填写表格。
+复制下面这句话，发给 Codex / ChatGPT / Claude：
 
-## 在 Codex 中使用
-Codex 原生支持 skill 安装：
-- `/skill-installer` → 选择 "从 GitHub 安装" → 输入 `PNmiracle/phd-supervisor-selector`
-- 或在对话中直接 `@PNmiracle/phd-supervisor-selector`
+> 帮我安装这个 skill，https://github.com/PNmiracle/phd-supervisor-selector，并教我怎么使用
 
-## 在 ChatGPT / Claude / 其他 Agent 中使用
-直接复制 GitHub 链接并说明需求：
-```
-https://github.com/PNmiracle/phd-supervisor-selector
+AI 会自己读 `SKILL.md`，装好之后你直接说：
 
-按 SKILL.md 的规则，帮我找以下学校的博导：
-[你的方向、偏好、学校列表]
-```
+> 我的方向是城市规划（交通、智慧城市），不喜欢设计建模，偏好分析类。
+> 目标学校：港科广、西交利物浦、宁诺。
 
-AI 助手会读取仓库里的 `SKILL.md`，按照其中的规则执行搜索和填表。
+然后把你的导师表模板拖进去（如果有的话），AI 就会自动干活了。
+
+---
+
+## 怎么用（30 秒版）
+
+| 步骤 | 你说的话 |
+|------|----------|
+| ① 安装 | `帮我安装这个skill，https://github.com/PNmiracle/phd-supervisor-selector` |
+| ② 说明需求 | `我的方向是___，不喜欢___，目标学校___` |
+| ③ 拖入模板 | 把你的选导 Excel 拖进对话框（可选） |
+| ④ 追加 | `继续找`（AI 会自动深度挖掘） |
+
+---
 
 ## 功能
 
-- 🔍 自动搜索学校官网的师资页面、博士项目页面
-- 🧠 判断导师是否具备带博资格（职称、地区规则）
-- ✅ 浏览器验证每位导师的个人主页能否打开
-- 📊 生成结构化 Excel 表格（导师/学校/QS排名/主页/备注/选导建议）
-- ⚠️ 自动筛查教学岗、兼职、方向不匹配的导师
-- 🔄 支持多轮"继续找"深度挖掘
+- 🔍 自动搜索学校官网师资页、博士项目页
+- 🧠 判断导师是否具备带博资格（职称/地区规则，自动排除 Adjunct/Clinical/Teaching 等）
+- ✅ 浏览器验证个人主页能否打开，点击 Research Interest 获取隐藏方向
+- 📊 生成结构化表格（导师/学校/QS排名/主页/备注/选导建议）
+- ⚠️ 自动筛查教学岗、兼职、方向不匹配的导师 → 放入排除表
+- 🇺🇸 支持美国 + 非美国学校混合列表，自动判断是否加 US News 列
 
-## 表格输出示例
+---
 
-| 导师 | 学校 | QS | 导师主页 | 备注 | 选导反馈 |
-|------|------|-----|----------|------|----------|
-| 乐阳 | 港科广 | 47 | 🔗个人页 | 教授；城市大数据、GeoAI与社会可持续性 | 优先套磁 |
-| Hyung-Chul Chung | 西交利物浦 | 176 | 🔗个人页 | 副教授；城市规划与交通融合、AI与机器学习 | 优先套磁 |
+## 输出示例
+
+| 导师 | 学校 | QS | 备注 | 选导反馈 |
+|------|------|-----|------|----------|
+| 乐阳 | 港科广 | 47 | 教授；城市大数据、GeoAI与社会可持续性 | 优先套磁 |
+| Hyung-Chul Chung | 西交利物浦 | 176 | 副教授；城市规划与交通融合、AI与机器学习 | 优先套磁 |
+| Jing Bie | 宁诺 | 108 | 助理教授；交通工程 | 优先套磁 |
+
+---
 
 ## 目录结构
 
 ```
-SKILL.md                    ← AI 助手的主入口和规则
+SKILL.md                          ← AI 入口 & 规则
 references/
-  selection-rules.md        ← 导师筛选规则（职称、地区、匹配度）
-  spreadsheet-rules.md      ← 表格格式、备注规范、质检规则
-  search-techniques.md      ← 搜索技术（SPA破解、API发现、URL推断、浏览器自动化、并行子Agent）
-README.md                   ← 本文件
+  selection-rules.md               ← 导师筛选（职称/地区/匹配度）
+  spreadsheet-rules.md             ← 表格格式 & 条件列逻辑
+  search-techniques.md             ← 搜索技术（SPA破解/API/浏览器/子Agent）
+README.md                          ← 本文件
 ```
-
-## 更新日志
-
-- 2025-06-24: 新增 `references/search-techniques.md`，整合 SPA/API 发现、URL 模式推断、并行子 Agent 策略、浏览器自动化等技术。
