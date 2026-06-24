@@ -13,12 +13,14 @@ Build source-backed supervisor lists for doctoral applicants. Search current uni
 
 1. Parse the student's profile, preferred research directions, hard exclusions, target regions/schools, ranking constraints, and any existing workbook/screenshot columns.
 2. Search official university sources first: supervisor profile, department staff list, PhD/research degree page, and supervisor list if available.
-3. Verify each supervisor homepage by content: the page must open and visibly match the person's name, role, department, or team identity. Do not accept a plain 200 status, dynamic shell, 404 page, or generic search page.
-4. Judge supervision suitability using `references/selection-rules.md`.
-5. Fill the spreadsheet using `references/spreadsheet-rules.md`.
-6. When a school from the user's list has been searched but no suitable supervisor is found, record the school-level reason in `排除或待确认` / screening sheet.
-7. Put uncertain, excluded, weak-fit, stale, or unverified people in a separate `排除或待确认` / screening sheet, not the main table.
-8. Before delivery, run compact checks: no empty key links, no broken obvious links, no banned note phrases, no formula errors, and render a preview of every sheet.
+3. **For SPA/dynamic sites**: probe the JavaScript bundle for API endpoints before giving up (see `references/search-techniques.md`). Fetch complete datasets in one API call when possible.
+4. Verify each supervisor homepage by content: the page must open and visibly match the person's name, role, department, or team identity. Do not accept a plain 200 status, dynamic shell, 404 page, or generic search page.
+5. **Use the in-app browser** for content verification when curl is insufficient — especially for SPA personal pages, hidden tab content (Research Interest, Publications), and visual confirmation.
+6. Judge supervision suitability using `references/selection-rules.md`.
+7. Fill the spreadsheet using `references/spreadsheet-rules.md`.
+8. When a school from the user's list has been searched but no suitable supervisor is found, record the school-level reason in `排除或待确认` / screening sheet.
+9. Put uncertain, excluded, weak-fit, stale, or unverified people in a separate `排除或待确认` / screening sheet, not the main table.
+10. Before delivery, run compact checks: no empty key links, no broken obvious links, no banned note phrases, no formula errors, and render a preview of every sheet.
 
 ## Required Output Columns
 
@@ -34,9 +36,25 @@ Use these columns unless the user explicitly gives a different schema:
 - Prefer official university pages. Use Google/search results only to discover a correct profile URL, then verify the official page.
 - If the PhD program publishes a specific supervisor list, treat that list as binding eligibility evidence and only select names from it.
 - If a common profile URL returns 404 or opens a non-matching page, search the supervisor name plus school again with Google/Bing or another web search, then verify the new official page. Do not keep guessed paths.
-- If a site blocks scraping or renders dynamically, use the browser when available and confirm visible page content manually.
+- **For SPA or JavaScript-rendered sites**: do not accept a 200-status empty shell. Read `references/search-techniques.md` for API discovery, URL pattern inference, and direct-path vs hash-route strategies.
+- **For batch discovery**: use API endpoints to fetch all faculty at once (size=100000), then filter locally. This avoids pagination and page-by-page scraping.
+- If a site blocks scraping or renders dynamically, use the browser when available and confirm visible page content manually, including clicking tabs like "Research Interest" to reveal hidden content.
 - If PhD information is split across several pages, use the most relevant official research degree/program page and explain the merge briefly in the screening notes.
 - If eligibility is scattered across a PDF/list and separate staff profiles, use the PDF/list for `博士申请信息` or evidence and the individual profile for `导师主页`.
+- **For PhD program pages on unreachable subdomains**: check the graduate school domain (fytgs.{university}.edu.cn or gs.{university}.edu.cn) — these are often on the main university infrastructure and more accessible.
+- **Use parallel sub-agents** (`spawn_agent` with explorer type) for independent checks of different schools or domains. Give each a clear, self-contained task; continue your own verification work while they run.
+
+## Deep Discovery Pipeline
+
+Do not stop at the first batch of results. Use this funnel to maximize coverage:
+
+1. **Full sweep** — fetch all faculty data via API, filter by target department
+2. **Filter** — check degree, major, and research keywords of remaining faculty for relevance
+3. **Prioritize** — rank by match to student directions; consider adjacent departments (e.g., Intelligent Transportation, Innovation/Policy for urban planning students)
+4. **Verify** — open personal pages in browser, click Research Interest tabs for hidden content
+5. **Expand** — re-check schools that previously showed 404/unreachable; subdomains may come back online
+
+Also see `references/search-techniques.md` for the full pipeline with code patterns.
 
 ## Remarks Style
 
@@ -60,7 +78,7 @@ For new or rebuilt lists, include:
 
 - Main sheet named after the student or requested list title.
 - `说明与颜色图例`: explain row highlights, source rounds, and note/link rules.
-- `排除或待确认`: record why schools or people were not included.
+- `排除或待确认`: record why schools or people were not included. Include ⚠️ notes for candidates found but unreachable, with URLs for user-side manual verification.
 - Optional school screening sheet when the user asks to scan a region or all schools.
 
 Highlight each newly added search round with a distinct pale color and describe the color meaning in the legend.
@@ -69,3 +87,4 @@ Highlight each newly added search round with a distinct pale color and describe 
 
 - Read `references/selection-rules.md` before deciding whether a candidate can enter the main table.
 - Read `references/spreadsheet-rules.md` before creating, editing, or validating a supervisor spreadsheet.
+- Read `references/search-techniques.md` for SPA/API discovery, URL pattern inference, parallel sub-agent strategies, browser automation, and deep discovery pipelines.
