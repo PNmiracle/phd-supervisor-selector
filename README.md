@@ -105,6 +105,7 @@ references/
   selection-rules.md               ← 导师筛选（职称/地区/匹配度）
   spreadsheet-rules.md             ← 表格格式 & 条件列逻辑
   search-techniques.md             ← 搜索技术（SPA/API/浏览器/子Agent）
-  vika-api-patterns.md             ← Vika Fusion API 代码模板 & 常见操作
+  vika-operations-guide.md         ← Vika 表完整操作指南（增删改查/导入/去重/翻译）
+  vika-api-patterns.md             ← Vika API 可复用代码模板
 README.md                          ← 本文件
 ```

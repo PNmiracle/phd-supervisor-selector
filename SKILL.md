@@ -227,3 +227,5 @@ When the user drops a template `.xlsx`:
 - Read `references/selection-rules.md` before deciding whether a candidate can enter the main table.
 - Read `references/spreadsheet-rules.md` before creating, editing, or validating a supervisor spreadsheet.
 - Read `references/search-techniques.md` for SPA/API discovery, URL pattern inference, parallel sub-agent strategies, browser automation, and deep discovery pipelines.
+- Read `references/vika-operations-guide.md` for the complete Vika table CRUD operations guide (list, create, update, delete, import, deduplicate, translate).
+- Read `references/vika-api-patterns.md` for reusable Python code snippets for common Vika API calls.
