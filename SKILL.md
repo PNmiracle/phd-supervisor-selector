@@ -163,9 +163,10 @@ If only a personal page is available, use it for `导师主页` and note `⚠️
 ## Search Standards
 
 - Browse current web pages for rankings, application links, staff lists, and profile pages.
-- Prefer official university pages. Use Google/search results only to discover a correct profile URL, then verify the official page.
+- **Use search engines as the primary strategy** for finding individual supervisor profiles. Search `"[name] [school] professor"` on Google/Bing to discover the real profile URL — do not guess URLs from naming conventions. Guessed URLs have ~90% failure rate; search-returned URLs are current and accurate.
+- Prefer official university pages over personal sites. Verify the search-result URL opens and matches the supervisor's identity before filling the spreadsheet.
 - If the PhD program publishes a specific supervisor list, treat that list as binding eligibility evidence and only select names from it.
-- If a common profile URL returns 404 or opens a non-matching page, search the supervisor name plus school again with Google/Bing or another web search, then verify the new official page. Do not keep guessed paths.
+- If a common profile URL returns 404 or opens a non-matching page, search the supervisor name plus school again with Google/Bing or another web search to find the correct live URL. Do not keep guessed paths.
 - **For SPA or JavaScript-rendered sites**: do not accept a 200-status empty shell. Read `references/search-techniques.md` for API discovery, URL pattern inference, and direct-path vs hash-route strategies.
 - **For batch discovery**: use API endpoints to fetch all faculty at once (size=100000), then filter locally. This avoids pagination and page-by-page scraping.
 - If a site blocks scraping or renders dynamically, use the browser when available and confirm visible page content manually, including clicking tabs like "Research Interest" to reveal hidden content.
@@ -173,6 +174,10 @@ If only a personal page is available, use it for `导师主页` and note `⚠️
 - If eligibility is scattered across a PDF/list and separate staff profiles, use the PDF/list for `博士申请信息` or evidence and the individual profile for `导师主页`.
 - **For PhD program pages on unreachable subdomains**: check the graduate school domain (fytgs.{university}.edu.cn or gs.{university}.edu.cn) — these are often on the main university infrastructure and more accessible.
 - **Use parallel sub-agents** (`spawn_agent` with explorer type) for independent checks of different schools or domains. Give each a clear, self-contained task; continue your own verification work while they run.
+
+### Deprecated: URL Guessing
+
+Do NOT construct URLs by guessing naming conventions (e.g., `university.edu/staff/firstname-lastname`). This fails ~90% of the time due to middle names, hyphenation, CMS restructuring, and staff turnover. Instead, use search engines to find the current live URL, or fall back to the sub-agent / API discovery pipeline.
 
 ### Deep Discovery Pipeline
 
@@ -182,7 +187,7 @@ Do not stop at the first batch of results. Use this funnel to maximize coverage:
 2. **Filter** — check degree, major, and research keywords of remaining faculty for relevance
 3. **Prioritize** — rank by match to student directions; consider adjacent departments (e.g., Intelligent Transportation, Innovation/Policy for urban planning students)
 4. **Verify** — open personal pages in browser, click Research Interest tabs for hidden content
-5. **Expand** — re-check schools that previously showed 404/unreachable; subdomains may come back online
+5. **Expand (on-demand only)** — only re-check previously 404/unreachable links when the user explicitly requests it or when there is a clear signal (e.g., new academic year, known site migration). Routine automatic rechecking wastes tokens on structural 404s that rarely self-resolve.
 
 Also see `references/search-techniques.md` for the full pipeline with code patterns.
 
