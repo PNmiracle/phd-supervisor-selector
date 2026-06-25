@@ -21,17 +21,15 @@
 
 **不需要安装任何东西。** 全程用 Python 标准库调用 Vika REST API，零依赖。
 
-> 🔐 **Token 安全注意：** 不要把 API Token 直接发到聊天框（会被记录到对话历史）。使用终端安全注入：
->
-> **当前 Chat 使用（临时）：**
-> ```bash
-> echo 'export VIKA_TOKEN=你的token' > .vika_env && source .vika_env
-> ```
-> **一劳永逸（所有 Chat 通用）：**
-> ```bash
-> echo 'export VIKA_TOKEN=你的token' >> ~/.zshrc && source ~/.zshrc
-> ```
-> 之后 Codex 会自动从环境变量读取 token，不会出现在任何聊天记录中。
+> 🔐 **Token 安全注意事项：**
+
+不要把 API Token 贴到聊天框（会被记录到对话历史）。在终端里跑下面**这一行**就行，一劳永逸：
+
+```bash
+echo 'export VIKA_TOKEN=你的token' >> ~/.zshrc && source ~/.zshrc
+```
+
+> 就是把你的 token 存到 `~/.zshrc`（Mac 每次开机自动加载的环境变量文件），之后所有 Chat 都自动能用。不需要装任何东西，不需要每开一个 Chat 就重复设。
 
 ### 🅱️ 路径 B：Excel 模式
 
