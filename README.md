@@ -21,6 +21,12 @@
 
 **不需要安装任何东西。** 全程用 Python 标准库调用 Vika REST API，零依赖。
 
+> 🔐 **Token 安全注意：** 不要把 API Token 直接发到聊天框（会被记录到对话历史）。使用终端安全注入：
+> ```bash
+> echo 'export VIKA_TOKEN=你的token' > .vika_env && source .vika_env
+> ```
+> 之后 Codex 会自动从环境变量读取 token，不会出现在任何聊天记录中。
+
 ### 🅱️ 路径 B：Excel 模式
 
 > 拖入 Excel，AI 搜索学校官网生成导师表。

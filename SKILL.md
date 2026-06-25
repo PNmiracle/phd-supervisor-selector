@@ -29,7 +29,10 @@ When the user provides a Vika share link, follow this workflow:
 ### Setup
 
 1. Parse the URL to extract: `datasheetId` (`dstXXX`), `viewId` (`viwXXX`).
-2. Ask for the API token if not already stored. Store it as `export VIKA_TOKEN=uskXXX` in `.vika_env` so it persists.
+2. **Token security**: If the user pastes a token into the chat, accept it but also **remind them** to use the terminal method next time. Preferred flow:
+   - Guide the user to run: `echo 'export VIKA_TOKEN=你的token' > .vika_env && source .vika_env`
+   - Codex reads `$VIKA_TOKEN` from environment — token never appears in chat history.
+   - If `$VIKA_TOKEN` is set and valid, proceed. If not, guide the user to set it in their terminal.
 3. Base URL: `https://api.vika.cn/fusion/v1`
 
 ### Capabilities (Record-level CRUD)

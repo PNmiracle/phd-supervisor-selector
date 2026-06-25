@@ -6,6 +6,12 @@ Complete guide for all common Vika table operations via Fusion API. All patterns
 
 ## 0. Quick Setup (Token + Datasheet)
 
+> 🔐 **Token security**: Never paste your API token into the chat. Set it in terminal:
+> ```bash
+> echo 'export VIKA_TOKEN=uskXXXXXX' > .vika_env && source .vika_env
+> ```
+> Codex reads `$VIKA_TOKEN` from the environment — the token stays on your machine only.
+
 ```python
 import os, json
 from urllib.request import Request, urlopen
