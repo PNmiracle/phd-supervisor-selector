@@ -9,7 +9,108 @@ description: Research and spreadsheet workflow for PhD supervisor selection. Use
 
 Build source-backed supervisor lists for doctoral applicants. Search current university pages, judge whether a person is likely to supervise PhD students, fill the spreadsheet columns, and keep unusable or risky candidates out of the main table.
 
-## Core Workflow
+Supports two modes: **Vika (direct table CRUD)** and **Excel (local spreadsheet)**.
+
+## Data Source Detection
+
+When receiving a task, detect the data source:
+
+1. **User provides a Vika share link** (e.g. `https://vika.cn/share/shrXXX/dstXXX/viwXXX`): operate directly on the Vika table via Fusion API. See §Vika Integration.
+2. **User drops an `.xlsx` file**: work with local spreadsheet. See §Excel Workflow.
+3. **User provides both**: prefer Vika for CRUD, Excel as reference/fill source.
+
+## Vika Integration
+
+
+**Zero dependencies.** All operations use Python 3 stdlib (`urllib` + `json`) — no `vika-cli`, npm, or third-party SDK needed. Just an API token and any Python 3 installation. For Excel import, `openpyxl` is the only extra: `pip install openpyxl`.
+
+When the user provides a Vika share link, follow this workflow:
+
+### Setup
+
+1. Parse the URL to extract: `datasheetId` (`dstXXX`), `viewId` (`viwXXX`).
+2. Ask for the API token if not already stored. Store it as `export VIKA_TOKEN=uskXXX` in `.vika_env` so it persists.
+3. Base URL: `https://api.vika.cn/fusion/v1`
+
+### Capabilities (Record-level CRUD)
+
+The Vika Fusion API supports full record-level operations:
+
+| Operation | Endpoint | Notes |
+|-----------|----------|-------|
+| List fields | `GET /datasheets/{id}/fields` | Discover field names and types |
+| List records | `GET /datasheets/{id}/records?viewId=...&maxRecords=...&fields=...` | Supports `filterByFormula`, `sort`, pagination |
+| Create records | `POST /datasheets/{id}/records` | Batch up to 10 per call, use `fieldKey: "name"` |
+| Update records | `PATCH /datasheets/{id}/records` | Send `{"records": [{"recordId":"xxx","fields":{...}}], "fieldKey": "name"}` |
+| Delete records | `DELETE /datasheets/{id}/records` | Send JSON array of recordIds |
+
+### Limitations
+
+- **Cannot create/modify/delete fields** (schema). The Fusion API is record-only. Adding columns requires manual Vika UI.
+- **Cannot write computed fields**: MagicLookUp, OneWayLink fields are read-only via API — write the source text/URL fields instead.
+- Batch writes best at 10 records per request; add 0.3s delay between batches.
+
+### Natural Language Operations
+
+Users can issue requests in plain Chinese. Codex translates to API calls:
+- "列出所有记录" → `GET /records`
+- "筛选状态为待处理的导师" → `GET /records?filterByFormula={状态}="待发邮件"`
+- "把 David Moreau 的状态改成等老师回复" → `PATCH /records`
+- "新增一条导师叫 XXX" → `POST /records`
+- "删除重复的条目" → compare names, `DELETE /records` duplicates
+
+### Import from Excel to Vika
+
+When importing Excel data into an existing Vika table:
+1. Read Excel to extract all supervisor names.
+2. Fetch existing Vika records (all, with `pageSize=200`).
+3. Compare by 导师 name (strip whitespace) to find new entries.
+4. Map Excel columns → Vika field names; skip linked/computed fields.
+5. Batch-write new records using `fieldKey: "name"`.
+6. Verify total count matches expected (original + new - overlap).
+
+### Department Translation
+
+If Department values are in English, translate to Chinese. Common patterns:
+- "Department of Psychology" → "心理学系(学校名)"
+- "CUHK Business School" → "香港中文大学商学院"
+- Include university name in parentheses for generic department names.
+
+### Updating Existing Records
+
+Use `PATCH` with recordId + field updates. Use `fieldKey: "name"` for Chinese field names. Batch 10 at a time.
+
+### Duplicate Detection
+
+Fetch all records, group by `导师` name (strip whitespace), keep the most complete record (most filled fields), delete others.
+
+## Link Verification & Anti-Scraping Strategy
+
+When encountering pages that fail `curl`/`urlopen` with 403, Cloudflare, JS challenge, or empty shell:
+
+**1. Try harder before giving up:**
+- Use the **in-app browser** (`browser` skill / Node REPL `mcp__node_repl__js`) to open the page. Many SPA/dynamic sites render correctly in a real browser.
+- Click hidden tabs (e.g., "Research Interest", "Publications", "Biography") to reveal content.
+- Check if the **grad school domain** (e.g., `gs.{uni}.edu.cn`, `fytgs.{uni}.edu.cn`) is on a different infrastructure and more accessible.
+- Probe for **API endpoints** in the JS bundle before declaring failure.
+- For staff lists, try the **university's API** directly (e.g., `?size=100000`) to bypass the UI entirely.
+- If one subdomain is blocked, try **alternate subdomains** for the same university.
+
+**2. Only after exhausting these methods**, mark with ⚠️:
+- `⚠️{学校名}网站反爬/反机器人拦截，curl+浏览器均无法自动验证。需用户手动打开链接确认。`
+- Keep the record in the table — never delete. The user needs to know which schools require manual attention.
+- At minimum, all records **without** ⚠️ should have verified-openable links.
+
+**3. ⚠️ format examples:**
+- `⚠️Leeds Business School页面JS动态加载，浏览器可打开但内容未渲染。需手动验证。`
+- `⚠️Edinburgh页面反爬拦截，curl 403 + 浏览器 Cloudflare。需手动搜索。`
+- `⚠️McGill个人页重定向到搜索，API无此人数据。需手动确认。`
+
+## Excel Workflow
+
+(Existing Excel workflow remains unchanged)
+
+### Core Workflow
 
 1. Parse the student's profile, preferred research directions, hard exclusions, target regions/schools, ranking constraints, and any existing workbook/screenshot columns.
 2. **Detect the spreadsheet format** (see `references/spreadsheet-rules.md`): if the user provides a template, adopt its column structure. If not, use the default simplified format.
@@ -23,17 +124,17 @@ Build source-backed supervisor lists for doctoral applicants. Search current uni
 10. Put uncertain, excluded, weak-fit, stale, or unverified people in a separate `排除或待确认` / screening sheet, not the main table.
 11. Before delivery, run compact checks: no empty key links, no broken obvious links, no banned note phrases, no formula errors, and render a preview of every sheet.
 
-## Required Output Columns
+### Required Output Columns
 
 Two output formats are supported; see `references/spreadsheet-rules.md` for the full decision logic.
 
-### Simplified Format (default, no template provided)
+#### Simplified Format (default, no template provided)
 
 `导师`, `Location`, `学校名字`, `QS排名`, `美国USNEWS排名`, `Department`, `导师主页`, `博士申请信息`, `其他导师信息`, `备注`
 
 - `美国USNEWS排名`: **only include this column when US schools are present in the list.** When the entire list is non-US, omit it entirely.
 
-### Template Format (user provides an `.xlsx` template)
+#### Template Format (user provides an `.xlsx` template)
 
 Follow the template's exact column headers. The standard template uses:
 
@@ -44,7 +145,7 @@ Key rules for template format:
 - Non-US schools → fill `非美国学校` + `QS排名`; leave `美国学校` and `美国学校的Usnews排名` empty
 - Both `美国学校` and `非美国学校` can have data in the same spreadsheet but never in the same row
 
-## Search Standards
+### Search Standards
 
 - Browse current web pages for rankings, application links, staff lists, and profile pages.
 - Prefer official university pages. Use Google/search results only to discover a correct profile URL, then verify the official page.
@@ -58,7 +159,7 @@ Key rules for template format:
 - **For PhD program pages on unreachable subdomains**: check the graduate school domain (fytgs.{university}.edu.cn or gs.{university}.edu.cn) — these are often on the main university infrastructure and more accessible.
 - **Use parallel sub-agents** (`spawn_agent` with explorer type) for independent checks of different schools or domains. Give each a clear, self-contained task; continue your own verification work while they run.
 
-## Deep Discovery Pipeline
+### Deep Discovery Pipeline
 
 Do not stop at the first batch of results. Use this funnel to maximize coverage:
 
@@ -70,7 +171,7 @@ Do not stop at the first batch of results. Use this funnel to maximize coverage:
 
 Also see `references/search-techniques.md` for the full pipeline with code patterns.
 
-## Remarks Style
+### Remarks Style
 
 Default Chinese note format:
 
@@ -86,7 +187,7 @@ Examples:
 - `教授；文化遗产、建筑史、遗产保护；建筑遗产偏重。`
 - `助理教授（教学）；策展与艺术史、中欧艺术交流；教学岗风险。`
 
-## Workbook Shape
+### Workbook Shape
 
 For new or rebuilt lists, include:
 
@@ -97,7 +198,7 @@ For new or rebuilt lists, include:
 
 Highlight each newly added search round with a distinct pale color and describe the color meaning in the legend.
 
-## Existing Workbook Handling
+### Existing Workbook Handling
 
 When the user drops a template `.xlsx`:
 
