@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Introduction to phd-supervisor-selector Skill</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* ===========================================
+   FIXED 16:9 STAGE: MANDATORY BASE STYLES
+   =========================================== */
+:root {
+    --stage-bg: #1a1a2e;
+    --slide-bg: #faf8f5;
+    --amber: #e8a850;
+    --amber-dark: #c47a20;
+    --teal: #3b8b88;
+    --teal-light: #e8f4f3;
+    --rose: #d4687c;
+    --rose-light: #fdf0f2;
+    --night: #1a1a2e;
+    --ink: #2c2420;
+    --warm-gray: #6b5e53;
+    --cream: #faf8f5;
+    --card-border: #e8e0d5;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 24px rgba(0,0,0,0.08);
+}
+
+html, body {
+    width: 100%; height: 100%;
+    margin: 0; overflow: hidden;
+    background: var(--stage-bg);
+}
+
+.deck-viewport {
+    position: fixed; inset: 0;
+    overflow: hidden;
+    background: var(--stage-bg);
+}
+
+.deck-stage {
+    position: absolute; left: 0; top: 0;
+    width: 1920px; height: 1080px;
+    overflow: hidden;
+    transform-origin: 0 0;
+    background: var(--slide-bg);
+}
+
+.slide {
+    position: absolute; inset: 0;
+    width: 1920px; height: 1080px;
+    overflow: hidden; display: block;
+    visibility: hidden; opacity: 0;
+    pointer-events: none;
+    background: var(--slide-bg);
+}
+
+.slide.active, .slide.visible {
+    visibility: visible; opacity: 1;
+    pointer-events: auto; z-index: 1;
+}
+
+.deck-controls {
+    position: fixed; left: 50%; bottom: 32px;
+    transform: translateX(-50%); z-index: 1000;
+    display: flex; gap: 16px; align-items: center;
+}
+
+.deck-controls button {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff; font-size: 14px; padding: 8px 20px;
+    border-radius: 24px; cursor: pointer;
+    backdrop-filter: blur(8px);
+    font-family: 'Noto Sans SC', sans-serif;
+    transition: all 0.2s;
+}
+.deck-controls button:hover { background: rgba(255,255,255,0.25); }
+.deck-controls .page-num { color: rgba(255,255,255,0.6); font-size: 14px; font-family: 'Noto Sans SC', sans-serif; }
+
+@media print {
+    html, body { width: 1920px; height: auto; overflow: visible; background: #fff; }
+    .deck-viewport { position: static; overflow: visible; background: #fff; }
+    .deck-stage { position: static; width: auto; height: auto; transform: none !important; background: none; }
+    .slide { position: relative; display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; width: 1920px; height: 1080px; break-after: page; }
+    .slide:last-child { break-after: auto; }
+    .deck-controls { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+}
+
+/* ===========================================
+   PRESENTATION STYLES
+   =========================================== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body { word-break: keep-all; overflow-wrap: normal; }
+
+/* --- Slide 1: Title --- */
+.s1-title {
+    background: linear-gradient(160deg, #1a1a2e 0%, #2d2d4a 40%, #3a2a3a 100%);
+    display: flex; align-items: center; justify-content: center;
+}
+.s1-title .hero {
+    text-align: center; max-width: 1100px;
+    animation: fadeUp 0.8s ease-out;
+}
+.s1-title .badge {
+    display: inline-block;
+    background: rgba(232,168,80,0.15);
+    border: 1px solid rgba(232,168,80,0.4);
+    color: var(--amber);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 23px; font-weight: 700;
+    padding: 10px 28px; border-radius: 30px;
+    letter-spacing: 0.06em;
+    margin-bottom: 32px;
+}
+.s1-title h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 93px; font-weight: 700;
+    color: #faf8f5; line-height: 1.25;
+    letter-spacing: 0.03em;
+}
+.s1-title h1 span { color: var(--amber); }
+.s1-title .subtitle {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 31px; color: rgba(250,248,245,0.55);
+    margin-top: 24px; font-weight: 400;
+}
+.s1-title .ornament {
+    margin-top: 48px;
+    display: flex; gap: 16px; justify-content: center;
+}
+.s1-title .ornament span {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--amber); opacity: 0.6;
+}
+
+/* --- Content Slides --- */
+.slide-content { padding: 90px 110px; display: flex; flex-direction: column; height: 100%; justify-content: center; }
+
+.slide-num {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 18px; font-weight: 700;
+    color: var(--amber); letter-spacing: 0.1em;
+    margin-bottom: 16px;
+}
+.slide-content h2 {
+    text-wrap: balance;
+    word-break: keep-all;
+    overflow-wrap: normal;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 62px; font-weight: 700;
+    color: var(--ink); line-height: 1.3;
+    margin-bottom: 8px;
+}
+.slide-content h2 .hl { color: var(--amber); }
+.slide-content .lead {
+    text-wrap: pretty;
+    word-break: keep-all;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 26px; color: var(--warm-gray);
+    font-weight: 400; margin-bottom: 40px;
+    line-height: 1.5;
+}
+
+/* Cards */
+.card-row { display: flex; gap: 30px; flex: 0 1 auto; align-items: stretch; justify-content: center; }
+.card {
+    flex: 1; background: #fff; border-radius: 20px;
+    padding: 44px; border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-sm);
+    display: flex; flex-direction: column;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.card .emoji { font-size: 52px; margin-bottom: 16px; }
+.card h3 {
+    text-wrap: balance;
+    word-break: keep-all;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 28px; font-weight: 700; color: var(--ink);
+    margin-bottom: 8px;
+}
+.card p {
+    text-wrap: pretty;
+    word-break: keep-all;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 20px; color: var(--warm-gray);
+    line-height: 1.7; flex: 1;
+}
+
+/* Process flow */
+.flow-row {
+    display: flex; align-items: center; gap: 0;
+    justify-content: center; flex: 0 1 auto;
+    margin: 20px 0;
+}
+.flow-step {
+    text-align: center; flex: 1; max-width: 280px;
+    padding: 0 12px;
+}
+.flow-step .icon-circle {
+    width: 80px; height: 80px; border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 46px;
+}
+.flow-step .icon-circle.teal { background: var(--teal-light); }
+.flow-step .icon-circle.amber { background: rgba(232,168,80,0.15); }
+.flow-step .icon-circle.rose { background: var(--rose-light); }
+.flow-step h4 {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 23px; font-weight: 700; color: var(--ink);
+    margin-bottom: 8px;
+}
+.flow-step p {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 18px; color: var(--warm-gray);
+    line-height: 1.6;
+}
+.flow-arrow {
+    font-size: 36px; color: var(--amber); flex-shrink: 0;
+    margin: 0 -8px; margin-top: -30px;
+}
+
+/* Analogy box */
+.analogy {
+    background: linear-gradient(135deg, #fef9f0, #fdf5e8);
+    border: 1px solid rgba(232,168,80,0.25);
+    border-radius: 16px; padding: 32px 42px;
+    margin-top: 32px;
+    display: flex; align-items: center; gap: 28px;
+}
+.analogy .icon { font-size: 62px; flex-shrink: 0; }
+.analogy .text {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 23px; color: var(--ink); line-height: 1.7;
+}
+.analogy .text strong { color: var(--amber-dark); }
+
+/* Comparison table */
+.compare-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px; flex: 1;
+}
+.compare-card {
+    background: #fff; border-radius: 20px;
+    padding: 38px; border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-sm);
+}
+.compare-card .method-name {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 20px; font-weight: 700;
+    color: var(--amber); margin-bottom: 24px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+}
+.compare-card ul {
+    list-style: none; padding: 0;
+}
+.compare-card li {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 19px; color: var(--ink);
+    padding: 10px 0; border-bottom: 1px solid var(--card-border);
+    display: flex; align-items: center; gap: 10px;
+    line-height: 1.5;
+}
+.compare-card li:last-child { border-bottom: none; }
+.compare-card li .check { color: var(--teal); font-size: 23px; }
+.compare-card li .cross { color: var(--rose); font-size: 23px; }
+
+/* Summary strip */
+.summary-strip {
+    display: flex; gap: 20px; flex: 1;
+}
+.summary-item {
+    flex: 1; background: #fff; border-radius: 20px;
+    padding: 38px; border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+}
+.summary-item .big-num {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 72px; font-weight: 700; color: var(--amber);
+    line-height: 1;
+}
+.summary-item .label {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 20px; color: var(--warm-gray);
+    margin-top: 8px;
+}
+
+/* Animations */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.reveal { animation: fadeUp 0.6s ease-out both; }
+.reveal-d1 { animation-delay: 0.1s; }
+.reveal-d2 { animation-delay: 0.2s; }
+.reveal-d3 { animation-delay: 0.3s; }
+.reveal-d4 { animation-delay: 0.4s; }
+.reveal-d5 { animation-delay: 0.5s; }
+</style>
+</head>
+<body>
+
+<div class="deck-viewport">
+<div class="deck-stage">
+
+<!-- ====== SLIDE 1: TITLE ====== -->
+<div class="slide active s1-title">
+    <div class="hero">
+        <div class="badge reveal">🔍 幕后揭秘</div>
+        <h1 class="reveal reveal-d1" style="text-wrap:balance;word-break:keep-all;">Introduction to<br><span>phd-supervisor-selector</span> Skill</h1>
+        <p class="subtitle reveal reveal-d2">PhD 导师搜索到底怎么搜的 · 用大白话讲清楚 · 含改进方案</p>
+        <div class="ornament reveal reveal-d3">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+</div>
+
+<!-- ====== SLIDE 2: THE PROBLEM ====== -->
+<div class="slide">
+    <div class="slide-content">
+        <div class="slide-num reveal">01 / 08</div>
+        <h2 class="reveal reveal-d1">每个大学网站<br>都是一扇<span class="hl">不同的门</span></h2>
+        <p class="lead reveal reveal-d2">不是"搜个关键词就行"——得想办法敲开每扇门</p>
+
+        <div class="card-row reveal reveal-d3" style="flex:1;">
+            <div class="card">
+                <div class="emoji">🏰</div>
+                <h3>没有统一入口</h3>
+                <p>100 所大学，100 种网站系统。WordPress、Pure 平台、自研系统——每家都不一样。</p>
+            </div>
+            <div class="card">
+                <div class="emoji">🛡️</div>
+                <h3>各种"门禁"</h3>
+                <p>Cloudflare 防火墙、JS 动态加载、反爬虫检测——戒备比想象中森严得多。</p>
+            </div>
+            <div class="card">
+                <div class="emoji">📋</div>
+                <h3>不能只看不验</h3>
+                <p>找到名字 ≠ 找到导师。必须验证页面、确认方向、判断是否带博——每一步都要核对。</p>
+            </div>
+        </div>
+
+        <div class="analogy reveal reveal-d4">
+            <div class="icon">💡</div>
+            <div class="text"><strong>打个比方：</strong>给 100 个不同小区送快递<br>每个小区门禁都不一样<br>刷脸、密码、按门铃等保安——没有万能钥匙</div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== SLIDE 3: THE PIPELINE ====== -->
+<div class="slide">
+    <div class="slide-content">
+        <div class="slide-num reveal">02 / 08</div>
+        <h2 class="reveal reveal-d1">不是"关键词搜索"<br>是<span class="hl">五层漏斗</span></h2>
+        <p class="lead reveal reveal-d2">从广撒网到精筛选，层层递进</p>
+
+        <div class="flow-row reveal reveal-d3" style="flex:1;">
+            <div class="flow-step">
+                <div class="icon-circle teal">🌐</div>
+                <h4>全量抓取</h4>
+                <p>API 或网页拉取<br>整个院系全部教员</p>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="icon-circle amber">🔬</div>
+                <h4>关键词过滤</h4>
+                <p>按学历、方向、关键词<br>筛掉不相关的人</p>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="icon-circle rose">⭐</div>
+                <h4>优先排序</h4>
+                <p>按匹配度排名<br>考虑相邻院系</p>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="icon-circle teal">🔗</div>
+                <h4>页面验证</h4>
+                <p>打开个人页<br>确认姓名职称方向</p>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="icon-circle amber">📝</div>
+                <h4>人工判断</h4>
+                <p>排除教学岗退休不匹配<br>最终定表</p>
+            </div>
+        </div>
+
+        <div class="analogy reveal reveal-d4">
+            <div class="icon">🪣</div>
+            <div class="text"><strong>打个比方：</strong>不是"去百度搜 PhD 导师"<br>而是拿到全校老师名单→按方向筛→逐个验证主页→挑出合适的<br>关键词搜索只是其中一步，不是全部</div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== SLIDE 4: FIVE WEAPONS ====== -->
+<div class="slide">
+    <div class="slide-content">
+        <div class="slide-num reveal">03 / 08</div>
+        <h2 class="reveal reveal-d1">实际用的<span class="hl">五招</span><br>从温柔到暴力</h2>
+        <p class="lead reveal reveal-d2">根据每个网站的性格，选择不同策略</p>
+
+        <div class="card-row reveal reveal-d3" style="flex-wrap: wrap;">
+            <div class="card" style="min-width: 340px;">
+                <div class="emoji">🚪 第一招</div>
+                <h3>直接敲门 · curl 请求</h3>
+                <p>伪装浏览器身份直接访问 staff 页面，解析 HTML 提取人名链接。对老老实实用服务器渲染的站最有效。</p>
+            </div>
+            <div class="card" style="min-width: 340px;">
+                <div class="emoji">🗝️ 第二招</div>
+                <h3>找后门 · JS API 挖掘</h3>
+                <p>下载 JS 文件，搜索 API 地址，找到真正的数据接口——绕过壳子直接拿 JSON。</p>
+            </div>
+        </div>
+        <div class="card-row reveal reveal-d4" style="flex-wrap: wrap; margin-top: 0;">
+            <div class="card" style="min-width: 340px;">
+                <div class="emoji">📖 第三招</div>
+                <h3>搜索引擎按名索骥</h3>
+                <p>拿到导师名字+学校 → 直接搜索引擎搜 "[名字] [学校] professor" → 获取真实存活 URL → curl + 浏览器验证。</p>
+            </div>
+            <div class="card" style="min-width: 340px;">
+                <div class="emoji">🤖 第四招</div>
+                <h3>智能分配·多个子智能体并行处理</h3>
+                <p>同时分配多个 AI 子智能体分头搜索不同学校，最后汇总——速度翻倍。</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== SLIDE 5: DEEP DISCOVERY ====== -->
+<div class="slide">
+    <div class="slide-content">
+        <div class="slide-num reveal">04 / 08</div>
+        <h2 class="reveal reveal-d1">不是搜到就停<br>而是<span class="hl">越挖越深</span></h2>
+        <p class="lead reveal reveal-d2">Deep Discovery Pipeline —— 每个学校都挖到不能再挖为止</p>
+
+        <div class="card-row reveal reveal-d3" style="flex:1;">
+            <div class="card" style="background: var(--teal-light); border-color: rgba(59,139,136,0.2);">
+                <div class="emoji">🔁</div>
+                <h3>按需回查</h3>
+                <p>不在每轮搜索中自动重试 404——只在用户明确要求或有关键信号（新学年、网站改版）时才回查，避免浪费 token。</p>
+            </div>
+            <div class="card" style="background: rgba(232,168,80,0.08); border-color: rgba(232,168,80,0.2);">
+                <div class="emoji">🌿</div>
+                <h3>跨院系联想</h3>
+                <p>不只搜"服装系"，还搜人类学、文化研究、设计史——导师可能藏在隔壁院系。</p>
+            </div>
+            <div class="card" style="background: var(--rose-light); border-color: rgba(212,104,124,0.2);">
+                <div class="emoji">🏷️</div>
+                <h3>隐藏标签点击</h3>
+                <p>自动点击页面隐藏 tab（Research Interest、Publications）——关键信息常藏在折叠面板后。</p>
+            </div>
+        </div>
+
+        <div class="card-row reveal reveal-d4" style="flex:1; margin-top: 0;">
+            <div class="card" style="background: rgba(59,139,136,0.06); border-color: rgba(59,139,136,0.15);">
+                <div class="emoji">🧪</div>
+                <h3>备用域名探测</h3>
+                <p>主站打不开？试试研究生院、研究门户子域名——同一大学不同系统防护等级不同。</p>
+            </div>
+            <div class="card" style="background: rgba(232,168,80,0.06); border-color: rgba(232,168,80,0.15);">
+                <div class="emoji">📊</div>
+                <h3>API 批量拉取</h3>
+                <p>找到 API 后一次拉全部数据到本地筛——不翻页不逐页爬，效率高几十倍。</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== SLIDE 6: WHAT HAPPENS WHEN BLOCKED ====== -->
+<div class="slide">
+    <div class="slide-content">
+        <div class="slide-num reveal">05 / 08</div>
+        <h2 class="reveal reveal-d1">遇到<span class="hl">盾牌</span>怎么办？<br>不放弃，也不死磕</h2>
+        <p class="lead reveal reveal-d2">Cloudflare 反爬、JS 渲染壳、403 拦截……每种都有对应策略</p>
+
+        <div class="card-row reveal reveal-d3" style="flex:1;">
+            <div class="card">
+                <div class="emoji">🛡️ Cloudflare</div>
+                <h3>换路径</h3>
+                <p>主站被拦 → 试试 Pure 研究门户、研究生院、ePrints。同校不同系统防护不同。</p>
+            </div>
+            <div class="card">
+                <div class="emoji">💻 JS 渲染壳</div>
+                <h3>找 API</h3>
+                <p>下载 JS 搜 api、endpoint、baseUrl——找到真正的数据接口，绕过壳子拿 JSON。</p>
+            </div>
+            <div class="card">
+                <div class="emoji">🚫 全部失败</div>
+                <h3>标记⚠️不删</h3>
+                <p>彻底打不开的保留在表中标注 "⚠️需手动验证"——不让任何候选人遗漏。</p>
+            </div>
+        </div>
+
+        <div class="analogy reveal reveal-d4">
+            <div class="icon">🏋️</div>
+            <div class="text"><strong>核心韧性：</strong>搜索引擎优先找 URL → curl 验证 → 浏览器模拟人确认内容 → JS 渲染站挖 API → 全失败标记 ⚠️。<strong>不删任何候选人</strong>，学生知道哪些需要手动确认。</div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== SLIDE 7: COMPARISON ====== -->
+<div class="slide">
+    <div class="slide-content">
+        <div class="slide-num reveal">06 / 08</div>
+        <h2 class="reveal reveal-d1">和"关键词搜索"<br><span class="hl">有什么不同</span>？</h2>
+        <p class="lead reveal reveal-d2">三列对比，一目了然</p>
+
+        <div class="compare-grid reveal reveal-d3" style="flex:1;">
+            <div class="compare-card">
+                <div class="method-name">🔤 普通关键词搜索</div>
+                <ul>
+                    <li><span class="cross">✗</span> 只返回有 SEO 的页面</li>
+                    <li><span class="cross">✗</span> 无法穿透 JS 渲染站</li>
+                    <li><span class="cross">✗</span> 不验证页面真伪</li>
+                    <li><span class="cross">✗</span> 不判断是否带博</li>
+                    <li><span class="cross">✗</span> 重复结果多、遗漏多</li>
+                </ul>
+            </div>
+            <div class="compare-card" style="border: 2px solid var(--amber); box-shadow: var(--shadow-md);">
+                <div class="method-name">🦾 phd-supervisor-selector</div>
+                <ul>
+                    <li><span class="check">✓</span> 搜索引擎搜名+校名找真实 URL</li>
+                    <li><span class="check">✓</span> 挖 JS API + 浏览器验证</li>
+                    <li><span class="check">✓</span> 逐页验证姓名/职称/方向</li>
+                    <li><span class="check">✓</span> 人工判断是否可带博</li>
+                    <li><span class="check">✓</span> 模拟人操作浏览器验证页面</li>
+                    <li><span class="check">✓</span> 去重 + 排除 + 备注 + 分类</li>
+                </ul>
+            </div>
+            <div class="compare-card">
+                <div class="method-name">🕸️ 传统爬虫</div>
+                <ul>
+                    <li><span class="check">✓</span> 能批量抓取</li>
+                    <li><span class="cross">✗</span> 遇到 Cloudflare 就死</li>
+                    <li><span class="cross">✗</span> 不会自己找 API</li>
+                    <li><span class="cross">✗</span> 不理解研究方向含义</li>
+                    <li><span class="cross">✗</span> 不会判断匹配度</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="analogy reveal reveal-d4">
+            <div class="icon">🎯</div>
+            <div class="text"><strong>本质区别：</strong>关键词搜索 = 在商场门口发传单。phd-supervisor-selector = 拿着学生简历，去每个院系办公室敲门问"你们这儿有没有合适带博士的老师？"——<strong>有目标、有判断、有验证</strong>。</div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== SLIDE 8: QUALITY CONTROL ====== -->
+<div class="slide">
+    <div class="slide-content">
+        <div class="slide-num reveal">07 / 08</div>
+        <h2 class="reveal reveal-d1">不止是搜<br>还要<span class="hl">品控</span></h2>
+        <p class="lead reveal reveal-d2">搜到的候选人要经过多道关卡才能进入正式推荐表</p>
+
+        <div class="card-row reveal reveal-d3" style="flex:1;">
+            <div class="card">
+                <div class="emoji">✅</div>
+                <h3>主页必须能打开</h3>
+                <p>不是 200 状态码就行——页面内容必须包含导师名字、职称、院系信息。空的 JS 壳不算。</p>
+            </div>
+            <div class="card">
+                <div class="emoji">🔗</div>
+                <h3>三个链接都要有</h3>
+                <p>导师主页 + 博士申请页 + 院系教员列表——每个候选人都配齐三个独立验证过的链接。</p>
+            </div>
+            <div class="card">
+                <div class="emoji">📝</div>
+                <h3>备注只写事实</h3>
+                <p>不写"完美匹配""高度推荐"——只写客观信息：职称、研究关键词、风险提示。让学生自己判断。</p>
+            </div>
+        </div>
+        <div class="card-row reveal reveal-d4" style="flex:1; margin-top: 0;">
+            <div class="card" style="background: rgba(212,104,124,0.06); border-color: rgba(212,104,124,0.2);">
+                <div class="emoji">🗑️</div>
+                <h3>不合格的进排除表</h3>
+                <p>教学岗、退休、方向不匹配、页面打不开——不直接删除，而是移到"排除或待确认"表，理由写清楚。</p>
+            </div>
+            <div class="card" style="background: rgba(232,168,80,0.06); border-color: rgba(232,168,80,0.2);">
+                <div class="emoji">🎨</div>
+                <h3>每轮搜索标颜色</h3>
+                <p>新增的导师用浅色高亮标记，说明表里解释每种颜色代表哪一轮搜索——清楚追溯。</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ====== SLIDE 9: IMPROVEMENTS OVERVIEW ====== -->
+<div class="slide">
+    <div class="slide-content">
+        <div class="slide-num reveal">08 / 11</div>
+        <h2 class="reveal reveal-d1">这套流程<br><span class="hl">还能怎么优化</span>？</h2>
+        <p class="lead reveal reveal-d2">量大管饱 · 匹配准确 · 链接可验证</p>
+
+        <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
+            <div class="card" style="background: rgba(232,168,80,0.06); border-color: rgba(232,168,80,0.2);">
+                <div class="emoji">🔄</div>
+                <h3>每次重新探路</h3>
+                <p>搜同一个学校，每次都要重新试 URL、找 API、猜路径——浪费时间。</p>
+            </div>
+            <div class="card" style="background: var(--teal-light); border-color: rgba(59,139,136,0.2);">
+                <div class="emoji">🐢</div>
+                <h3>子代理不够多</h3>
+                <p>只用 1 个子代理串行搜索，等它跑完才能看结果——速度太慢。</p>
+            </div>
+            <div class="card" style="background: var(--rose-light); border-color: rgba(212,104,124,0.2);">
+                <div class="emoji">🔒</div>
+                <h3>只盯大学官网</h3>
+                <p>官网被 Cloudflare 挡了就束手无策——其实还有 ORCID、Scholar 等渠道。</p>
+            </div>
+        </div>
+        <div class="card-row reveal reveal-d4" style="flex:0 1 auto; margin-top:12px;">
+            <div class="card" style="background: rgba(59,139,136,0.04); border-color: rgba(59,139,136,0.12);">
+                <div class="emoji">👀</div>
+                <h3>匹配靠人眼</h3>
+                <p>搜回来手动看研究方向是否匹配——量大时很吃力。</p>
+            </div>
+            <div class="card" style="background: rgba(232,168,80,0.04); border-color: rgba(232,168,80,0.12);">
+                <div class="emoji">🔗</div>
+                <h3>链接逐个验</h3>
+                <p>交付前不批量验证——可能漏掉死链。</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== SLIDE 10: P0 IMPROVEMENTS ====== -->
+<div class="slide">
+    <div class="slide-content">
+        <div class="slide-num reveal">09 / 11</div>
+        <h2 class="reveal reveal-d1">优先改进 P0<br><span class="hl">成本最低 · 收益最大</span></h2>
+        <p class="lead reveal reveal-d2">立即可做，马上见效</p>
+
+        <div class="card-row reveal reveal-d3" style="flex:0 1 auto; min-height: 320px;">
+            <div class="card" style="flex: 1.2; border: 2px solid rgba(232,168,80,0.4); box-shadow: 0 6px 28px rgba(232,168,80,0.12);">
+                <div class="emoji">🗂️</div>
+                <h3>大学档案库</h3>
+                <p>给每个常见大学建一张"策略卡"：记住它的网站类型、最佳访问方式、已知 API 端点。下次搜同一学校不用重新踩坑——直接走已知路径。</p>
+            </div>
+            <div class="card" style="flex: 1; border: 2px solid rgba(59,139,136,0.4); box-shadow: 0 6px 28px rgba(59,139,136,0.12);">
+                <div class="emoji">🚀</div>
+                <h3>子代理并行 × 10</h3>
+                <p>每个学校分配一个独立子智能体，5-10 个同时跑。互不干扰，主代理只负责汇总——速度翻 5-10 倍。</p>
+            </div>
+        </div>
+
+        <div class="analogy reveal reveal-d4" style="margin-top: 28px;">
+            <div class="icon">⚡</div>
+            <div class="text"><strong>以前：</strong>一个人拿着一张地图，挨家挨户跑。<br><strong>以后：</strong>同时派出 10 个人，每人拿着一张写了"这家的门怎么开"的攻略卡。</div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== SLIDE 11: P1 IMPROVEMENTS ====== -->
+<div class="slide">
+    <div class="slide-content">
+        <div class="slide-num reveal">10 / 11</div>
+        <h2 class="reveal reveal-d1">后续改进 P1<br><span class="hl">新渠道 · 新能力</span></h2>
+        <p class="lead reveal reveal-d2">需要一些开发，但提升显著</p>
+
+        <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
+            <div class="card">
+                <div class="emoji">🌐</div>
+                <h3>ORCID 公开 API</h3>
+                <p>学者自己维护的研究方向 + 机构信息，结构化 JSON 数据——绕过大学防火墙，从学者侧发现候选人。</p>
+            </div>
+            <div class="card">
+                <div class="emoji">📚</div>
+                <h3>Semantic Scholar</h3>
+                <p>免费学术 API，按研究领域检索学者——覆盖面广，不受学校反爬影响。</p>
+            </div>
+            <div class="card">
+                <div class="emoji">🔗</div>
+                <h3>批量链接健康检查</h3>
+                <p>搜完后对所有候选人主页做一次 HEAD 请求，一次性标出死链——交付前确保可打开。</p>
+            </div>
+        </div>
+        <div class="card-row reveal reveal-d4" style="flex:0 1 auto; margin-top:12px;">
+            <div class="card" style="background: rgba(212,104,124,0.06); border-color: rgba(212,104,124,0.2);">
+                <div class="emoji">🎯</div>
+                <h3>自动匹配度打分</h3>
+                <p>用学生方向关键词跟导师研究描述做相似度计算——量大时自动筛，人工只看高分候选。</p>
+            </div>
+            <div class="card" style="background: rgba(59,139,136,0.06); border-color: rgba(59,139,136,0.2);">
+                <div class="emoji">🧠</div>
+                <h3>跨院系智能推荐</h3>
+                <p>不只搜本专业——自动联想相关院系（人类学→物质文化、文化研究→批判时尚），拓宽候选人池。</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== SLIDE 12: SUMMARY ====== -->
+<div class="slide">
+    <div class="slide-content">
+        <div class="slide-num reveal">11 / 11</div>
+        <h2 class="reveal reveal-d1">一句话总结</h2>
+        <p class="lead reveal reveal-d2" style="font-size: 31px; max-width: 1100px;">不是"输入关键词等结果"的搜索引擎——<br>而是一个<span style="color: var(--amber); font-weight: 700;">模拟人类研究员</span>的 AI 工具：<br>会敲门、会绕路、会验证、会判断。</p>
+
+        <div class="summary-strip reveal reveal-d3" style="margin-top: 48px;">
+            <div class="summary-item">
+                <div class="big-num">5</div>
+                <div class="label">种搜索策略</div>
+            </div>
+            <div class="summary-item">
+                <div class="big-num">100+</div>
+                <div class="label">所大学覆盖</div>
+            </div>
+            <div class="summary-item">
+                <div class="big-num">⚠️</div>
+                <div class="label">不放弃被封的站</div>
+            </div>
+            <div class="summary-item">
+                <div class="big-num">📋</div>
+                <div class="label">主表 + 排除表双轨</div>
+            </div>
+        </div>
+
+        <div class="analogy reveal reveal-d4" style="margin-top: 36px; background: linear-gradient(135deg, #e8f4f3, #fef9f0); border: 2px solid rgba(59,139,136,0.3);">
+            <div class="icon">🧠</div>
+            <div class="text" style="font-size: 26px;"><strong>它的定位：</strong>不是搜索引擎，不是爬虫——是一个<strong>有判断力的研究助理</strong>。知道什么方向匹配、什么导师有风险、什么网站该放弃。搜得聪明，而不是搜得多。</div>
+        </div>
+    </div>
+</div>
+
+</div><!-- /deck-stage -->
+</div><!-- /deck-viewport -->
+
+<!-- Controls -->
+<div class="deck-controls">
+    <button onclick="prevSlide()">← 上一页</button>
+    <span class="page-num" id="pageNum">1 / 8</span>
+    <button onclick="nextSlide()">下一页 →</button>
+</div>
+
+<script>
+/* ===========================================
+   DECK SCALING + NAVIGATION
+   =========================================== */
+const stage = document.querySelector('.deck-stage');
+const slides = document.querySelectorAll('.slide');
+let current = 0;
+
+function fitStage() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const scaleX = vw / 1920;
+    const scaleY = vh / 1080;
+    const scale = Math.min(scaleX, scaleY);
+    const x = (vw - 1920 * scale) / 2;
+    const y = (vh - 1080 * scale) / 2;
+    stage.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+}
+
+function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = n;
+    slides[current].classList.add('active');
+    // Re-trigger animations
+    slides[current].querySelectorAll('.reveal').forEach(el => {
+        el.style.animation = 'none';
+        el.offsetHeight;
+        el.style.animation = '';
+    });
+    document.getElementById('pageNum').textContent = `${current + 1} / ${slides.length}`;
+}
+
+function nextSlide() { showSlide((current + 1) % slides.length); }
+function prevSlide() { showSlide((current - 1 + slides.length) % slides.length); }
+
+fitStage();
+window.addEventListener('resize', fitStage);
+document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+});
+</script>
+
+</body>
+</html>
