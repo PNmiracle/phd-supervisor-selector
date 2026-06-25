@@ -145,7 +145,18 @@ Key rules for template format:
 - Non-US schools → fill `非美国学校` + `QS排名`; leave `美国学校` and `美国学校的Usnews排名` empty
 - Both `美国学校` and `非美国学校` can have data in the same spreadsheet but never in the same row
 
-### Search Standards
+### URL Placement Rules
+
+When filling `导师主页`, `博士申请信息`, `其他导师信息`:
+
+- **`导师主页`**: Prefer the **official school/department page** that lists the supervisor (e.g., faculty directory, department staff page, lab team page). This is more stable and authoritative than a personal lab website.
+- **个人主页** (personal lab/Google Scholar/ResearchGate): if more informative than the official page, put it here, but also **append the personal URL to `备注`** so it's not lost.
+- **`博士申请信息`**: Always use the official graduate school or department PhD program page.
+- **`其他导师信息`**: Official staff directory or supervisor list for the same department/school.
+
+If only a personal page is available, use it for `导师主页` and note `⚠️仅有个人主页，无官方院系页面。` in 备注.
+
+## Search Standards
 
 - Browse current web pages for rankings, application links, staff lists, and profile pages.
 - Prefer official university pages. Use Google/search results only to discover a correct profile URL, then verify the official page.
@@ -175,15 +186,17 @@ Also see `references/search-techniques.md` for the full pipeline with code patte
 
 Default Chinese note format:
 
-`职称；研究关键词；匹配/风险。`
+`职称；研究关键词；风险/注意事项。`
 
-Keep remarks short and specific. Do not use filler such as `主页写明`, `公开资料`, `方向集中在`, `方向一优先`, `方向二备选`, or similar ranking labels. If the user asks for Chinese-only notes, avoid English in the `备注` column.
+Keep remarks short and specific. **Never use subjective evaluation phrases** such as `高度匹配`, `很匹配`, `完美匹配`, `方向非常契合`, or any similar judgment — these are misleading and risky. Describe facts, not opinions.
 
-When a user asks for a friendly evaluation phrase such as `很匹配，这个可以关注下～`, still source the first two parts from the supervisor homepage: `职称；研究方向；简短评价语。` Use the requested phrase for clear matches, but keep concise risk signals for teaching, adjunct, research-only, stale, 404, or supervision-uncertain profiles.
+Do not use filler such as `主页写明`, `公开资料`, `方向集中在`, `方向一优先`, `方向二备选`, or similar ranking labels. If the user asks for Chinese-only notes, avoid English in the `备注` column.
+
+Keep concise risk signals for teaching, adjunct, research-only, stale, 404, or supervision-uncertain profiles.
 
 Examples:
 
-- `副教授；博物馆研究、装饰艺术、珍奇柜；高度匹配。`
+- `副教授；博物馆研究、装饰艺术、珍奇柜；教学岗待确认。`
 - `教授；文化遗产、建筑史、遗产保护；建筑遗产偏重。`
 - `助理教授（教学）；策展与艺术史、中欧艺术交流；教学岗风险。`
 
