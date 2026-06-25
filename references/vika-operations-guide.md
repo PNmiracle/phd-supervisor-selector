@@ -7,6 +7,12 @@ Complete guide for all common Vika table operations via Fusion API. All patterns
 ## 0. Quick Setup (Token + Datasheet)
 
 > 🔐 **Token security**: Never paste your API token into the chat. Set it in terminal:
+>
+> **One-time (persists across all chats):**
+> ```bash
+> echo 'export VIKA_TOKEN=uskXXXXXX' >> ~/.zshrc && source ~/.zshrc
+> ```
+> **Temporary (current chat only):**
 > ```bash
 > echo 'export VIKA_TOKEN=uskXXXXXX' > .vika_env && source .vika_env
 > ```
