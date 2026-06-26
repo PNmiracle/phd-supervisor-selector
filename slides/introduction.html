@@ -582,7 +582,7 @@ body { word-break:keep-all; overflow-wrap:normal }
 
 <div class="deck-controls">
   <button onclick="prevSlide()">← 上一页</button>
-  <span class="page-num" id="pageNum">1 / 15</span>
+  <span style="color:rgba(255,255,255,0.35);font-size:13px;margin-right:4px;">按 E 编辑</span><span class="page-num" id="pageNum">1 / 15</span>
   <button onclick="nextSlide()">下一页 →</button>
 </div>
 
@@ -590,6 +590,26 @@ body { word-break:keep-all; overflow-wrap:normal }
 const stage=document.querySelector('.deck-stage')
 const slides=document.querySelectorAll('.slide')
 let current=0
+
+let editMode = false;
+document.addEventListener('keydown', e => {
+  if (e.key === 'e' && !e.ctrlKey && !e.metaKey && !e.target.isContentEditable) {
+    e.preventDefault();
+    editMode = !editMode;
+    document.querySelectorAll('.slide-content h2, .slide-content .lead, .card h3, .card p, .analogy .text, .flow-step h4, .flow-step p, .compare-card li, .step-card h3, .step-card p, .summary-item .label')
+      .forEach(el => { el.contentEditable = editMode; el.style.outline = editMode ? '2px dashed var(--amber)' : ''; });
+    document.body.style.cursor = editMode ? 'text' : '';
+  }
+  if (e.key === 's' && (e.ctrlKey || e.metaKey) && editMode) {
+    e.preventDefault();
+    editMode = false;
+    document.querySelectorAll('[contenteditable]').forEach(el => { el.contentEditable = false; el.style.outline = ''; });
+    document.body.style.cursor = '';
+    const blob = new Blob([document.documentElement.outerHTML], {type:'text/html'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'slides-edited.html'; a.click();
+  }
+});
+
 function fitStage(){
   const vw=window.innerWidth,vh=window.innerHeight
   const scale=Math.min(vw/1920,vh/1080)
