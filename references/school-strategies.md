@@ -31,12 +31,11 @@ Update format: `YYYY-MM-DD: {what worked} | {what failed}`
 ### 🇬🇧 United Kingdom
 
 #### University of the Arts London (UAL)
-- **Architecture**: Pure Portal
-- **Access**: `curl` → Pure API JSON
-- **Key endpoint**: `https://researchers.arts.ac.uk/portal/en/persons/?format=json`
-- **Notes**: Each college has separate Pure instance. Search per college.
-- **Failed**: — (first try worked)
-- **Last verified**: (fill after search)
+- **Architecture**: Pure Portal (JS-rendered)
+- **Access**: `curl` returns empty HTML shell (4150 bytes). **Correct approach**: Google search `site:researchers.arts.ac.uk [name]` → click first result in browser.
+- **Key endpoint**: Profile URLs use format `https://researchers.arts.ac.uk/{numeric-id}-{slug}` (NOT `/en/persons/{slug}`)
+- **Failed**: `?format=json` does NOT work on UAL Pure; `/en/persons/{slug}` returns 404; `curl` alone cannot extract data
+- **Last verified**: 2026-06-26
 
 #### Royal College of Art (RCA)
 - **Architecture**: —
