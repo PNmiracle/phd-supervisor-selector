@@ -32,7 +32,11 @@ Updated: {ISO timestamp}
 - https://www.kingston.ac.uk/staff/profiles/design/
 - https://www.southampton.ac.uk/art/research/staff.page
 
-## Successful Strategies (reuse for similar schools)
+## Successful Strategies (also update school-strategies.md)
+> After discovering a working strategy for a school, record it BOTH here AND in `references/school-strategies.md` for long-term reuse across different students.
+
+> 💡 **Before trying access methods from scratch, check `references/school-strategies.md` first.** It records which architecture each school uses (Pure Portal, Vue SPA, Static HTML, etc.) and which access method worked. If the school is in the registry, use the recorded strategy. If not, record your findings after the search.
+
 - Pure portal API: https://pure.ual.ac.uk/portal/en/persons/?format=json
 - Vue SPA faculty list: pattern found in app.js → /api/faculty/page
 - Simple HTML parse: worktribe.com staff profiles
@@ -168,6 +172,7 @@ When the same student comes back for a "refresh" search:
 
 ## 7. Optimization Principles
 
+- **Check school-strategies.md first**: Before accessing a school, look it up in the registry. Known architecture → known approach → no wasted attempts.
 - **Cache aggressively**: Store working API endpoints, URL patterns, department names
 - **Fail fast**: If 3 attempts to access a school fail, mark `blocked` and move on. Come back at the end.
 - **Batch writes**: Fill the spreadsheet in batches of 5-10, not one by one
