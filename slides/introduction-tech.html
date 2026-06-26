@@ -3,140 +3,127 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>phd-supervisor-selector — Light Tech</title>
-<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>phd-supervisor-selector — Technical Docs</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
 <style>
 /* ===========================================
-   LIGHT TECH — Clean, geometric, monospace-inspired
-   Like Stripe Docs × Linear × Vercel
+   TECHNICAL DOCS — Clean, structured, monospace-driven
+   Like Apple HIG × GitHub Docs × Stripe API Reference
    =========================================== */
 :root {
-    --bg-primary: #ffffff;
-    --bg-wash: #f8f9fb;
+    --bg-page: #fafbfc;
     --bg-card: #ffffff;
-    --border-light: #e5e7eb;
-    --border-medium: #d1d5db;
-    --accent: #4f46e5;
-    --accent-soft: #eef2ff;
-    --accent-warm: #f59e0b;
-    --text-primary: #111827;
-    --text-secondary: #4b5563;
-    --text-muted: #9ca3af;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-    --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
-    --radius: 10px;
-    --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
-    --font-display: 'Satoshi', 'Inter', 'Noto Sans SC', sans-serif;
-    --stage-bg: #f1f5f9;
+    --border: #d0d7de;
+    --border-muted: #e8ecf0;
+    --accent: #0969da;
+    --accent-soft: #ddf4ff;
+    --text: #1f2328;
+    --text-secondary: #656d76;
+    --text-muted: #8b949e;
+    --shadow: 0 1px 0 rgba(31,35,40,0.04);
+    --radius: 6px;
+    --mono: 'JetBrains Mono','SF Mono','Fira Code',monospace;
+    --sans: 'Noto Sans SC','Inter',system-ui,sans-serif;
+    --serif: 'Noto Serif SC','Georgia',serif;
 }
 
-html, body { width:100%; height:100%; margin:0; overflow:hidden; background:var(--stage-bg) }
-.deck-viewport { position:fixed; inset:0; overflow:hidden; background:var(--stage-bg) }
-.deck-stage { position:absolute; left:0; top:0; width:1920px; height:1080px; overflow:hidden; transform-origin:0 0; background:var(--bg-primary) }
-.slide { position:absolute; inset:0; width:1920px; height:1080px; overflow:hidden; display:block; visibility:hidden; opacity:0; pointer-events:none; background:var(--bg-primary) }
+html, body { width:100%; height:100%; margin:0; overflow:hidden; background:#f6f8fa }
+.deck-viewport { position:fixed; inset:0; overflow:hidden; background:#f6f8fa }
+.deck-stage { position:absolute; left:0; top:0; width:1920px; height:1080px; overflow:hidden; transform-origin:0 0; background:var(--bg-page) }
+.slide { position:absolute; inset:0; width:1920px; height:1080px; overflow:hidden; display:block; visibility:hidden; opacity:0; pointer-events:none; background:var(--bg-page) }
 .slide.active,.slide.visible { visibility:visible; opacity:1; pointer-events:auto; z-index:1 }
-.deck-controls { position:fixed; left:50%; bottom:32px; transform:translateX(-50%); z-index:1000; display:flex; gap:14px; align-items:center }
-.deck-controls button { background:var(--bg-primary); border:1px solid var(--border-light); color:var(--text-primary); font-size:15px; padding:8px 20px; border-radius:8px; cursor:pointer; font-family:var(--font-display); font-weight:500; transition:all .2s; box-shadow:var(--shadow-sm) }
-.deck-controls button:hover { border-color:var(--accent); box-shadow:var(--shadow-md) }
-.deck-controls .page-num { color:var(--text-muted); font-size:15px; font-family:var(--font-mono); font-weight:500 }
+.deck-controls { position:fixed; left:50%; bottom:32px; transform:translateX(-50%); z-index:1000; display:flex; gap:8px; align-items:center }
+.deck-controls button { background:var(--bg-card); border:1px solid var(--border); color:var(--text); font-size:14px; padding:6px 16px; border-radius:6px; cursor:pointer; font-family:var(--sans); font-weight:500; transition:all .15s }
+.deck-controls button:hover { background:#f3f4f6; border-color:var(--accent) }
+.deck-controls .page-num { font-family:var(--mono); font-size:13px; color:var(--text-muted) }
 
-@media print {
-  html,body { width:1920px; height:auto; overflow:visible; background:#fff }
-  .deck-viewport { position:static; overflow:visible; background:#fff }
-  .deck-stage { position:static; width:auto; height:auto; transform:none!important; background:none }
-  .slide { position:relative; display:block!important; visibility:visible!important; opacity:1!important; pointer-events:auto!important; width:1920px; height:1080px; break-after:page }
-  .slide:last-child { break-after:auto }
-  .deck-controls { display:none!important }
-}
+@media print { /* standard print reset */ }
 @media (prefers-reduced-motion:reduce) { *,:before,:after { animation-duration:.01ms!important; transition-duration:.2s!important } }
 
 /* ===========================================
-   LIGHT TECH PRESENTATION STYLES
+   STYLES
    =========================================== */
 * { box-sizing:border-box; margin:0; padding:0 }
-body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:normal; -webkit-font-smoothing:antialiased }
-.slide-content { padding:80px 100px; display:flex; flex-direction:column; height:100%; justify-content:center }
-.slide-num { font-family:var(--font-mono); font-size:16px; font-weight:600; color:var(--accent); letter-spacing:.06em; margin-bottom:14px; text-transform:uppercase }
-.slide-content h2 { font-family:var(--font-display); font-size:60px; font-weight:700; color:var(--text-primary); line-height:1.2; margin-bottom:10px; text-wrap:balance; word-break:keep-all; letter-spacing:-.01em }
-.slide-content h2 .hl { color:var(--accent) }
-.slide-content .lead { font-family:var(--font-display); font-size:26px; color:var(--text-secondary); font-weight:400; margin-bottom:34px; line-height:1.5; text-wrap:pretty; word-break:keep-all }
-.card-row { display:flex; gap:24px; flex:0 1 auto; align-items:stretch; justify-content:center }
-.card { flex:1; background:var(--bg-card); border-radius:var(--radius); padding:40px; border:1px solid var(--border-light); box-shadow:var(--shadow-sm); display:flex; flex-direction:column; position:relative }
-.card .emoji { font-size:42px; margin-bottom:16px; color:var(--accent) }
-.card h3 { font-family:var(--font-display); font-size:28px; font-weight:700; color:var(--text-primary); margin-bottom:10px; text-wrap:balance; word-break:keep-all }
-.card p { font-family:var(--font-display); font-size:22px; color:var(--text-secondary); line-height:1.6; flex:1; text-wrap:pretty; word-break:keep-all }
-.flow-row { display:flex; align-items:center; gap:0; justify-content:center; flex:0 1 auto; margin:20px 0 }
-.flow-step { text-align:center; flex:1; max-width:230px; padding:0 6px }
-.flow-step .icon-circle { width:64px; height:64px; border-radius:14px; margin:0 auto 14px; display:flex; align-items:center; justify-content:center; font-size:36px; background:var(--accent-soft) }
-.flow-step .icon-circle.teal { background:#eef2ff; color:var(--accent) }
-.flow-step .icon-circle.amber { background:#fef3c7; color:#f59e0b }
-.flow-step .icon-circle.rose { background:#fce7f3; color:#ec4899 }
-.flow-step h4 { font-family:var(--font-display); font-size:22px; font-weight:700; color:var(--text-primary); margin-bottom:6px }
-.flow-step p { font-family:var(--font-display); font-size:18px; color:var(--text-secondary); line-height:1.5 }
-.flow-arrow { font-size:30px; color:var(--text-muted); flex-shrink:0; margin:0 -4px; margin-top:-22px; font-family:var(--font-mono) }
-.analogy { background:var(--bg-wash); border:1px solid var(--border-light); border-radius:var(--radius); padding:26px 36px; margin-top:26px; display:flex; align-items:center; gap:22px }
-.analogy .icon { font-size:42px; flex-shrink:0 }
-.analogy .text { font-family:var(--font-display); font-size:22px; color:var(--text-secondary); line-height:1.6 }
-.analogy .text strong { color:var(--text-primary) }
-.compare-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:22px; flex:0 1 auto; max-width:1500px; margin:0 auto }
-.compare-card { background:var(--bg-card); border-radius:var(--radius); padding:36px; border:1px solid var(--border-light); box-shadow:var(--shadow-sm) }
-.compare-card .method-name { font-family:var(--font-mono); font-size:18px; font-weight:700; color:var(--accent); margin-bottom:20px; text-transform:uppercase; letter-spacing:.06em }
-.compare-card ul { list-style:none; padding:0 }
-.compare-card li { font-family:var(--font-display); font-size:21px; color:var(--text-secondary); padding:9px 0; border-bottom:1px solid var(--border-light); display:flex; align-items:center; gap:10px; line-height:1.5 }
-.compare-card li:last-child { border-bottom:none }
-.compare-card li .check { color:#10b981; font-size:20px; font-weight:700 }
-.compare-card li .cross { color:#ef4444; font-size:20px }
-.summary-strip { display:flex; gap:22px; flex:0 1 auto; justify-content:center; max-width:1400px; margin:0 auto }
-.summary-item { flex:1; background:var(--bg-card); border-radius:var(--radius); padding:36px; border:1px solid var(--border-light); box-shadow:var(--shadow-sm); text-align:center }
-.summary-item .big-num { font-family:var(--font-mono); font-size:64px; font-weight:700; color:var(--accent); line-height:1 }
-.summary-item .label { font-family:var(--font-display); font-size:20px; color:var(--text-secondary); margin-top:8px }
-.step-row { display:flex; gap:36px; justify-content:center; align-items:flex-start }
-.step-card { flex:1; max-width:420px; text-align:center; background:var(--bg-card); border-radius:var(--radius); padding:38px 30px; border:1px solid var(--border-light); box-shadow:var(--shadow-sm) }
-.step-card .step-num { display:inline-block; width:48px; height:48px; border-radius:12px; background:var(--accent); color:#fff; font-family:var(--font-mono); font-size:26px; font-weight:700; line-height:48px; margin-bottom:18px }
-.step-card h3 { font-family:var(--font-display); font-size:26px; font-weight:700; color:var(--text-primary); margin-bottom:10px }
-.step-card p { font-family:var(--font-display); font-size:20px; color:var(--text-secondary); line-height:1.6 }
-.step-arrow { color:var(--text-muted); font-size:34px; align-self:center; flex-shrink:0; font-family:var(--font-mono) }
+body { font-family:var(--sans); word-break:keep-all; overflow-wrap:normal; -webkit-font-smoothing:antialiased }
+.slide-content { padding:90px 110px; display:flex; flex-direction:column; height:100%; justify-content:center }
 
-/* Title Slide */
-.s1-title { background:var(--bg-primary); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden }
+/* Slide number: monospace badge */
+.slide-num { font-family:var(--mono); font-size:14px; font-weight:500; color:var(--text-muted); margin-bottom:16px; letter-spacing:.04em }
+.slide-num::before { content:'#' }
+
+/* Headings: serif for distinction, sans for body */
+.slide-content h2 { font-family:var(--serif); font-size:60px; font-weight:700; color:var(--text); line-height:1.2; margin-bottom:10px; text-wrap:balance; word-break:keep-all }
+.slide-content h2 .hl { color:var(--accent); position:relative }
+.slide-content h2 .hl::after { content:''; position:absolute; bottom:2px; left:0; right:0; height:3px; background:var(--accent-soft); z-index:-1 }
+.slide-content .lead { font-family:var(--sans); font-size:26px; color:var(--text-secondary); font-weight:400; margin-bottom:36px; line-height:1.5 }
+.card-row { display:flex; gap:20px; flex:0 1 auto; align-items:stretch; justify-content:center }
+.card { flex:1; background:var(--bg-card); border-radius:var(--radius); padding:38px; border:1px solid var(--border); box-shadow:var(--shadow); display:flex; flex-direction:column }
+.card .emoji { font-size:40px; margin-bottom:14px }
+.card h3 { font-family:var(--serif); font-size:28px; font-weight:700; color:var(--text); margin-bottom:10px; text-wrap:balance }
+.card p { font-family:var(--sans); font-size:22px; color:var(--text-secondary); line-height:1.6; flex:1; text-wrap:pretty }
+.flow-row { display:flex; align-items:center; gap:0; justify-content:center; flex:0 1 auto; margin:24px 0 }
+.flow-step { text-align:center; flex:1; max-width:220px; padding:0 4px }
+.flow-step .icon-circle { width:60px; height:60px; border-radius:var(--radius); margin:0 auto 14px; display:flex; align-items:center; justify-content:center; font-size:34px; background:var(--accent-soft); border:1px solid rgba(9,105,218,.15) }
+.flow-step .icon-circle.teal { background:#ddf4ff; border-color:rgba(9,105,218,.15) }
+.flow-step .icon-circle.amber { background:#fff8c5; border-color:rgba(191,137,0,.15) }
+.flow-step .icon-circle.rose { background:#ffebe9; border-color:rgba(207,34,46,.12) }
+.flow-step h4 { font-family:var(--sans); font-size:22px; font-weight:700; color:var(--text); margin-bottom:6px }
+.flow-step p { font-family:var(--sans); font-size:18px; color:var(--text-secondary); line-height:1.5 }
+.flow-arrow { font-size:28px; color:var(--text-muted); flex-shrink:0; margin:0 -6px; margin-top:-20px; font-family:var(--mono) }
+.analogy { background:#f6f8fa; border:1px solid var(--border-muted); border-left:3px solid var(--accent); border-radius:var(--radius); padding:24px 34px; margin-top:26px; display:flex; align-items:flex-start; gap:20px }
+.analogy .icon { font-size:38px; flex-shrink:0; line-height:1.4 }
+.analogy .text { font-family:var(--sans); font-size:22px; color:var(--text-secondary); line-height:1.6 }
+.analogy .text strong { color:var(--text); font-weight:600 }
+.compare-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; flex:0 1 auto; max-width:1500px; margin:0 auto }
+.compare-card { background:var(--bg-card); border-radius:var(--radius); padding:34px; border:1px solid var(--border); box-shadow:var(--shadow) }
+.compare-card .method-name { font-family:var(--mono); font-size:17px; font-weight:600; color:var(--accent); margin-bottom:18px; letter-spacing:.04em }
+.compare-card ul { list-style:none; padding:0 }
+.compare-card li { font-family:var(--sans); font-size:21px; color:var(--text-secondary); padding:8px 0; border-bottom:1px solid var(--border-muted); display:flex; align-items:center; gap:10px; line-height:1.5 }
+.compare-card li:last-child { border-bottom:none }
+.compare-card li .check { color:#1a7f37; font-size:19px; font-weight:700 }
+.compare-card li .cross { color:#cf222e; font-size:19px }
+.summary-strip { display:flex; gap:20px; flex:0 1 auto; justify-content:center; max-width:1400px; margin:0 auto }
+.summary-item { flex:1; background:var(--bg-card); border-radius:var(--radius); padding:34px; border:1px solid var(--border); box-shadow:var(--shadow); text-align:center }
+.summary-item .big-num { font-family:var(--mono); font-size:60px; font-weight:700; color:var(--accent); line-height:1 }
+.summary-item .label { font-family:var(--sans); font-size:20px; color:var(--text-secondary); margin-top:8px }
+.step-row { display:flex; gap:32px; justify-content:center; align-items:flex-start }
+.step-card { flex:1; max-width:400px; text-align:center; background:var(--bg-card); border-radius:var(--radius); padding:36px 28px; border:1px solid var(--border); box-shadow:var(--shadow) }
+.step-card .step-num { display:inline-block; width:44px; height:44px; border-radius:var(--radius); background:var(--accent); color:#fff; font-family:var(--mono); font-size:24px; font-weight:600; line-height:44px; margin-bottom:16px }
+.step-card h3 { font-family:var(--serif); font-size:26px; font-weight:700; color:var(--text); margin-bottom:10px }
+.step-card p { font-family:var(--sans); font-size:20px; color:var(--text-secondary); line-height:1.6 }
+.step-arrow { color:var(--text-muted); font-size:32px; align-self:center; flex-shrink:0; font-family:var(--mono) }
+
+/* ====== TITLE SLIDE ====== */
+.s1-title { background:var(--bg-page); display:flex; align-items:center; justify-content:center; position:relative }
 .s1-title::before {
     content:'';
-    position:absolute; inset:0;
-    background-image:
-        radial-gradient(circle, var(--border-light) 1px, transparent 1px);
-    background-size: 40px 40px;
-    opacity: .5;
+    position:absolute; top:0; left:0; right:0; bottom:60%;
+    background:linear-gradient(180deg, #f0f2f5 0%, transparent 100%);
     pointer-events:none;
 }
 .s1-title::after {
     content:'';
-    position:absolute; top:0; left:0; right:0;
-    height:4px;
-    background:linear-gradient(90deg, var(--accent), #818cf8, var(--accent-warm));
+    position:absolute; bottom:0; left:0; right:0;
+    height:1px;
+    background:var(--border);
 }
-.s1-title .hero { text-align:center; max-width:1100px; position:relative; z-index:1; animation:fadeUp .8s ease-out }
-.s1-title .badge { display:inline-block; background:var(--accent-soft); border:1px solid rgba(79,70,229,.2); color:var(--accent); font-family:var(--font-mono); font-size:20px; font-weight:600; padding:8px 24px; border-radius:8px; letter-spacing:.06em; margin-bottom:36px }
-.s1-title h1 { font-family:var(--font-display); font-size:80px; font-weight:800; color:var(--text-primary); line-height:1.2; letter-spacing:-.02em; text-wrap:balance; word-break:keep-all }
+.s1-title .hero { text-align:center; max-width:1050px; position:relative; z-index:1; animation:fadeUp .8s ease-out }
+.s1-title .badge { display:inline-flex; align-items:center; gap:8px; background:var(--bg-card); border:1px solid var(--border); color:var(--text-secondary); font-family:var(--mono); font-size:16px; font-weight:500; padding:6px 20px; border-radius:20px; margin-bottom:36px }
+.s1-title .badge::before { content:'$'; color:var(--accent); font-weight:700 }
+.s1-title h1 { font-family:var(--serif); font-size:82px; font-weight:700; color:var(--text); line-height:1.15; letter-spacing:-.01em; text-wrap:balance; word-break:keep-all }
 .s1-title h1 span { color:var(--accent) }
-.s1-title .subtitle { font-family:var(--font-display); font-size:26px; color:var(--text-muted); margin-top:24px; font-weight:400 }
-.s1-title .ornament { margin-top:44px; display:flex; gap:12px; justify-content:center }
-.s1-title .ornament span { width:8px; height:8px; border-radius:2px; background:var(--accent); opacity:.4 }
-.s1-title .ornament span:nth-child(2) { opacity:.8; width:24px }
+.s1-title .subtitle { font-family:var(--sans); font-size:24px; color:var(--text-muted); margin-top:24px; font-weight:400 }
+.s1-title .ornament { margin-top:40px; display:flex; gap:8px; justify-content:center }
+.s1-title .ornament span { width:32px; height:4px; border-radius:2px; background:var(--border) }
+.s1-title .ornament span:nth-child(2) { background:var(--accent); width:48px }
 
-@keyframes fadeUp { from { opacity:0; transform:translateY(32px) } to { opacity:1; transform:translateY(0) } }
+@keyframes fadeUp { from { opacity:0; transform:translateY(28px) } to { opacity:1; transform:translateY(0) } }
 .reveal { animation:fadeUp .5s ease-out both }
 .reveal-d1 { animation-delay:.1s }
 .reveal-d2 { animation-delay:.2s }
 .reveal-d3 { animation-delay:.3s }
 .reveal-d4 { animation-delay:.4s }
 .reveal-d5 { animation-delay:.5s }
-
-/* Tech accent: monospace labels */
-.mono-label { font-family:var(--font-mono); font-size:14px; color:var(--accent); letter-spacing:.05em; text-transform:uppercase }
-
-/* Highlighted card variant */
-.card.highlight { border-color:var(--accent); border-width:2px; box-shadow:0 0 0 1px rgba(79,70,229,.1), 0 4px 20px rgba(79,70,229,.08) }
 </style>
 </head>
 <body>
@@ -164,12 +151,12 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
         <h3>信息太分散</h3>
         <p>100 所大学 = 100 种网站系统。导师信息散落在各个院系页面，没有一个统一入口。</p>
       </div>
-      <div class="card" style="background:var(--accent-soft); border-color:rgba(79,70,229,.12);">
+      <div class="card" style="background:var(--accent-soft); border-color:rgba(9,105,218,.12);">
         <div class="emoji">⏰</div>
         <h3>人工太耗时</h3>
         <p>手动搜一个学校就要 1-2 小时——点开每个个人页、读研究方向、判断是否带博、记录链接。</p>
       </div>
-      <div class="card" style="background:#fffbeb; border-color:rgba(245,158,11,.15);">
+      <div class="card" style="background:#fffbeb; border-color:rgba(191,137,0,.12);">
         <div class="emoji">🤷</div>
         <h3>判断太难</h3>
         <p>教学岗还是科研岗？退休了吗？研究方向真的匹配吗？——没有领域知识很难判断。</p>
@@ -194,7 +181,7 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
         <h3>搜索引擎</h3>
         <p>输入关键词 → 返回一堆链接。哪个是真的？哪个过时了？哪个导师带博士？——全都不知道。</p>
       </div>
-      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 1px rgba(79,70,229,.08), 0 4px 20px rgba(79,70,229,.06);">
+      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 3px rgba(9,105,218,.08);">
         <div class="emoji">🦾</div>
         <h3>phd-supervisor-selector</h3>
         <p>理解研究方向 → 多策略搜索 → 逐页验证 → 判断匹配度 → 填入结构化表格。给你的是一个<strong>可以直接用的导师名单</strong>。</p>
@@ -275,12 +262,12 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
     <h2 class="reveal reveal-d1">不是搜到就停<br>而是<span class="hl">越挖越深</span></h2>
     <p class="lead reveal reveal-d2">Deep Discovery Pipeline —— 每个学校挖到底</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
-      <div class="card" style="background:var(--accent-soft); border-color:rgba(79,70,229,.12);"><div class="emoji">🔁</div><h3>按需回查</h3><p>不在每轮搜索中自动重试 404——只在用户要求或有信号（新学年、网站改版）时才回查，避免浪费 token。</p></div>
+      <div class="card" style="background:var(--accent-soft); border-color:rgba(9,105,218,.12);"><div class="emoji">🔁</div><h3>按需回查</h3><p>不在每轮搜索中自动重试 404——只在用户要求或有信号（新学年、网站改版）时才回查，避免浪费 token。</p></div>
       <div class="card" style="background:rgba(232,168,80,.08); border-color:rgba(232,168,80,.2);"><div class="emoji">🌿</div><h3>跨院系联想</h3><p>不只搜"服装系"，还搜人类学、文化研究、设计史——导师可能藏在隔壁院系。</p></div>
-      <div class="card" style="background:#fdf2f8; border-color:rgba(236,72,153,.12);"><div class="emoji">🏷️</div><h3>隐藏标签点击</h3><p>自动点击页面隐藏 tab（Research Interest、Publications）——关键信息常藏在折叠面板后。</p></div>
+      <div class="card" style="background:#ffebe9; border-color:rgba(207,34,46,.1);"><div class="emoji">🏷️</div><h3>隐藏标签点击</h3><p>自动点击页面隐藏 tab（Research Interest、Publications）——关键信息常藏在折叠面板后。</p></div>
     </div>
     <div class="card-row reveal reveal-d4" style="flex:0 1 auto; margin-top:12px;">
-      <div class="card" style="background:var(--accent-soft); border-color:rgba(79,70,229,.1);"><div class="emoji">🧪</div><h3>备用域名探测</h3><p>主站打不开？试试研究生院、研究门户子域名——同一大学不同系统防护等级不同。</p></div>
+      <div class="card" style="background:#f6f8fa; border-color:rgba(9,105,218,.08);"><div class="emoji">🧪</div><h3>备用域名探测</h3><p>主站打不开？试试研究生院、研究门户子域名——同一大学不同系统防护等级不同。</p></div>
       <div class="card" style="background:rgba(232,168,80,.06); border-color:rgba(232,168,80,.15);"><div class="emoji">📊</div><h3>API 批量拉取</h3><p>找到 API 后一次拉全部数据到本地筛——不翻页不逐页爬，效率高几十倍。</p></div>
     </div>
   </div>
@@ -317,7 +304,7 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
     </div>
     <div class="card-row reveal reveal-d4" style="flex:0 1 auto; margin-top:12px;">
       <div class="card" style="background:rgba(212,104,124,.06); border-color:rgba(212,104,124,.2);"><div class="emoji">🗑️</div><h3>不合格的进排除表</h3><p>教学岗、退休、方向不匹配、页面打不开——不直接删除，而是移到"排除或待确认"表，理由写清楚。</p></div>
-      <div class="card" style="background:#fffbeb; border-color:rgba(245,158,11,.15);"><div class="emoji">🎨</div><h3>每轮搜索标颜色</h3><p>新增的导师用浅色高亮标记，说明表里解释每种颜色代表哪一轮搜索——清楚追溯。</p></div>
+      <div class="card" style="background:#fffbeb; border-color:rgba(191,137,0,.12);"><div class="emoji">🎨</div><h3>每轮搜索标颜色</h3><p>新增的导师用浅色高亮标记，说明表里解释每种颜色代表哪一轮搜索——清楚追溯。</p></div>
     </div>
   </div>
 </div>
@@ -329,9 +316,9 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
     <h2 class="reveal reveal-d1">改进方向<br><span class="hl">P0 + P1</span></h2>
     <p class="lead reveal reveal-d2">持续迭代中</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
-      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 1px rgba(79,70,229,.08), 0 4px 20px rgba(79,70,229,.06);">
+      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 3px rgba(9,105,218,.08);">
         <div class="emoji">🗂️ P0</div><h3>大学档案库 + 子代理并行</h3><p>给每个大学建策略卡，记住网站类型和最佳访问方式。每个学校分配独立子智能体，5-10 个同时跑——速度翻 5-10 倍。</p></div>
-      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 1px rgba(79,70,229,.08), 0 4px 20px rgba(79,70,229,.06);">
+      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 3px rgba(9,105,218,.08);">
         <div class="emoji">🌐 P1</div><h3>新数据源 + 自动匹配</h3><p>接入 ORCID、Semantic Scholar 等公开学术 API，绕过大学防火墙。自动计算研究方向匹配度，量大时智能排序。</p></div>
     </div>
     <div class="analogy reveal reveal-d4">
@@ -349,13 +336,13 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
     <h2 class="reveal reveal-d1">🧠 搜索编排器<br><span class="hl">怎么工作？</span></h2>
     <p class="lead reveal reveal-d2">每次搜索前自动读取状态文件——知道哪些搜过了、哪些该跳过</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
-      <div class="card" style="background:var(--accent-soft); border-color:rgba(79,70,229,.12);">
+      <div class="card" style="background:var(--accent-soft); border-color:rgba(9,105,218,.12);">
         <div class="emoji">📋</div><h3>Step 1：读档</h3><p>搜前检查 ~/.codex/skills/.../search-state/学生名.md<br>已完成 → 跳过<br>进行中 → 续传<br>被封 → 略过</p>
       </div>
-      <div class="card" style="background:#fef3c7; border-color:rgba(245,158,11,.2);">
+      <div class="card" style="background:#fff8c5; border-color:rgba(191,137,0,.15);">
         <div class="emoji">🎯</div><h3>Step 2：排序</h3><p>P0 金矿（UAL、RCA）→ P1 高产 → P2 可能 → P3 长尾<br>Token 优先烧在高价值学校上</p>
       </div>
-      <div class="card" style="background:#fdf2f8; border-color:rgba(236,72,153,.12);">
+      <div class="card" style="background:#ffebe9; border-color:rgba(207,34,46,.1);">
         <div class="emoji">⚡</div><h3>Step 3：双阶段</h3><p>Pass 1：快速扫描所有学校（有没有相关院系？）<br>Pass 2：只对有戏的学校深度验证</p>
       </div>
     </div>
@@ -373,7 +360,7 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
     <h2 class="reveal reveal-d1">🏫 学校策略库<br><span class="hl">怎么工作？</span></h2>
     <p class="lead reveal reveal-d2">每个大学怎么"开门"——记录在案，下次直接用</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
-      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 1px rgba(79,70,229,.08), 0 4px 20px rgba(79,70,229,.06);">
+      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 3px rgba(9,105,218,.08);">
         <div class="emoji">🗂️</div><h3>6 种大学网站架构</h3>
         <p>Pure Portal · Vue SPA · React SPA · Static HTML · Worktribe · Cloudflare WAF<br>每种都有识别特征 + 最佳访问方式</p>
       </div>
@@ -381,7 +368,7 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
         <div class="emoji">🔍</div><h3>搜前查表</h3>
         <p>搜 UAL 前 → 查策略库 → "Pure Portal，直接调 API"<br>跳过 curl 试探、JS 挖掘、浏览器启动<br>一次命中，3 秒开搜</p>
       </div>
-      <div class="card" style="background:#fef3c7; border-color:rgba(245,158,11,.2);">
+      <div class="card" style="background:#fff8c5; border-color:rgba(191,137,0,.15);">
         <div class="emoji">📈</div><h3>越用越聪明</h3>
         <p>每搜完一个学校 → 填一条记录（架构+方法+端点）<br>搜过 20 所 → 第 21 所大概率命中<br>失败了也记——"试过 API → 404"同样有价值</p>
       </div>
@@ -400,13 +387,13 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
     <h2 class="reveal reveal-d1">两种<span class="hl">工作模式</span></h2>
     <p class="lead reveal reveal-d2">根据你的数据源自动切换</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto; min-height:320px;">
-      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 1px rgba(79,70,229,.08), 0 4px 20px rgba(79,70,229,.06);">
+      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 3px rgba(9,105,218,.08);">
         <div class="emoji">📊 Vika 维格表模式</div>
         <h3>你分享表 → 我直接操作</h3>
         <p>给我一个 Vika 分享链接，我直接在你的在线表格里增删改查——列出、筛选、新增、更新、去重、导入，全部实时同步。</p>
         <p style="color:var(--accent); font-weight:700; margin-top:8px;">⚡ 零依赖，纯 Python 3 stdlib</p>
       </div>
-      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 1px rgba(79,70,229,.08), 0 4px 20px rgba(79,70,229,.06);">
+      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 3px rgba(9,105,218,.08);">
         <div class="emoji">📗 Excel 模式</div>
         <h3>你丢文件 → 我填表</h3>
         <p>扔给我一个 xlsx 模板，我按你的列结构填入数据。支持多 sheet——主表、排除表、说明与颜色图例自动生成。</p>
@@ -460,7 +447,7 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
       <div class="card"><div class="emoji">🧹</div><h3>删除 / 去重</h3><p>"删除重复的条目"——自动按导师名去重，保留最完整的记录。</p></div>
     </div>
     <div class="card-row reveal reveal-d4" style="flex:0 1 auto; margin-top:12px;">
-      <div class="card" style="background:var(--accent-soft); border-color:rgba(79,70,229,.1);"><div class="emoji">📥</div><h3>Excel 导入 Vika</h3><p>读取 Excel 导师名单 → 对比已有记录 → 自动去重 → 批量写入新记录。</p></div>
+      <div class="card" style="background:#f6f8fa; border-color:rgba(9,105,218,.08);"><div class="emoji">📥</div><h3>Excel 导入 Vika</h3><p>读取 Excel 导师名单 → 对比已有记录 → 自动去重 → 批量写入新记录。</p></div>
       <div class="card" style="background:rgba(232,168,80,.06); border-color:rgba(232,168,80,.15);"><div class="emoji">🌐</div><h3>Department 自动翻译</h3><p>英文系名自动翻成中文格式 "学校名+部门名"——"Winchester School of Art" → "南安普顿大学温彻斯特艺术学院"。</p></div>
     </div>
   </div>
@@ -478,8 +465,8 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
       <div class="card"><div class="emoji">📖</div><h3>说明与颜色图例</h3><p>每轮搜索用不同颜色高亮标记，图例解释——清楚知道哪些是第几轮搜出来的。</p></div>
     </div>
     <div class="card-row reveal reveal-d4" style="flex:0 1 auto; margin-top:12px;">
-      <div class="card" style="background:var(--accent-soft); border-color:rgba(79,70,229,.12);"><div class="emoji">✅</div><h3>全部链接已验证</h3><p>每条主页链接都 curl + 浏览器验证过——200 + 内容匹配才是真。打不开的标 ⚠️。</p></div>
-      <div class="card" style="background:#fffbeb; border-color:rgba(245,158,11,.15);"><div class="emoji">🔄</div><h3>可持续更新</h3><p>对着同一张表说"再搜一轮"——自动去重、补新、更新状态。不是一次性产品。</p></div>
+      <div class="card" style="background:var(--accent-soft); border-color:rgba(9,105,218,.12);"><div class="emoji">✅</div><h3>全部链接已验证</h3><p>每条主页链接都 curl + 浏览器验证过——200 + 内容匹配才是真。打不开的标 ⚠️。</p></div>
+      <div class="card" style="background:#fffbeb; border-color:rgba(191,137,0,.12);"><div class="emoji">🔄</div><h3>可持续更新</h3><p>对着同一张表说"再搜一轮"——自动去重、补新、更新状态。不是一次性产品。</p></div>
     </div>
   </div>
 </div>
@@ -492,7 +479,7 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
     <h2 class="reveal reveal-d1">从 Skill<br>到<span class="hl">商业产品</span></h2>
     <p class="lead reveal reveal-d2">一个自动化选导 skill，能演化出多大的商业价值？</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
-      <div class="card" style="background:var(--accent-soft); border-color:rgba(79,70,229,.1);">
+      <div class="card" style="background:#f6f8fa; border-color:rgba(9,105,218,.08);">
         <div class="emoji">🧱</div><h3>现在的核心资产</h3>
         <p>多策略搜索技术 · 反爬对抗能力 · 方向匹配领域知识 · 结构化数据输出</p>
       </div>
@@ -500,7 +487,7 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
         <div class="emoji">🎯</div><h3>可服务的市场</h3>
         <p>全球每年 ~50 万博士申请人<br>数十万留学中介顾问<br>上百个留学平台需要数据</p>
       </div>
-      <div class="card" style="background:#fdf2f8; border-color:rgba(236,72,153,.12);">
+      <div class="card" style="background:#ffebe9; border-color:rgba(207,34,46,.1);">
         <div class="emoji">🏰</div><h3>四层壁垒</h3>
         <p>技术壁垒 → 数据壁垒 → 领域知识壁垒 → 网络效应壁垒</p>
       </div>
@@ -524,13 +511,13 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
     <h2 class="reveal reveal-d1">B2C：面向<span class="hl">个人申请者</span></h2>
     <p class="lead reveal reveal-d2">从"搜导师工具"到"申博士全流程平台"</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto; min-height:280px;">
-      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 1px rgba(79,70,229,.08), 0 4px 20px rgba(79,70,229,.06);">
+      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 3px rgba(9,105,218,.08);">
         <div class="emoji">🔧 Phase 1</div>
         <h3>独立选导师工具</h3>
         <p>Web App — 输入研究方向 → 输出导师列表。按次 $29，包月 $49。MVP：前端 + 后端 + 现有 skill 逻辑 + 支付。</p>
-        <p style="color:#10b981; font-weight:700; margin-top:8px;">⏱ 3-6 个月可上线</p>
+        <p style="color:#1a7f37; font-weight:700; margin-top:8px;">⏱ 3-6 个月可上线</p>
       </div>
-      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 1px rgba(79,70,229,.08), 0 4px 20px rgba(79,70,229,.06);">
+      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 3px rgba(9,105,218,.08);">
         <div class="emoji">🚀 Phase 2</div>
         <h3>全流程申请平台</h3>
         <p>智能选导 → 套磁信起草 → CV/研究计划生成 → 申请进度追踪 → 面试准备 → Offer 对比评分。</p>
@@ -575,17 +562,17 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
     <h2 class="reveal reveal-d1">第一批<span class="hl">用户</span>从哪来？</h2>
     <p class="lead reveal reveal-d2">不是"做了产品等人来"——而是"还没做就已经有用户在等"</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
-      <div class="card" style="background:#fdf2f8; border-color:rgba(236,72,153,.15);">
+      <div class="card" style="background:#ffebe9; border-color:rgba(207,34,46,.12);">
         <div class="emoji">🌱 0→100</div>
         <h3>种子用户</h3>
         <p>现有 Skill 用户直接转化。在小红书发选导结果截图 → "想要同款吗？来试试我们的工具"。留学论坛（一亩三分地、寄托天下）发案例帖。</p>
       </div>
-      <div class="card" style="background:#fef3c7; border-color:rgba(245,158,11,.2);">
+      <div class="card" style="background:#fff8c5; border-color:rgba(191,137,0,.15);">
         <div class="emoji">📈 100→1000</div>
         <h3>内容增长</h3>
         <p>知乎写"PhD选导避坑指南"等深度长文 → SEO长尾流量。YouTube/B站做选导教程。和留学顾问合作互推。</p>
       </div>
-      <div class="card" style="background:var(--accent-soft); border-color:rgba(79,70,229,.1);">
+      <div class="card" style="background:#f6f8fa; border-color:rgba(9,105,218,.08);">
         <div class="emoji">🚀 1000→10000</div>
         <h3>付费投放</h3>
         <p>小红书信息流广告（留学相关标签）· 百度/Google关键词 · 海外高校CSSA合作 · 留学机构渠道分销（CPS分成）。</p>
@@ -632,7 +619,7 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
       </div>
     </div>
     <div class="card-row reveal reveal-d4" style="flex:0 1 auto; margin-top:12px;">
-      <div class="card" style="background:var(--accent-soft); border-color:rgba(79,70,229,.12);">
+      <div class="card" style="background:var(--accent-soft); border-color:rgba(9,105,218,.12);">
         <div class="emoji">🔒</div><h3>壁垒飞轮</h3>
         <p>搜得越多 → 数据库越大 → 推荐越准 → 用户越多 → 搜得更多。后来者即使复制了代码，也追不上数据积累。</p>
       </div>
@@ -652,15 +639,15 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
     <h2 class="reveal reveal-d1">每次搜索<span class="hl">成本多少</span>？</h2>
     <p class="lead reveal reveal-d2">卖 $29 一次，能赚钱吗？拆开看看</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
-      <div class="card" style="background:#fdf2f8; border-color:rgba(236,72,153,.12);">
+      <div class="card" style="background:#ffebe9; border-color:rgba(207,34,46,.1);">
         <div class="emoji">💸</div><h3>单次搜索成本</h3>
         <p>AI API 调用：$1-3<br>浏览器实例：$0.5-1<br>服务器计算：$0.5<br><strong style="color:var(--rose);">合计 ~$2-5</strong></p>
       </div>
-      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 1px rgba(79,70,229,.08), 0 4px 20px rgba(79,70,229,.06);">
+      <div class="card" style="border:2px solid var(--accent); box-shadow:0 0 0 3px rgba(9,105,218,.08);">
         <div class="emoji">💵</div><h3>单次搜索收入</h3>
         <p>按次付费：$29<br>包月（无限）：$49<br><strong style="color:var(--teal);">毛利率 ~85-90%</strong></p>
       </div>
-      <div class="card" style="background:#fffbeb; border-color:rgba(245,158,11,.15);">
+      <div class="card" style="background:#fffbeb; border-color:rgba(191,137,0,.12);">
         <div class="emoji">📊</div><h3>用户生命周期</h3>
         <p>平均使用 3-6 个月<br>LTV：$150-300<br>CAC：$15-40<br><strong style="color:var(--accent);">LTV/CAC > 5</strong></p>
       </div>
@@ -691,13 +678,13 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
       <div class="flow-step" style="max-width:200px;"><div class="icon-circle amber">🔄</div><h4>更多搜索</h4><p>飞轮加速<br>壁垒加深</p></div>
     </div>
     <div class="card-row reveal reveal-d4" style="flex:0 1 auto; margin-top:24px;">
-      <div class="card" style="background:var(--accent-soft); border-color:rgba(79,70,229,.1);">
+      <div class="card" style="background:#f6f8fa; border-color:rgba(9,105,218,.08);">
         <div class="emoji">📦</div><h3>数据飞轮</h3><p>每完成一次搜索 → 该学校该方向的导师数据永久缓存。第 100 次搜索 RCA 服装设计，一秒出结果。</p>
       </div>
-      <div class="card" style="background:#fef3c7; border-color:rgba(245,158,11,.2);">
+      <div class="card" style="background:#fff8c5; border-color:rgba(191,137,0,.15);">
         <div class="emoji">🌐</div><h3>网络效应</h3><p>B2C 用户 → 入学后成为教授/博导 → 反向贡献数据。留学机构 → 输送学生 → 数据反哺个人用户。</p>
       </div>
-      <div class="card" style="background:#fdf2f8; border-color:rgba(236,72,153,.12);">
+      <div class="card" style="background:#ffebe9; border-color:rgba(207,34,46,.1);">
         <div class="emoji">🛡️</div><h3>壁垒加固</h3><p>数据库是活的——每年新导师入职、旧导师退休、方向调整。先发优势：数据越多，后来者越难追。</p>
       </div>
     </div>
@@ -741,7 +728,7 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
     <h2 class="reveal reveal-d1">今天就可以<span class="hl">开始</span>的事</h2>
     <p class="lead reveal reveal-d2">不等完美产品——现在就能验证需求、积累资产</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
-      <div class="card" style="border:2px solid var(--accent-warm); box-shadow:0 0 0 1px rgba(245,158,11,.1), 0 4px 20px rgba(245,158,11,.06);">
+      <div class="card" style="border:2px solid #bf8700; box-shadow:0 0 0 3px rgba(191,137,0,.08);">
         <div class="emoji">📝 第 1 周</div>
         <h3>建内容账号</h3>
         <p>小红书/知乎注册"PhD选导助手"。发 3-5 篇选导案例帖——把 Skill 搜出来的好结果截屏打码发上去。</p>
@@ -769,7 +756,7 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
         <p>根据反馈迭代。攒够 50 个付费用户 → 找技术合伙人/外包搭正式产品。同时保持内容账号持续输出。</p>
       </div>
     </div>
-    <div class="analogy reveal reveal-d4" style="background:var(--bg-wash); border:2px solid var(--accent);">
+    <div class="analogy reveal reveal-d4" style="background:#f6f8fa; border:2px solid var(--accent);">
       <div class="icon">💡</div>
       <div class="text" style="font-size: 26px;"><strong>核心理念：</strong>先验证再建。Skill 就是你的 MVP——先用它服务真实用户，确认有人付费，再投入精力做产品。</div>
     </div>
@@ -783,12 +770,12 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
     <h2 class="reveal reveal-d1">演化<span class="hl">路线图</span></h2>
     <p class="lead reveal reveal-d2">从现在开始，每一步都有明确的里程碑</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto; min-height:180px;">
-      <div class="card" style="background:var(--teal-light); border-color:rgba(59,139,136,.3);"><div style="font-size:28px;">🟢 现在</div><h3>打磨 Skill</h3><p>多接真实案例，完善 P0/P1 改进，积累数据和反馈。</p><p style="color:#10b981; font-weight:700;">⏱ 1-2 月</p></div>
-      <div class="card" style="background:#fef3c7; border-color:rgba(245,158,11,.2);"><div style="font-size:28px;">🟡 Phase 1</div><h3>B2C MVP</h3><p>Web App 上线，按次/包月付费。验证 PMF。</p><p style="color:var(--accent); font-weight:700;">⏱ 3-6 月</p></div>
-      <div class="card" style="background:#fdf2f8; border-color:rgba(236,72,153,.15);"><div style="font-size:28px;">🟠 Phase 2</div><h3>B2C 平台</h3><p>选导+套磁+追踪+Offer 对比。订阅制。</p><p style="color:#ec4899; font-weight:700;">⏱ 6-12 月</p></div>
-      <div class="card" style="background:var(--accent-soft); border-color:rgba(79,70,229,.1);"><div style="font-size:28px;">🔴 Phase 3-4</div><h3>B2B + 数据</h3><p>机构版、白标、API 数据壁垒形成。</p><p style="color:#10b981; font-weight:700;">⏱ 12-24 月</p></div>
+      <div class="card" style="background:var(--teal-light); border-color:rgba(59,139,136,.3);"><div style="font-size:28px;">🟢 现在</div><h3>打磨 Skill</h3><p>多接真实案例，完善 P0/P1 改进，积累数据和反馈。</p><p style="color:#1a7f37; font-weight:700;">⏱ 1-2 月</p></div>
+      <div class="card" style="background:#fff8c5; border-color:rgba(191,137,0,.15);"><div style="font-size:28px;">🟡 Phase 1</div><h3>B2C MVP</h3><p>Web App 上线，按次/包月付费。验证 PMF。</p><p style="color:var(--accent); font-weight:700;">⏱ 3-6 月</p></div>
+      <div class="card" style="background:#ffebe9; border-color:rgba(207,34,46,.12);"><div style="font-size:28px;">🟠 Phase 2</div><h3>B2C 平台</h3><p>选导+套磁+追踪+Offer 对比。订阅制。</p><p style="color:#cf222e; font-weight:700;">⏱ 6-12 月</p></div>
+      <div class="card" style="background:#f6f8fa; border-color:rgba(9,105,218,.08);"><div style="font-size:28px;">🔴 Phase 3-4</div><h3>B2B + 数据</h3><p>机构版、白标、API 数据壁垒形成。</p><p style="color:#1a7f37; font-weight:700;">⏱ 12-24 月</p></div>
     </div>
-    <div class="analogy reveal reveal-d4" style="margin-top:32px; background:var(--bg-wash); border:2px solid var(--accent);">
+    <div class="analogy reveal reveal-d4" style="margin-top:32px; background:#f6f8fa; border:2px solid var(--accent);">
       <div class="icon">🚀</div>
       <div class="text" style="font-size: 25px;"><strong>第一步：</strong>把帮学生搜出来的好结果发到小红书和留学论坛。<br>有人问"能帮我也搜吗"——你的 first 100 users 就来了。</div>
     </div>
@@ -807,7 +794,7 @@ body { font-family:var(--font-display); word-break:keep-all; overflow-wrap:norma
       <div class="summary-item"><div class="big-num">⚠️</div><div class="label">不放弃<br>被封的站</div></div>
       <div class="summary-item"><div class="big-num">📋</div><div class="label">主表 + 排除表<br>双轨品控</div></div>
     </div>
-    <div class="analogy reveal reveal-d4" style="margin-top:36px; background:var(--bg-wash); border:2px solid var(--accent);">
+    <div class="analogy reveal reveal-d4" style="margin-top:36px; background:#f6f8fa; border:2px solid var(--accent);">
       <div class="icon">🧠</div>
       <div class="text" style="font-size: 25px;"><strong>它的定位：</strong>不是搜索引擎，不是爬虫——是一个<strong>有判断力的研究助理</strong>。知道什么方向匹配、什么导师有风险、什么网站该放弃。搜得聪明，而不是搜得多。</div>
     </div>
