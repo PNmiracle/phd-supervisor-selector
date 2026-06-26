@@ -128,7 +128,7 @@ body { word-break:keep-all; overflow-wrap:normal }
 <!-- ====== SLIDE 2: PAIN POINTS ====== -->
 <div class="slide">
   <div class="slide-content">
-    <div class="slide-num reveal">01 / 15</div>
+    <div class="slide-num reveal">01 / 21</div>
     <h2 class="reveal reveal-d1">为什么需要<br>这个<span class="hl">Skill</span>？</h2>
     <p class="lead reveal reveal-d2">博士选导的三大痛点</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
@@ -158,7 +158,7 @@ body { word-break:keep-all; overflow-wrap:normal }
 <!-- ====== SLIDE 3: WHAT MAKES IT DIFFERENT ====== -->
 <div class="slide">
   <div class="slide-content">
-    <div class="slide-num reveal">02 / 15</div>
+    <div class="slide-num reveal">02 / 21</div>
     <h2 class="reveal reveal-d1">它不是搜索引擎<br>是<span class="hl">研究助理</span></h2>
     <p class="lead reveal reveal-d2">关键词搜索只能"返回可能有关系的页面"，这个 Skill 会"判断、验证、整理"</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
@@ -184,7 +184,7 @@ body { word-break:keep-all; overflow-wrap:normal }
 <!-- ====== SLIDE 4: THE PROBLEM ====== -->
 <div class="slide">
   <div class="slide-content">
-    <div class="slide-num reveal">03 / 15</div>
+    <div class="slide-num reveal">03 / 21</div>
     <h2 class="reveal reveal-d1">每个大学网站<br>都是一扇<span class="hl">不同的门</span></h2>
     <p class="lead reveal reveal-d2">不是"搜个关键词就行"——得想办法敲开每扇门</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
@@ -202,7 +202,7 @@ body { word-break:keep-all; overflow-wrap:normal }
 <!-- ====== SLIDE 5: THE PIPELINE ====== -->
 <div class="slide">
   <div class="slide-content">
-    <div class="slide-num reveal">04 / 15</div>
+    <div class="slide-num reveal">04 / 21</div>
     <h2 class="reveal reveal-d1">不是"关键词搜索"<br>是<span class="hl">五层漏斗</span></h2>
     <p class="lead reveal reveal-d2">从广撒网到精筛选，层层递进</p>
     <div class="flow-row reveal reveal-d3" style="flex:0 1 auto;">
@@ -226,16 +226,17 @@ body { word-break:keep-all; overflow-wrap:normal }
 <!-- ====== SLIDE 6: FIVE WEAPONS ====== -->
 <div class="slide">
   <div class="slide-content">
-    <div class="slide-num reveal">05 / 15</div>
+    <div class="slide-num reveal">05 / 21</div>
     <h2 class="reveal reveal-d1">搜索策略：<span class="hl">五招</span><br>从温柔到暴力</h2>
     <p class="lead reveal reveal-d2">根据每个网站的性格，自动选择最合适的策略</p>
     <div class="card-row reveal reveal-d3" style="flex-wrap:wrap;">
-      <div class="card" style="min-width:340px;"><div class="emoji">🚪 第一招</div><h3>直接访问 · curl 请求</h3><p>伪装浏览器身份直接访问 staff 页面，解析 HTML 提取人名链接。对老老实实用服务器渲染的站最有效。</p></div>
-      <div class="card" style="min-width:340px;"><div class="emoji">🗝️ 第二招</div><h3>JS 探针 · API 挖掘</h3><p>下载 JS 文件，搜索 API 地址，找到真正的数据接口——绕过壳子直接拿 JSON。</p></div>
+      <div class="card" style="min-width:300px; flex:1;"><div class="emoji">🚪 第一招</div><h3>直接访问 · curl 请求</h3><p>伪装浏览器身份直接访问 staff 页面，解析 HTML 提取人名链接。适合老老实实服务器渲染的站。</p></div>
+      <div class="card" style="min-width:300px; flex:1;"><div class="emoji">🗝️ 第二招</div><h3>JS 探针 · API 挖掘</h3><p>下载 JS 文件，搜索 api、endpoint、baseUrl——绕过网页壳子直接拿 JSON 数据。</p></div>
+      <div class="card" style="min-width:300px; flex:1;"><div class="emoji">🔎 第三招</div><h3>搜索引擎按名索骥</h3><p>拿到导师名+学校 → 搜索引擎搜 "[名字] [学校] professor" → 获取真实存活 URL。</p></div>
     </div>
     <div class="card-row reveal reveal-d4" style="flex-wrap:wrap; margin-top:12px;">
-      <div class="card" style="min-width:340px;"><div class="emoji">🔎 第三招</div><h3>搜索引擎按名索骥</h3><p>拿到导师名字+学校 → 直接搜索引擎搜 "[名字] [学校] professor" → 获取真实存活 URL → curl + 浏览器验证。</p></div>
-      <div class="card" style="min-width:340px;"><div class="emoji">🤖 第四招</div><h3>智能分配·多个子智能体并行处理</h3><p>同时分配多个 AI 子智能体分头搜索不同学校，最后汇总——速度翻倍。</p></div>
+      <div class="card" style="min-width:340px; flex:1;"><div class="emoji">🖥️ 第四招</div><h3>浏览器模拟人验证</h3><p>curl 拿不到的 JS 渲染页面 → 启动浏览器模拟人点开页面、点击隐藏 tab、截图确认内容。Cloudflare 盾的克星。</p></div>
+      <div class="card" style="min-width:340px; flex:1;"><div class="emoji">🤖 第五招</div><h3>智能分配·多个子智能体并行处理</h3><p>同时分配多个 AI 子智能体分头搜索不同学校，最后汇总——速度翻 5-10 倍。</p></div>
     </div>
   </div>
 </div>
@@ -243,7 +244,7 @@ body { word-break:keep-all; overflow-wrap:normal }
 <!-- ====== SLIDE 7: DEEP DISCOVERY ====== -->
 <div class="slide">
   <div class="slide-content">
-    <div class="slide-num reveal">06 / 15</div>
+    <div class="slide-num reveal">06 / 21</div>
     <h2 class="reveal reveal-d1">不是搜到就停<br>而是<span class="hl">越挖越深</span></h2>
     <p class="lead reveal reveal-d2">Deep Discovery Pipeline —— 每个学校挖到底</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
@@ -261,7 +262,7 @@ body { word-break:keep-all; overflow-wrap:normal }
 <!-- ====== SLIDE 8: WHEN BLOCKED ====== -->
 <div class="slide">
   <div class="slide-content">
-    <div class="slide-num reveal">07 / 15</div>
+    <div class="slide-num reveal">07 / 21</div>
     <h2 class="reveal reveal-d1">遇到<span class="hl">盾牌</span>怎么办？<br>不放弃，也不死磕</h2>
     <p class="lead reveal reveal-d2">Cloudflare 反爬、JS 渲染壳、403 拦截……每种都有对应策略</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
@@ -279,7 +280,7 @@ body { word-break:keep-all; overflow-wrap:normal }
 <!-- ====== SLIDE 9: QUALITY CONTROL ====== -->
 <div class="slide">
   <div class="slide-content">
-    <div class="slide-num reveal">08 / 15</div>
+    <div class="slide-num reveal">08 / 21</div>
     <h2 class="reveal reveal-d1">不止是搜<br>还要<span class="hl">品控</span></h2>
     <p class="lead reveal reveal-d2">搜到的候选人要经过多道关卡才能进入正式推荐表</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
@@ -297,7 +298,7 @@ body { word-break:keep-all; overflow-wrap:normal }
 <!-- ====== SLIDE 10: IMPROVEMENTS ====== -->
 <div class="slide">
   <div class="slide-content">
-    <div class="slide-num reveal">09 / 15</div>
+    <div class="slide-num reveal">09 / 21</div>
     <h2 class="reveal reveal-d1">改进方向<br><span class="hl">P0 + P1</span></h2>
     <p class="lead reveal reveal-d2">持续迭代中</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
@@ -316,7 +317,7 @@ body { word-break:keep-all; overflow-wrap:normal }
 <!-- ====== SLIDE 11: TWO MODES ====== -->
 <div class="slide">
   <div class="slide-content">
-    <div class="slide-num reveal">10 / 15</div>
+    <div class="slide-num reveal">10 / 21</div>
     <h2 class="reveal reveal-d1">两种<span class="hl">工作模式</span></h2>
     <p class="lead reveal reveal-d2">根据你的数据源自动切换</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto; min-height:320px;">
@@ -339,7 +340,7 @@ body { word-break:keep-all; overflow-wrap:normal }
 <!-- ====== SLIDE 12: HOW TO USE ====== -->
 <div class="slide">
   <div class="slide-content">
-    <div class="slide-num reveal">11 / 15</div>
+    <div class="slide-num reveal">11 / 21</div>
     <h2 class="reveal reveal-d1">三步<span class="hl">使用流程</span></h2>
     <p class="lead reveal reveal-d2">从零到一份完整的导师表，只需三步</p>
     <div class="step-row reveal reveal-d3" style="flex:0 1 auto;">
@@ -371,7 +372,7 @@ body { word-break:keep-all; overflow-wrap:normal }
 <!-- ====== SLIDE 13: Vika CAPABILITIES ====== -->
 <div class="slide">
   <div class="slide-content">
-    <div class="slide-num reveal">12 / 15</div>
+    <div class="slide-num reveal">12 / 21</div>
     <h2 class="reveal reveal-d1">Vika 模式下<br><span class="hl">你能做什么</span>？</h2>
     <p class="lead reveal reveal-d2">直接在表里增删改查——用自然语言</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
@@ -389,7 +390,7 @@ body { word-break:keep-all; overflow-wrap:normal }
 <!-- ====== SLIDE 14: DELIVERABLES ====== -->
 <div class="slide">
   <div class="slide-content">
-    <div class="slide-num reveal">13 / 15</div>
+    <div class="slide-num reveal">13 / 21</div>
     <h2 class="reveal reveal-d1">你会<span class="hl">得到什么</span>？</h2>
     <p class="lead reveal reveal-d2">一份可直接用于申请的导师表格</p>
     <div class="card-row reveal reveal-d3" style="flex:0 1 auto;">
@@ -561,7 +562,7 @@ body { word-break:keep-all; overflow-wrap:normal }
 <!-- ====== SLIDE 21: SUMMARY ====== -->
 <div class="slide">
   <div class="slide-content">
-    <div class="slide-num reveal">14 / 15</div>
+    <div class="slide-num reveal">14 / 21</div>
     <h2 class="reveal reveal-d1">一句话总结</h2>
     <p class="lead reveal reveal-d2" style="font-size: 30px; max-width:1100px;">不是"输入关键词等结果"的搜索引擎——<br>而是一个<span style="color:var(--amber); font-weight:700;">模拟人类研究员</span>的 AI 工具：<br>理解方向、多策略搜索、逐页验证、品控把关。</p>
     <div class="summary-strip reveal reveal-d3" style="margin-top:48px;">
