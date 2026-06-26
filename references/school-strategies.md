@@ -203,3 +203,24 @@ for school in searched_schools:
 ```
 
 The agent should update this file manually as part of the search workflow — after completing a school, add an entry.
+
+#### University of Leeds
+- **Architecture**: Static HTML (staff profile pages)
+- **Access**: Direct URL access to staff profiles at ahc.leeds.ac.uk/design/staff/
+- **Key endpoint**: https://ahc.leeds.ac.uk/design/staff/
+- **Failed**: —
+- **Last verified**: 2026-06-26
+
+#### De Montfort University
+- **Architecture**: Static HTML (staff profile pages)
+- **Access**: Direct URL access to academic staff pages at dmu.ac.uk/academic-staff/
+- **Key endpoint**: https://www.dmu.ac.uk/academic-staff/
+- **Failed**: —
+- **Last verified**: 2026-06-26
+
+#### University of Brighton
+- **Architecture**: Pure Portal (research.brighton.ac.uk)
+- **Access**: Pure Portal JSON API → parse researcher profiles
+- **Key endpoint**: https://research.brighton.ac.uk/persons/
+- **Failed**: —
+- **Last verified**: 2026-06-26
