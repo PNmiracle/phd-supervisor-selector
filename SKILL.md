@@ -343,13 +343,12 @@ New records must be added with these columns **empty**. Only the student fills t
 
 Do NOT include these in `备注`:
 - `方向偏X` / `偏X方向` — the student judges fit themselves
-- `看看这个呢` / `看看这个` / `这个看看有兴趣吗` — if unsure, don't add
 - `没有非常符合的老师` — subjective, risk of misleading
 - `大多数相关的都在商学院` — unnecessary commentary
 
-**If a supervisor might not fit**: either don't add them, or describe their research factually without hedging. Let the student decide.
+**"看看这个呢" / "这个看看有兴趣吗" are OK.** These are natural conversational markers when the user is uncertain about a candidate and wants to flag them for review. Keep them.
 
-**If uncertain about fit during search**: mark as `⚠️待确认` in 备注 with what needs verification, and let the user decide whether to keep.
+**If a supervisor might not fit**: describe their research factually, and use conversational markers if unsure. Let the student decide.
 
 
 ### CRITICAL: Exclude retired / emeritus / elderly professors
