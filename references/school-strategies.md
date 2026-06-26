@@ -506,3 +506,96 @@ After searching each school, add or update its entry. One sentence per field.
 ### Commit cadence
 
 Every 5 schools: `git add references/school-strategies.md && git commit -m "learn: [School]→L?" && git push`
+
+#### Hong Kong University of Science and Technology (HKUST)
+- **Architecture**: Static HTML
+- **Access**: No Psychology dept → target Business School Marketing dept
+- **Key endpoint**: https://mark.hkust.edu.hk/faculty-and-staff/directory
+- **PhD link**: https://prog-crs.ust.hk/pgprog/2022-23/mphil-phd-mark
+- **Note**: Also has "Leadership and Behavioral Decision-making" research area via bm.hkust.edu.hk. Management dept may have additional behavioral faculty.
+- **Failed**: —
+- **Last verified**: 2026-06-26
+
+#### City University of Hong Kong (CityU)
+- **Architecture**: Static HTML + Incapsula WAF (partial)
+- **Access**: SS pages blocked by WAF → use scholars.cityu.edu.hk or Google cached results. CB pages accessible directly.
+- **Key endpoint**: https://scholars.cityu.edu.hk/shanzhen, https://www.cb.cityu.edu.hk/staff/
+- **PhD link**: https://www.cb.cityu.edu.hk/pg/ (business), https://www.cityu.edu.hk/pg/programme/ (SS)
+- **Failed**: ssweb.cityu.edu.hk blocked by Incapsula
+- **Last verified**: 2026-06-26
+
+#### Hong Kong Polytechnic University (PolyU)
+- **Architecture**: JS-rendered
+- **Access**: polyu.edu.hk/apss/ for Applied Social Sciences; polyu.edu.hk/mm/ for Marketing
+- **Key endpoint**: https://www.polyu.edu.hk/apss/people/academic-staff/
+- **PhD link**: https://www.polyu.edu.hk/apss/study/research-postgraduate-programme/
+- **Note**: Recently posted JDM faculty job on SJDM, confirms active JDM research presence
+- **Failed**: JS-rendered needs browser
+- **Last verified**: 2026-06-26
+
+#### Hong Kong Baptist University (HKBU)
+- **Architecture**: Static HTML (educ.hkbu.edu.hk); socsc.hkbu.edu.hk unreachable
+- **Access**: Psychology lives within Dept of Education and Psychology (educ.hkbu.edu.hk), NOT standalone psych dept. Also check Business School at busrpg.hkbu.edu.hk.
+- **Key endpoint**: https://educ.hkbu.edu.hk/?page_id=20398
+- **PhD link**: https://educ.hkbu.edu.hk/?page_id=20338
+- **Failed**: socsc.hkbu.edu.hk → connection refused; browser attempt failed
+- **Last verified**: 2026-06-26
+
+#### Lingnan University
+- **Architecture**: Static HTML
+- **Access**: ln.edu.hk/psy/ fully accessible; browser works
+- **Key endpoint**: https://www.ln.edu.hk/psy/about-us/people/academic-staff
+- **PhD link**: https://www.ln.edu.hk/rpg/
+- **Failed**: —
+- **Last verified**: 2026-06-26
+
+#### Education University of Hong Kong (EdUHK)
+- **Architecture**: Static HTML
+- **Access**: eduhk.hk/ps/en/ for Psychology dept; accessible via browser
+- **Key endpoint**: https://www.eduhk.hk/ps/en/aboutus.php?s=our_staff
+- **PhD link**: https://www.eduhk.hk/gradsch/
+- **Failed**: Previous attempt via network blocked; browser works
+- **Last verified**: 2026-06-26
+
+#### Macau University of Science and Technology (MUST)
+- **Architecture**: Cloudflare WAF
+- **Access**: BLOCKED all automated attempts. No psychology department exists — psych coursework embedded in FHSS.
+- **Key endpoint**: —
+- **Failed**: curl → 403 (Cloudflare); browser blocked; Google Scholar shows engineering-only decision-making research; Chinese search yields no psych JDM faculty
+- **Last verified**: 2026-06-26
+
+#### HKUST(GZ)
+- **Architecture**: Static HTML
+- **Access**: Hub structure; Society Hub has 4 thrusts (CNCC, FTEC, IPE, UGOD). No behavioral/cognitive science thrust.
+- **Key endpoint**: https://soch.hkust-gz.edu.cn/
+- **Failed**: No psychology/behavioral science thrust area
+- **Last verified**: 2026-06-26
+
+#### BNBU / UIC (北师香港浸会大学, Zhuhai)
+- **Architecture**: Static HTML
+- **Access**: 9 PhD programs exist but none in psychology. Applied Psychology is undergraduate-only.
+- **Key endpoint**: https://gs.uic.edu.cn/ (graduate school)
+- **Failed**: No psychology PhD program; behavioral decision research happens in math/stats depts but not a dedicated track
+- **Last verified**: 2026-06-26
+
+#### Duke Kunshan University
+- **Architecture**: Static HTML
+- **Access**: Masters-only institution; 5 Master's programs, zero PhD programs
+- **Key endpoint**: https://dukekunshan.edu.cn/en/academics/graduate
+- **Failed**: No PhD programs of any kind; Duke Durham has relevant programs but DKU does not
+- **Last verified**: 2026-06-26
+
+#### University of Nottingham Ningbo China (UNNC)
+- **Architecture**: Static HTML
+- **Access**: No Psychology dept. Business School (NUBS China) has ICBBR (behavioural business research centre).
+- **Key endpoint**: https://www.nottingham.edu.cn/en/business/
+- **PhD link**: NUBS China PhD available for behavioural economics/consumer behavior route
+- **Failed**: No psychology-specific PhD; business school only
+- **Last verified**: 2026-06-26
+
+#### Xi'an Jiaotong-Liverpool University (XJTLU)
+- **Architecture**: Static HTML
+- **Access**: No Psychology dept in HSS (only China Studies, International Studies, Media, Linguistics). IBSS offers PhD in Business.
+- **Key endpoint**: https://www.xjtlu.edu.cn/en/academics/schools/ibss
+- **Failed**: No psychology department; IBSS business PhD only
+- **Last verified**: 2026-06-26
