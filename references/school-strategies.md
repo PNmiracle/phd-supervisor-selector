@@ -224,3 +224,151 @@ The agent should update this file manually as part of the search workflow — af
 - **Key endpoint**: https://research.brighton.ac.uk/persons/
 - **Failed**: —
 - **Last verified**: 2026-06-26
+
+### 🇭🇰 Hong Kong
+
+#### University of Hong Kong (HKU)
+- **Architecture**: Static HTML
+- **Access**: browser → psychology.hku.hk faculty page; business school via hkubs.hku.hk
+- **Key endpoint**: https://psychology.hku.hk/faculty-members/
+- **Failed**: —
+- **Last verified**: 2026-06-26
+
+#### Chinese University of Hong Kong (CUHK)
+- **Architecture**: Static HTML (psych) + JS-rendered (business)
+- **Access**: psy.cuhk.edu.hk via browser; bschool.cuhk.edu.hk staff page is JS-rendered
+- **Key endpoint**: https://www.psy.cuhk.edu.hk/en/people/faculty.html
+- **Failed**: CUHK Psych page partially inaccessible; supplemented via Bing search
+- **Last verified**: 2026-06-26
+
+#### HKUST
+- **Architecture**: Mixed
+- **Access**: Web accessible; no Psychology dept (only Division of Social Science)
+- **Key endpoint**: https://bm.hkust.edu.hk/faculty (Business School)
+- **Failed**: No Psychology PhD
+- **Last verified**: 2026-06-26
+
+#### City University of Hong Kong (CityU)
+- **Architecture**: Static HTML partially accessible
+- **Access**: cityu.edu.hk/ss/ for Social & Behavioural Sciences
+- **Key endpoint**: https://www.cityu.edu.hk/ss/
+- **Failed**: Full browser verification needed
+- **Last verified**: 2026-06-26
+
+#### Hong Kong Polytechnic University (PolyU)
+- **Architecture**: JS-rendered
+- **Access**: polyu.edu.hk/apss/ for Applied Social Sciences
+- **Key endpoint**: https://www.polyu.edu.hk/apss/
+- **Failed**: JS-rendered, needs browser
+- **Last verified**: 2026-06-26
+
+#### Hong Kong Baptist University (HKBU)
+- **Architecture**: Inaccessible
+- **Access**: Browser attempt failed
+- **Key endpoint**: https://socsc.hkbu.edu.hk/
+- **Failed**: Network restrictions
+- **Last verified**: 2026-06-26
+
+#### Lingnan University
+- **Architecture**: Static HTML partially accessible
+- **Access**: ln.edu.hk/psy/
+- **Key endpoint**: https://www.ln.edu.hk/psy/
+- **Failed**: Partial accessibility; applied/counseling focus
+- **Last verified**: 2026-06-26
+
+#### Education University of Hong Kong (EdUHK)
+- **Architecture**: Inaccessible
+- **Access**: Browser attempt failed
+- **Key endpoint**: —
+- **Failed**: Network restrictions; educational/developmental focus
+- **Last verified**: 2026-06-26
+
+### 🇸🇬 Singapore
+
+#### National University of Singapore (NUS)
+- **Architecture**: Static HTML + custom profiles
+- **Access**: fass.nus.edu.sg/psy for Psychology; bschool.nus.edu.sg for Business
+- **Key endpoint**: https://fass.nus.edu.sg/psy/people/
+- **Failed**: —
+- **Last verified**: 2026-06-26
+
+#### Nanyang Technological University (NTU)
+- **Architecture**: Static HTML
+- **Access**: ntu.edu.sg/sss for Psychology; ntu.edu.sg/business for NBS
+- **Key endpoint**: https://www.ntu.edu.sg/sss/about-us/our-people
+- **Failed**: —
+- **Last verified**: 2026-06-26
+
+#### Singapore Management University (SMU)
+- **Architecture**: Static HTML
+- **Access**: socsc.smu.edu.sg for Psychology; business.smu.edu.sg for LKCSB
+- **Key endpoint**: https://socsc.smu.edu.sg/about/faculty
+- **Failed**: —
+- **Last verified**: 2026-06-26
+
+### 🇲🇴 Macau
+
+#### University of Macau (UM)
+- **Architecture**: Static HTML
+- **Access**: fss.um.edu.mo for Psychology
+- **Key endpoint**: https://fss.um.edu.mo/
+- **Failed**: —
+- **Last verified**: 2026-06-26
+
+#### Macau University of Science and Technology (MUST)
+- **Architecture**: Cloudflare WAF
+- **Access**: Browser ONLY (Cloudflare blocks curl)
+- **Key endpoint**: —
+- **Failed**: curl → 403; all automated access blocked
+- **Last verified**: 2026-06-26
+
+### 🇨🇳 Sino-foreign Joint Programs
+
+#### CUHK Shenzhen
+- **Architecture**: Static HTML
+- **Access**: hss.cuhk.edu.cn for Applied Psychology
+- **Key endpoint**: https://hss.cuhk.edu.cn/en/taxonomy/term/21
+- **Failed**: —
+- **Last verified**: 2026-06-26
+
+#### NYU Shanghai
+- **Architecture**: Static HTML
+- **Access**: shanghai.nyu.edu for Psychology / Neural Science
+- **Key endpoint**: https://shanghai.nyu.edu/academics/graduate/phd-programs
+- **Failed**: —
+- **Last verified**: 2026-06-26
+
+#### HKUST(GZ)
+- **Architecture**: Static HTML
+- **Access**: Hub structure; no Psychology dept
+- **Key endpoint**: —
+- **Failed**: No relevant department
+- **Last verified**: 2026-06-26
+
+#### UIC (BNU-HKBU, Zhuhai)
+- **Architecture**: Static HTML
+- **Access**: Graduate School exists; no Psychology PhD
+- **Key endpoint**: —
+- **Failed**: No Psychology PhD program
+- **Last verified**: 2026-06-26
+
+#### Duke Kunshan University
+- **Architecture**: Static HTML
+- **Access**: Masters-only; no PhD programs
+- **Key endpoint**: —
+- **Failed**: No PhD programs, no Psychology dept
+- **Last verified**: 2026-06-26
+
+#### UNNC (Nottingham Ningbo)
+- **Architecture**: Mixed, not fully accessible
+- **Access**: Browser needed; Psychology PhD unconfirmed
+- **Key endpoint**: —
+- **Failed**: Automated search inconclusive
+- **Last verified**: 2026-06-26
+
+#### XJTLU (Xi'an Jiaotong-Liverpool)
+- **Architecture**: Static HTML
+- **Access**: No Psychology dept in HSS; Business PhD via IBSS
+- **Key endpoint**: —
+- **Failed**: No Psychology department
+- **Last verified**: 2026-06-26
