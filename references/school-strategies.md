@@ -108,13 +108,6 @@ Format: Architecture + Layer + Access method + Endpoints + Failures
 - **Failed**: —
 - **Last verified**: —
 
-#### Heriot-Watt University
-- **Architecture**: —
-- **Layer**: —
-- **Access**: —
-- **Key endpoint**: —
-- **Failed**: —
-- **Last verified**: —
 
 #### De Montfort University
 - **Architecture**: —
@@ -155,6 +148,14 @@ Format: Architecture + Layer + Access method + Endpoints + Failures
 - **Key endpoint**: —
 - **Failed**: —
 - **Last verified**: —
+
+#### Heriot-Watt University
+- **Layer**: L2
+- **Architecture**: Pure Portal (researchportal) + Static HTML (hw.ac.uk)
+- **Best method**: Use hw.ac.uk profiles (not researchportal UUIDs). Format: `hw.ac.uk/profiles/uk/school/tex/faculty/{slug}`
+- **Key URL / endpoint**: `https://www.hw.ac.uk/profiles/uk/school/tex/faculty/{slug}`
+- **Failed**: researchportal.hw.ac.uk UUID-based URLs → 404
+- **Last verified**: 2026-06-26
 
 ### 🇦🇺 Australia
 
@@ -450,13 +451,6 @@ The agent should update this file manually as part of the search workflow — af
 - **Failed**: No Psychology department
 - **Last verified**: 2026-06-26
 
-#### Heriot-Watt University
-- **Architecture**: Pure Portal (researchportal.hw.ac.uk)
-- **Layer**: L2
-- **Access**: Pure Portal → query faculty by school
-- **Key endpoint**: https://researchportal.hw.ac.uk/en/persons/
-- **Failed**: —
-- **Last verified**: 2026-06-26
 
 #### University of Sydney
 - **Architecture**: Custom CMS (profiles.sydney.edu.au)
