@@ -282,3 +282,11 @@ When the user drops a template `.xlsx`:
 - Read `references/search-techniques.md` for SPA/API discovery, URL pattern inference, parallel sub-agent strategies, browser automation, and deep discovery pipelines.
 - Read `references/vika-operations-guide.md` for the complete Vika table CRUD operations guide (list, create, update, delete, import, deduplicate, translate).
 - Read `references/vika-api-patterns.md` for reusable Python code snippets for common Vika API calls.
+
+### CRITICAL: Do NOT fill student-facing columns
+
+When adding NEW supervisor records, **NEVER** set these columns:
+- `选导意向（点击选择）` — for the student to choose
+- `你的反馈（具体原因）` — for the student to write
+
+New records must be added with these columns **empty**. Only the student fills them.
