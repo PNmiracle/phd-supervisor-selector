@@ -290,3 +290,13 @@ When adding NEW supervisor records, **NEVER** set these columns:
 - `你的反馈（具体原因）` — for the student to write
 
 New records must be added with these columns **empty**. Only the student fills them.
+### CRITICAL: Exclude retired / emeritus / elderly professors
+
+Do NOT add supervisors who are:
+- Emeritus / Emerita Professor
+- Honorary / retired status
+- Clearly over retirement age (~70+) based on career timeline
+- Not found in current university staff directory (likely retired)
+
+If such a record already exists in the table, **delete it**.
+

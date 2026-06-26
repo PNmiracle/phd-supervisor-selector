@@ -52,11 +52,12 @@ When only a title is visible and no other supervision evidence is available:
 
 Exclude from the main table unless strong contrary evidence exists:
 
-- `Adjunct Professor`, `Visiting Professor`, `Emeritus Professor`.
+- `Adjunct Professor`, `Visiting Professor`, `Emeritus Professor`. **Do not include emeritus/retired professors. Delete them immediately if found.**
 - `Teaching Professor`, `Professor of Instruction`, `Professor of Practice`, `Industry Professor`.
 - `Clinical Professor`, `Practical Professor`, studio/practice-only faculty.
 - Research-only staff, postdocs, fellows, and lab staff without doctoral supervision evidence.
 - Very junior profiles with only 1-3 papers and no other research evidence.
+- **Age/heavily senior profiles**: anyone clearly over ~70 or whose career timeline suggests full retirement. Do not include; delete if already in table.
 - Inactive profiles: no recent publications, projects, or updates for roughly 3+ years, especially for senior scholars.
 - Profiles where the person looks mainly teaching, instruction, industry practice, or professional-service oriented rather than research active.
 - People whose title or page suggests they cannot independently supervise doctoral students, unless the PhD page explicitly says they can.
