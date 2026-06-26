@@ -170,6 +170,25 @@ When the same student comes back for a "refresh" search:
    - Known site migration or new academic year signal
 4. For `blocked` schools: try ONE new approach (different domain, search engine), then leave blocked if still fails
 
+
+
+## 8. Post-Search Learning Loop (CRITICAL)
+
+After completing EACH school, before moving to the next:
+
+```
+1. Update school-strategies.md ← what architecture? what method worked? what failed?
+2. Update state file ← mark school status, candidate count
+3. (If new strategy discovered) Note it in "Successful Strategies" section above
+```
+
+This 30-second step compounds: every search makes every future search faster.
+
+### Commit cadence
+
+- **Per school**: update the file (don't commit yet — batch at end)
+- **Every 5 schools OR end of session**: `git add references/school-strategies.md search-state/ && git commit -m "learn: 5 schools → strategies" && git push`
+
 ## 7. Optimization Principles
 
 - **Check school-strategies.md first**: Before accessing a school, look it up in the registry. Known architecture → known approach → no wasted attempts.

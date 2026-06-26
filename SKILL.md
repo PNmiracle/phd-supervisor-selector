@@ -17,6 +17,42 @@ Build source-backed supervisor lists for doctoral applicants. Search current uni
 
 Supports two modes: **Vika (direct table CRUD)** and **Excel (local spreadsheet)**.
 
+
+## Self-Improvement Protocol (AUTO)
+
+This skill learns from every search. After searching each school, update the knowledge base so future searches are faster and smarter.
+
+### Per-School Update (after EVERY school — success OR failure)
+
+Update `references/school-strategies.md` immediately:
+
+```bash
+# Use the structured format. Fill in ALL fields you can.
+```
+
+**What to record:**
+
+| Field | Required | Example |
+|-------|----------|---------|
+| Architecture | ✅ Always | `Pure Portal`, `Vue SPA`, `Static HTML`, `Cloudflare WAF` |
+| Access method | ✅ Always | `curl → JSON API`, `browser → click tabs`, `search engine → profile URL` |
+| Key endpoint | ✅ If found | `https://pure.arts.ac.uk/portal/en/persons/?format=json` |
+| Failed attempts | ✅ If any | `Tried /api/staff → 404; JS bundle had no API paths` |
+| Last verified | ✅ Always | `2026-06-26` |
+
+**For schools NOT in the registry:** append a new entry.
+**For schools already in the registry:** update `Last verified`, add to `Failed` if old strategy broke, replace `Access` if you found a better method.
+
+### End-of-Session Commit
+
+After the search session, commit accumulated learnings:
+
+```bash
+cd $SKILL_DIR && git add references/school-strategies.md && git commit -m "learn: [School1]→Arch1, [School2]→Arch2" && git push
+```
+
+This ensures every search session permanently improves the skill for all future sessions.
+
 ## Data Source Detection
 
 When receiving a task, detect the data source:
