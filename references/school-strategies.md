@@ -599,3 +599,180 @@ Every 5 schools: `git add references/school-strategies.md && git commit -m "lear
 - **Key endpoint**: https://www.xjtlu.edu.cn/en/academics/schools/ibss
 - **Failed**: No psychology department; IBSS business PhD only
 - **Last verified**: 2026-06-26
+
+### 🇬🇧 United Kingdom (continued)
+
+#### University College London (UCL) — Psychology
+- **Architecture**: profiles.ucl.ac.uk numeric ID system (RESTRUCTURED 2025-2026)
+- **Access**: Old PALS URLs 404 → new system https://profiles.ucl.ac.uk/{numeric-id}-{name}
+- **Key endpoint**: https://profiles.ucl.ac.uk/2667-david-shanks
+- **Failed**: All old pals.ucl.ac.uk URLs broken
+- **Last verified**: 2026-06-26
+
+#### Birkbeck, University of London
+- **Architecture**: Static HTML + numeric profile IDs
+- **Access**: https://www.bbk.ac.uk/our-staff/profile/{id}/{name}
+- **Key endpoint**: https://www.bbk.ac.uk/our-staff/profile/8009667/ulrike-hahn
+- **Failed**: Profile IDs can redirect to wrong person; verify the ID
+- **Last verified**: 2026-06-26
+
+#### University of Edinburgh
+- **Architecture**: JS-rendered profile directory (edwebprofiles.ed.ac.uk)
+- **Access**: https://www.ed.ac.uk/profile/{name} → redirects to JS profile
+- **Key endpoint**: https://www.ed.ac.uk/profile/alison-lenton
+- **Failed**: —
+- **Last verified**: 2026-06-26
+
+#### University of Bristol
+- **Architecture**: Main dept pages redirect to generic homepage; use RIS portal
+- **Access**: https://research-information.bris.ac.uk/en/persons/{name}
+- **Key endpoint**: https://research-information.bris.ac.uk/en/persons/stephan-lewandowsky
+- **Failed**: All bristol.ac.uk/psychology people pages redirect to dept homepage
+- **Last verified**: 2026-06-26
+
+#### University of Warwick — Business School
+- **Architecture**: Static HTML (WBS separate from main Warwick)
+- **Access**: https://www.wbs.ac.uk/about/person/{name}/
+- **Key endpoint**: https://www.wbs.ac.uk/about/person/neil-stewart/
+- **Failed**: Old warwick.ac.uk/fac/sci/psych/people URLs 404 for Stewart (moved to WBS)
+- **Last verified**: 2026-06-26
+
+### 🇺🇸 United States
+
+#### Columbia Business School
+- **Architecture**: Cloudflare WAF
+- **Access**: Browser ONLY; business.columbia.edu/faculty/people/{name}
+- **Key endpoint**: https://business.columbia.edu/faculty/people/eric-johnson
+- **Failed**: curl → Cloudflare block
+- **Last verified**: 2026-06-26
+
+#### Princeton University
+- **Architecture**: Cloudflare WAF (psych.princeton.edu)
+- **Access**: Browser ONLY
+- **Key endpoint**: https://psych.princeton.edu/people/elke-weber
+- **Note**: Elke Weber moved from Columbia → Princeton
+- **Last verified**: 2026-06-26
+
+#### Harvard University — Psychology
+- **Architecture**: Mixed; some profile URLs 404
+- **Access**: Personal sites may be more reliable than dept pages
+- **Key endpoint**: https://www.joshua-greene.net/ (personal site; dept URL 404)
+- **Last verified**: 2026-06-26
+
+#### Carnegie Mellon University — SDS
+- **Architecture**: Static HTML
+- **Access**: https://www.cmu.edu/dietrich/sds/people/faculty/{name}.html
+- **Key endpoint**: https://www.cmu.edu/dietrich/sds/people/faculty/daniel-oppenheimer.html
+- **Note**: Carey Morewedge moved from CMU → Boston University Questrom
+- **Last verified**: 2026-06-26
+
+#### Boston University — Questrom
+- **Architecture**: Static HTML
+- **Access**: https://www.bu.edu/questrom/profile/{name}/
+- **Key endpoint**: https://www.bu.edu/questrom/profile/carey-morewedge/
+- **Last verified**: 2026-06-26
+
+#### McGill University — Psychology
+- **Architecture**: Incapsula WAF (blocks all automated access)
+- **Access**: Browser ONLY; mcgill.ca/psychology/{name}
+- **Key endpoint**: https://www.mcgill.ca/psychology/ross-otto
+- **Failed**: All curl → 403; search blocked; faculty directory 403
+- **Last verified**: 2026-06-26
+
+### 🇸🇪 Sweden
+
+#### Linköping University (LiU)
+- **Architecture**: Employee ID system; JS-rendered profiles
+- **Access**: https://liu.se/en/employee/{employee-id} (IDs are like danva85)
+- **Key endpoint**: https://liu.se/en/employee/danva85 (Daniel Västfjäll)
+- **Failed**: Employee search by name via URL doesn't work; ID guessing unreliable
+- **Last verified**: 2026-06-26
+
+#### Lund University
+- **Architecture**: Research portal (portal.research.lu.se) — 403 to curl
+- **Access**: Browser; https://www.nek.lu.se/en/{name} for economics dept
+- **Key endpoint**: https://portal.research.lu.se/en/persons/erik-wengstrom
+- **Note**: Erik Wengström moved from QUT → Lund
+- **Last verified**: 2026-06-26
+
+### 🇳🇿 New Zealand
+
+#### University of Otago — Business School
+- **Architecture**: Cloudflare WAF (blocks all automated access)
+- **Access**: Browser ONLY
+- **Key endpoint**: https://www.otago.ac.nz/marketing/staff/professor-maree-thyne
+- **Failed**: All curl → Cloudflare 403
+- **Last verified**: 2026-06-26
+
+### 🇸🇬 Singapore (updated)
+
+#### Singapore Management University (SMU)
+- **Architecture**: SITE RESTRUCTURED 2025-2026; old socsc.smu.edu.sg profiles broken
+- **Access**: New platform at https://faculty.smu.edu.sg/ (JS-rendered, search required)
+- **Key endpoint**: https://faculty.smu.edu.sg/profile/david-chan (confirmed via Google)
+- **Failed**: All socsc.smu.edu.sg individual profile URLs now broken
+- **Last verified**: 2026-06-26
+
+### 🇦🇺 Australia (updated)
+
+#### UNSW Sydney
+- **Architecture**: Static HTML staff profiles
+- **Access**: https://www.unsw.edu.au/staff/{name}
+- **Key endpoint**: https://www.unsw.edu.au/staff/ben-newell
+- **Note**: Ben Newell moved from UCL/others → UNSW; not at Carleton
+- **Last verified**: 2026-06-26
+
+#### Macquarie University
+- **Architecture**: Pure research portal (researchers.mq.edu.au)
+- **Access**: https://researchers.mq.edu.au/en/persons/{name}/
+- **Key endpoint**: https://researchers.mq.edu.au/en/persons/abas-mirzaei/
+- **Last verified**: 2026-06-26
+
+
+## Know-How: People Who Changed Institutions
+
+Record of faculty moves discovered during verification. Check this before assuming a person is at their "known" institution.
+
+| Name | Was at | Now at | When |
+|------|--------|--------|------|
+| Bahador Bahrami | UCL | LMU Munich + Royal Holloway | 2019 |
+| Carey Morewedge | CMU | Boston University Questrom | ~2023 |
+| Elke Weber | Columbia | Princeton | ~2023 |
+| Yin WU | (listed as HKU) | PolyU | — |
+| Ben Newell | UCL/Carleton(误) | UNSW Sydney | — |
+| Erik Wengström | QUT | Lund University | ~2024 |
+| Warren Mansell | Manchester | Curtin University | — |
+| Neil Stewart | Warwick Psychology | Warwick Business School | — |
+
+## Know-How: URL Quality Gate
+
+After EVERY batch write to Vika, run this scan:
+
+```python
+# Generic URL patterns that indicate a dept page, NOT an individual profile
+BAD_PATTERNS = [
+    '/faculty-members/', '/faculty.html', '/faculty-directory/',
+    '/academic-staff/', '/our-people', '/about/faculty',
+    '/people'  # unless followed by /name
+]
+# If 导师主页 matches any BAD_PATTERN, find the individual URL immediately
+# If individual URL is JS-rendered, mark in 备注
+```
+
+### URL patterns by university (for quick lookup):
+
+| University | Individual profile pattern |
+|-----------|--------------------------|
+| CUHK Psych | `psy.cuhk.edu.hk/en/people/faculty-members/{slug}.html` |
+| PolyU APSS | `polyu.edu.hk/apss/people/academic-staff/prof-{slug}/` |
+| NTU SSS | `dr.ntu.edu.sg/cris/rp/rp{id}` |
+| SMU (new) | `faculty.smu.edu.sg/profile/{name}` |
+| HKU Psych | `psychology.hku.hk/people/{slug}/` |
+| HKU Business | `hkubs.hku.hk/people/{slug}/` |
+| CityU | `cb.cityu.edu.hk/people-and-research/people/people-details?eid={id}` |
+| UCL (new) | `profiles.ucl.ac.uk/{id}-{slug}` |
+| UNSW | `unsw.edu.au/staff/{slug}` |
+| LiU | `liu.se/en/employee/{employeeId}` (IDs like danva85) |
+| Lund | `portal.research.lu.se/en/persons/{slug}` |
+| McMaster | `experts.mcmaster.ca/people/{initials}` |
+| Carleton | `carleton.ca/psychology/people/{slug}/` |
