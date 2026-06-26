@@ -147,6 +147,20 @@ Report back ONLY the structured list above. Do not narrate your process.
 - Collect results, deduplicate, and fill the table
 - Mark school status in the state file immediately
 
+
+### Verification Gate (before writing ANY record)
+
+For each candidate found, before filling the spreadsheet:
+
+```
+1. Take the name → Google "{name}" "{university}" professor
+2. Click the search result → verify the page contains the person's name + research info
+3. Use the verified URL for 导师主页
+4. If search fails or page is blocked → mark ⚠️, include the search query
+```
+
+**Never construct URLs from patterns.** Even if you found the person via a staff directory, verify their individual profile URL via search engine. URL formats change; search engines always have the live URL.
+
 ## 5. State Update Protocol
 
 After completing each school, update the state file immediately:
