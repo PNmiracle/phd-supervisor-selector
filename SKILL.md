@@ -340,6 +340,16 @@ When adding NEW supervisor records, **NEVER** set these columns:
 New records must be added with these columns **empty**. Only the student fills them.
 
 
+### CRITICAL: Never use ⚠️ or ✅ verification markers in 备注
+
+Do NOT include:
+- `✅验证通过` / `✅已确认` / `✅页面确认` — these are verification notes, not research facts
+- `⚠️Columbia屏蔽` / `⚠️在X非Y` — the URL already tells the story; institutional moves are research facts not warnings
+- Any `⚠️` or `✅` followed by commentary
+
+The `备注` column is for research keywords, title, and risk signals only. Verification status is temporary metadata.
+
+
 ### CRITICAL: Never write enrollment/contact instructions in 备注
 
 Do NOT include:
