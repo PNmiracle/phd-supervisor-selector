@@ -372,3 +372,38 @@ The agent should update this file manually as part of the search workflow — af
 - **Key endpoint**: —
 - **Failed**: No Psychology department
 - **Last verified**: 2026-06-26
+
+#### Heriot-Watt University
+- **Architecture**: Pure Portal (researchportal.hw.ac.uk)
+- **Access**: Pure Portal → query faculty by school
+- **Key endpoint**: https://researchportal.hw.ac.uk/en/persons/
+- **Failed**: —
+- **Last verified**: 2026-06-26
+
+#### University of Sydney
+- **Architecture**: Custom CMS (profiles.sydney.edu.au)
+- **Access**: Direct URL access to staff profiles
+- **Key endpoint**: https://profiles.sydney.edu.au/
+- **Failed**: —
+- **Last verified**: 2026-06-26
+
+#### UNSW
+- **Architecture**: React SPA + Cloudflare
+- **Access**: Browser only — find-an-expert page loads but filters are JS-dependent
+- **Key endpoint**: https://newsroom.unsw.edu.au/find-an-expert
+- **Failed**: Direct API access blocked
+- **Last verified**: 2026-06-26
+
+#### University of Melbourne
+- **Architecture**: Imperva/Incapsula WAF (findanexpert.unimelb.edu.au) + Cloudflare (finearts-music)
+- **Access**: BLOCKED — needs manual browser from user side
+- **Key endpoint**: https://findanexpert.unimelb.edu.au/
+- **Failed**: curl + browser both blocked
+- **Last verified**: 2026-06-26
+
+#### QUT
+- **Architecture**: Cloudflare WAF (全站)
+- **Access**: BLOCKED — needs manual browser from user side
+- **Key endpoint**: https://www.qut.edu.au/research/our-people
+- **Failed**: curl + browser both blocked
+- **Last verified**: 2026-06-26
