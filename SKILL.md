@@ -339,6 +339,17 @@ When adding NEW supervisor records, **NEVER** set these columns:
 
 New records must be added with these columns **empty**. Only the student fills them.
 
+
+### CRITICAL: Never write enrollment/contact instructions in 备注
+
+Do NOT include:
+- `预计2026年秋入学，需提前联系` / `需发简历至xxx` / `需提前套磁`
+- Any year-specific enrollment notes
+- Email addresses or contact instructions
+
+These are student-facing action items, not research facts. The `备注` column is for research keywords and risk signals only.
+
+
 ### CRITICAL: Never write direction-bias notes in 备注
 
 Do NOT include these in `备注`:
