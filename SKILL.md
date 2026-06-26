@@ -6,6 +6,12 @@ description: Research and spreadsheet workflow for PhD supervisor selection. Use
 # PhD Supervisor Selector
 
 ## Overview
+## Search Orchestration (READ FIRST)
+
+Before starting any search task, read `references/search-orchestrator.md`. It defines:
+- **State tracking**: resume interrupted searches, skip already-completed schools
+- **Smart prioritization**: rank schools by expected yield (P0-P3 tiers) so tokens go to high-value targets first
+- **Phased strategy**: quick-scan all schools first (Pass 1), then deep-verify only promising ones (Pass 2)
 
 Build source-backed supervisor lists for doctoral applicants. Search current university pages, judge whether a person is likely to supervise PhD students, fill the spreadsheet columns, and keep unusable or risky candidates out of the main table.
 
@@ -235,6 +241,7 @@ When the user drops a template `.xlsx`:
 
 - Read `references/selection-rules.md` before deciding whether a candidate can enter the main table.
 - Read `references/spreadsheet-rules.md` before creating, editing, or validating a supervisor spreadsheet.
+- Read `references/search-orchestrator.md` before starting any search task to track state, prioritize schools, and resume interrupted work.
 - Read `references/search-techniques.md` for SPA/API discovery, URL pattern inference, parallel sub-agent strategies, browser automation, and deep discovery pipelines.
 - Read `references/vika-operations-guide.md` for the complete Vika table CRUD operations guide (list, create, update, delete, import, deduplicate, translate).
 - Read `references/vika-api-patterns.md` for reusable Python code snippets for common Vika API calls.
