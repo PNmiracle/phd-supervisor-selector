@@ -338,6 +338,20 @@ When adding NEW supervisor records, **NEVER** set these columns:
 - `你的反馈（具体原因）` — for the student to write
 
 New records must be added with these columns **empty**. Only the student fills them.
+
+### CRITICAL: Never write direction-bias notes in 备注
+
+Do NOT include these in `备注`:
+- `方向偏X` / `偏X方向` — the student judges fit themselves
+- `看看这个呢` / `看看这个` / `这个看看有兴趣吗` — if unsure, don't add
+- `没有非常符合的老师` — subjective, risk of misleading
+- `大多数相关的都在商学院` — unnecessary commentary
+
+**If a supervisor might not fit**: either don't add them, or describe their research factually without hedging. Let the student decide.
+
+**If uncertain about fit during search**: mark as `⚠️待确认` in 备注 with what needs verification, and let the user decide whether to keep.
+
+
 ### CRITICAL: Exclude retired / emeritus / elderly professors
 
 Do NOT add supervisors who are:
