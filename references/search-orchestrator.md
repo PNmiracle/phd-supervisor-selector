@@ -35,7 +35,7 @@ Updated: {ISO timestamp}
 ## Successful Strategies (also update school-strategies.md)
 > After discovering a working strategy for a school, record it BOTH here AND in `references/school-strategies.md` for long-term reuse across different students.
 
-> 💡 **Before trying access methods from scratch, check `references/school-strategies.md` first.** It records which architecture each school uses (Pure Portal, Vue SPA, Static HTML, etc.) and which access method worked. If the school is in the registry, use the recorded strategy. If not, record your findings after the search.
+> 💡 **Before trying access methods from scratch, check `references/school-strategies.md` first.** It records which access layer (L1/L2/L3) and architecture each school uses. L1 = direct curl, L2 = API mining, L3 = search engine fallback. The layer tells you the path; the keywords depend on the student's discipline. It records which architecture each school uses (Pure Portal, Vue SPA, Static HTML, etc.) and which access method worked. If the school is in the registry, use the recorded strategy. If not, record your findings after the search.
 
 - Pure portal API: https://pure.ual.ac.uk/portal/en/persons/?format=json
 - Vue SPA faculty list: pattern found in app.js → /api/faculty/page
