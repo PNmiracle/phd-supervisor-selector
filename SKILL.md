@@ -273,6 +273,54 @@ When the user drops a template `.xlsx`:
 5. Append new rows for newly discovered supervisors; do not delete or rearrange existing rows.
 6. Add new sheets (`说明与颜色图例`, `排除或待确认`) if the template does not already have them.
 
+
+### CRITICAL: 导师主页 must be an INDIVIDUAL profile URL
+
+**Never** use generic department/listing pages as `导师主页`. Every supervisor must have their own unique profile URL.
+
+🚫 **BAD** (generic pages — do NOT use):
+- `https://xxx.edu/psychology/faculty.html`
+- `https://xxx.edu/apss/people/academic-staff/`
+- `https://xxx.edu/sss/about-us/our-people`
+- `https://xxx.edu/about/faculty`
+- `https://xxx.edu/school/staff/`
+- Any URL ending in: `faculty-members/`, `faculty-directory/`, `academic-staff/`, `our-people`, `about/faculty`, `/people/`, `/staff/`
+
+✅ **GOOD** (individual pages — use these):
+- `https://xxx.edu/psychology/people/jian-qiao-zhu/`
+- `https://xxx.edu/en/people/faculty-members/chin-ming-hui.html`
+- `https://xxx.edu/apss/people/academic-staff/prof-wu-yin/`
+- `https://dr.xxx.edu/cris/rp/rp00166`
+
+**Detection rule**: After writing records, scan ALL `导师主页` URLs. If a URL matches a generic pattern (no individual identifier in the path), find the correct individual profile URL immediately. If the individual page is JS-rendered and cannot be extracted by curl, mark in `备注` with `⚠️导师主页为系页面，需浏览器确认个人URL。`
+
+**URL patterns per university** (add to school-strategies.md as discovered):
+
+| University | Individual profile URL pattern |
+|-----------|-------------------------------|
+| CUHK Psychology | `https://www.psy.cuhk.edu.hk/en/people/faculty-members/{name-slug}.html` |
+| PolyU APSS | `https://www.polyu.edu.hk/apss/people/academic-staff/prof-{name-slug}/` |
+| NTU SSS | `https://dr.ntu.edu.sg/cris/rp/rp{id}?ST_EMAILID={emailuser}` |
+| SMU SOCSC | JS-rendered; use browser to extract from `https://socsc.smu.edu.sg/about/faculty` |
+| HKU Psychology | `https://psychology.hku.hk/people/{name-slug}/` |
+| HKU Business | `https://www.hkubs.hku.hk/people/{name-slug}/` |
+| CityU | `https://www.cb.cityu.edu.hk/people-and-research/people/people-details?eid={id}` |
+
+### Post-Write URL Quality Scan
+
+After EVERY batch write to Vika, run this check automatically:
+
+```python
+generic_patterns = ['faculty-members/', 'faculty.html', 'faculty-directory/', 
+                    'academic-staff/', 'our-people', 'about/faculty', '/staff/', '/people/']
+for record in new_records:
+    if any(p in record.main_url.lower() for p in generic_patterns):
+        # Check if URL has individual identifier after the generic part
+        # e.g., /people/john-doe/ is OK, but /people/ is NOT
+        # Flag for fix
+```
+
+
 ## References
 
 - Read `references/selection-rules.md` before deciding whether a candidate can enter the main table.
