@@ -126,3 +126,21 @@ for batch in chunks(new, 10):
 - Max 10 records per POST/PATCH/DELETE
 - Add 0.3-0.5s delay between batches
 - 175 records ≈ 15 batches ≈ 15-20 seconds total
+
+## Known API Issues
+
+### DELETE Bug
+The DELETE endpoint (`DELETE /records`) may return `400: recordIds should not be empty` even when valid recordIds are sent. This is a Vika API bug.
+
+**Workaround:** Use PATCH to rename the record's 导师 field to `__DELETED__` or `__REMOVED__`, then ask the user to manually delete the record in the Vika UI.
+
+```python
+# Instead of:
+vika("DELETE", "/records", ["recXXX"])
+
+# Use:
+vika("PATCH", "/records", {"records": [{"recordId": "recXXX", "fields": {"导师": "__DELETED_VISITING_PROF__"}}], "fieldKey": "name"})
+```
+
+### GET Cache Staleness
+After DELETE or PATCH, subsequent GET requests may return stale data from an API cache. The Vika UI typically reflects changes faster than the API. Always verify in the UI after making changes.
