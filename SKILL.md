@@ -116,11 +116,11 @@ When importing Excel data into an existing Vika table:
 
 ### Department Translation
 
-Department 字段须填入中文，格式为 **学校名+部门名**（学校名在前，不加括号）。将英文系名翻译为中文，并在前面加上对应大学的中文名。常见模式：
-- "Department of Psychology" → "大学名心理学系"
-- "CUHK Business School" → "香港中文大学商学院"
-- "Winchester School of Art, University of Southampton" → "南安普顿大学温彻斯特艺术学院"
-- "School of Fashion and Textiles" → "学校名服装与纺织学院"
+Department must be written in English (or the original language of the institution). Format: **"University Name - Department Name"**. Do NOT translate to Chinese. Examples:
+- "Department of Psychology, CUHK" → "CUHK - Department of Psychology"
+- "University of Geneva, FPSE, Section des Sciences de l'Éducation" → "University of Geneva - FPSE, Section des Sciences de l'Éducation"
+- "Victoria University of Wellington, School of Education" → "Victoria University of Wellington - School of Education"
+- "University of Tübingen, IfE, Abteilung Sozialpädagogik" → "University of Tübingen - IfE, Abteilung Sozialpädagogik"
 
 ### Updating Existing Records
 
