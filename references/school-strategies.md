@@ -907,3 +907,11 @@ BAD_PATTERNS = [
 - **Best method**: Use university person search (Personensuche) from main site. German URLs work better than English.
 - **Failed**: /en/personal.html → 404; /personen/ → 404; most EW subpages broken
 - **Last verified**: 2026-06-29
+
+#### University of Cologne
+- **Layer**: L1 (static HTML with numeric page IDs)
+- **Architecture**: Static HTML. Individual profile pages use numeric IDs, NOT name slugs.
+- **Best method**: Search main site (hf.uni-koeln.de/suche/) for professor name → find numeric page ID (e.g., 33878 for Herzmann, 33835 for Proske). Individual URLs: https://www.hf.uni-koeln.de/{numeric_id}
+- **Key discovery**: Name-slug URLs like /personen/petra-herzmann/ all return 404. Numeric IDs are the only working format.
+- **Failed**: /personen/ directory browsing; /personen/{name}/ all 404; site search returns no JavaScript results in this environment
+- **Last verified**: 2026-06-29
