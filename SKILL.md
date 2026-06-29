@@ -452,3 +452,23 @@ Even well-known scholars in the field may hold **Visiting Professor** (访问教
 **Always check the title on the profile page.** If it says "Visiting Professor", "Gastprofessor", "Adjunct Professor", or "Honorary Professor" → **DO NOT ADD**. Delete if already in table.
 
 Example: Alexander W. Wiseman at Tübingen — internationally recognized comparative education scholar, but his profile showed "Visiting Professor" status → deleted from supervisor list.
+
+---
+
+## Meta-Rule: "反思" Trigger
+
+When the user says **"反思"** (reflect), it means a mistake was caught. Immediately:
+
+1. Fix the immediate issue (e.g., delete the wrong record, correct the URL)
+2. Identify the ROOT CAUSE — what step was skipped or what assumption was wrong
+3. Write the lesson into this SKILL.md:
+   - If it's a new check → add to Pre-Flight Checklist
+   - If it's a common mistake → add to Common Mistakes table
+   - If it's a new category of professor to exclude → add to exclusion rules
+4. Commit: `git add -A && git commit -m "reflect: {lesson}"`
+5. Never defend the mistake — just fix it, learn from it, and move on
+
+**Reflection examples:**
+- User found Wiseman is Visiting Professor → added "Visiting/Guest Professors" section + exclusion rule
+- User found Hopmann is inactive → added "Check active status" to Checklist
+- User caught guessed URLs that returned 404 → reinforced "Google search first, never guess URLs"
