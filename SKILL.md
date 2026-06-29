@@ -441,3 +441,14 @@ Before writing any supervisor record to the table, complete ALL of these steps. 
 | Not verifying active status | Added Stefan Hopmann without checking u:find employment status | Check u:find, HISinOne, person search for "active member of staff" |
 | Using generic department pages | Used `bildungswissenschaft.univie.ac.at/` for Hopmann instead of individual URL | Keep searching until individual profile URL is found |
 | Adding without browser verification | Added Petra Herzmann/Matthias Proske with guessed URLs → both 404 | Open every profile page in browser before writing |
+
+## Caution: Visiting / Guest Professors
+
+Even well-known scholars in the field may hold **Visiting Professor** (访问教授 / Gastprofessor) appointments rather than permanent positions. Visiting professors typically:
+- Cannot be primary PhD supervisors (co-supervision only at best)
+- Have temporary appointments
+- May not be present at the university year-round
+
+**Always check the title on the profile page.** If it says "Visiting Professor", "Gastprofessor", "Adjunct Professor", or "Honorary Professor" → **DO NOT ADD**. Delete if already in table.
+
+Example: Alexander W. Wiseman at Tübingen — internationally recognized comparative education scholar, but his profile showed "Visiting Professor" status → deleted from supervisor list.
