@@ -472,3 +472,32 @@ When the user says **"反思"** (reflect), it means a mistake was caught. Immedi
 - User found Wiseman is Visiting Professor → added "Visiting/Guest Professors" section + exclusion rule
 - User found Hopmann is inactive → added "Check active status" to Checklist
 - User caught guessed URLs that returned 404 → reinforced "Google search first, never guess URLs"
+
+---
+
+## Session Post-Mortem: 陈思语 (2026-06-29)
+
+### Problems Encountered & Solutions
+
+| Problem | Root Cause | Solution |
+|---------|-----------|----------|
+| Vika DELETE returned 400 for ALL records | API endpoint broken/format mismatch | Use PATCH to clear record fields as workaround |
+| Cologne professor URLs 404 | Guessed `/personen/petra-herzmann/` (name slug); actual format is numeric IDs like `/33878` | Don't guess URLs — search or navigate from faculty page |
+| Tübingen professor URLs 404 | Guessed `/institut/team/petra-bauer/` instead of actual `/abteilungen/sozialpaedagogik/personal/prof-dr-petra-bauer/` | Always extract href from the actual Personal page links |
+| Added early childhood professor (Sally Peters) | Added by title "Head of Education" without checking research | Open profile page → read research → verify match BEFORE writing |
+| Added emeritus/inactive professor (Hopmann) | Didn't check "Currently not an active member of staff" | Check u:find, person search, university directory for status |
+| Added visiting professor (Wiseman) | Viewed reputation over employment status | Visiting/Guest/Adjunct professors → DO NOT ADD |
+| Added LGBTQ psychologist (Sonja Ellis) | Didn't open profile to verify research area | Always open profile and read research content |
+| All 4 Geneva profs had same team page URL | Didn't find individual notreequipe/equipe pages | Search Google for "[Name] [University] professor" to find real URLs |
+| Hamburg profs missing 其他导师信息 | Sub-agent added records without full field set | Check all required fields after sub-agent completes |
+| Department names in Chinese | Default behavior was Chinese translation | Changed to English format: "University Name - Department Name" |
+
+### Discovered URL Patterns
+
+| University | Correct Profile URL Pattern | Wrong Pattern Tried |
+|-----------|---------------------------|-------------------|
+| Tübingen IfE | `/abteilungen/{dept}/personal/prof-dr-{slug}/` | `/institut/team/{name}/` |
+| Cologne HF | `hf.uni-koeln.de/{numeric_id}` (e.g., 33878) | `hf.uni-koeln.de/personen/{name-slug}/` |
+| Hamburg EW | `ew.uni-hamburg.de/ueber-die-fakultaet/personen/{lastname}.html` | `ew.uni-hamburg.de/en/personal.html` |
+| Vienna u:find | `ufind.univie.ac.at/en/person.html?id={numeric_id}` | `ufind.univie.ac.at/de/search.html?query=...` |
+| Geneva FPSE | Various: `erdie/notreequipe/{slug}`, `edumij/equipe/{slug}`, `ggape/equipe/{slug}`, `satie/equipe/{slug}` | All used same SSED team page |
