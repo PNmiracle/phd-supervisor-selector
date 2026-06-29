@@ -776,3 +776,134 @@ BAD_PATTERNS = [
 | Lund | `portal.research.lu.se/en/persons/{slug}` |
 | McMaster | `experts.mcmaster.ca/people/{initials}` |
 | Carleton | `carleton.ca/psychology/people/{slug}/` |
+
+#### Victoria University of Wellington
+- **Layer**: L1 (static HTML people directory) + L2 (JS-rendered individual profiles)
+- **Architecture**: Vue SPA for individual people pages, static HTML for school-of-education page
+- **Best method**: Curl the School of Education page (https://www.wgtn.ac.nz/fehps/about/our-people/school-of-education) — embedded JSON has research codes and titles. Use people.wgtn.ac.nz for individual profiles (JS SPA, needs browser).
+- **Key endpoint**: https://www.wgtn.ac.nz/fehps/about/our-people/school-of-education
+- **Failed**: Direct curl of people.wgtn.ac.nz/{username} returns empty SPA shell
+- **Last verified**: 2026-06-29
+
+#### University of Otago
+- **Layer**: L3 (Static HTML with Cloudflare WAF)
+- **Architecture**: Static HTML behind Cloudflare WAF (curl returns 403)
+- **Best method**: In-app browser. Navigate to https://www.otago.ac.nz/education/staff — browser bypasses Cloudflare. Individual profile URLs follow https://www.otago.ac.nz/education/staff/{name-slug} pattern.
+- **Key endpoint**: https://www.otago.ac.nz/education/staff
+- **Failed**: curl returns 403 (Cloudflare)
+- **Last verified**: 2026-06-29
+
+#### University of Geneva (FPSE)
+- **Layer**: L1 (Static HTML for team pages)
+- **Architecture**: Static HTML with JS enhancements
+- **Best method**: curl the SSED research groups page at https://www.unige.ch/fapse/recherche/ssed — contains all research group and professor listings in static HTML. Individual profile URLs need browser (JS-rendered).
+- **Key endpoint**: https://www.unige.ch/fapse/recherche/ssed
+- **Failed**: EN version URL has redirect loop; personal pages may be JS-rendered
+- **Last verified**: 2026-06-29
+
+#### University of Vienna
+- **Layer**: L3 (UCRIS Pure portal behind Cloudflare)
+- **Architecture**: Pure portal (UCRIS) protected by Cloudflare WAF
+- **Best method**: In-app browser — but Cloudflare challenge blocks even the browser. Manual search needed.
+- **Failed**: curl 403, browser also blocked by Cloudflare challenge
+- **Last verified**: 2026-06-29
+
+#### University of Canterbury
+- **Layer**: L1→L3 (redirects to generic study page)
+- **Architecture**: Modern SPA with redirects
+- **Best method**: Navigate from main site https://www.canterbury.ac.nz/ then find Education staff links
+- **Failed**: Direct URLs redirect to generic study information pages
+- **Last verified**: 2026-06-29
+
+#### University of Basel
+- **Layer**: L3 (SSL issues)
+- **Architecture**: edu.unibas.ch subdomain has SSL connection issues
+- **Best method**: Try alternative subdomain or manual search
+- **Failed**: curl SSL error, browser ERR_CONNECTION_CLOSED
+- **Last verified**: 2026-06-29
+
+#### University of Hamburg
+- **Layer**: L3 (multiple 404s, navigation needed)
+- **Architecture**: Static HTML with complex navigation structure
+- **Best method**: Start from main site (https://www.uni-hamburg.de/) then navigate to "Forschung → Karrierewege". The "Promovieren" link leads to https://www.uni-hamburg.de/forschung/karrierewege.html. Admission requirements at https://www.uni-hamburg.de/campuscenter/bewerbung/promotion.html (but refers to faculty-level "Promotionsordnungen").
+- **Key discovery path**: DE version works, EN version returns 404 on most sub-pages.
+- **Language requirements**: English B2 required; German C1/C2 only for German-language program.
+- **Last verified**: 2026-06-29
+
+#### University of Vienna
+- **Layer**: L2→L3 (UCRIS Pure Portal + DE site works, EN 404s)
+- **Architecture**: German site (doktorat.univie.ac.at) works well; English redirects often 404
+- **Best method for PhD info**: Navigate from https://www.univie.ac.at/studium/ → "PhD / Doktorat" → "Zulassung zu Doktorats- und PhD-Studien" → https://doktorat.univie.ac.at/doktoratunivie/zulassung/
+- **Language requirements**: Deutsch- und/oder Englischkenntnisse auf Niveau C1. "Abschlusszeugnisse und optionaler Sprachnachweis" — language certificate is optional, depends on department. For Bildungswissenschaft (Education), English C1 likely sufficient.
+- **Key endpoint**: https://doktorat.univie.ac.at/ (DE version), https://slw.univie.ac.at/studieren/deutschkenntnisse/ (German requirements)
+- **Last verified**: 2026-06-29
+
+#### University of Basel
+- **Layer**: L3 (SSL issues on edu subdomain)
+- **Architecture**: Main site (unibas.ch) works but education-specific subdomains fail with SSL
+- **Best method for PhD info**: Start from main site https://www.unibas.ch/en/ → "Studies" or search "PhD"
+- **Last verified**: 2026-06-29
+
+#### University of Basel
+- **Layer**: L1 (main site unibas.ch works) + L3 (edu.unibas.ch SSL fails)
+- **Architecture**: Static HTML, well-organized German site. English site sometimes 404.
+- **Best method for PhD info**: Navigate from https://www.unibas.ch/de/Studium.html → "Anmeldung & Zulassung → Zulassung → Doktorat". Key URL: https://www.unibas.ch/de/Studium/Vor-dem-Studium/Bewerbung-Zulassung/Zulassung/Zulassung-zum-Doktorat.html
+- **Language requirements**: "Die hauptsächlichen Unterrichtssprachen sind Deutsch und Englisch. Mindestens Niveau C1 gemäss Europäischem Referenzrahmen erwartet." For doctoral programs, specific requirements in faculty Promotionsordnung. 
+- **Key endpoint (language)**: https://www.unibas.ch/de/Studium/Vor-dem-Studium/Bewerbung-Zulassung/Zulassung/Sprachkenntnisse.html
+- **Last verified**: 2026-06-29
+
+#### University of Bern
+- **Layer**: L1 (main site works) + L3 (erz.unibe.ch SSL fails)
+- **Architecture**: Static HTML, well-organized multilingual site. Use English or German paths.
+- **Best method for PhD info**: Navigate from https://www.unibe.ch/ → "Studies → Doctorate". Key admission page: https://www.unibe.ch/studies/prospective_students/application_and_admission/application_and_admission_for_doctoral_studies/index_eng.html
+- **Language requirements**: Official PDF (Zulassungbedingungen_e_26-27_eng.pdf): Bachelor requires German C1 certificate. Master programs may require English (if English-taught). For doctoral level, requirements specified in faculty Promotionsordnung. General rule: German and English are main languages.
+- **Key endpoint**: Admission PDF at https://www.unibe.ch/unibe/portal/content/e1006/e15237/e1466586/Zulassungbedingungen_e_26-27_eng.pdf
+- **Last verified**: 2026-06-29
+
+#### University of Bern
+- **Layer**: L1-L2 (edu.unibe.ch works, erz.unibe.ch blocked)
+- **Architecture**: Static HTML + JS search interface for staff A-Z
+- **Best method**: Use main site search (unibe.ch/suche/) to find individual professor pages. edu.unibe.ch/ueber_uns/personen_a___z/ has JS search interface (no static listing). Individual URLs at edu.unibe.ch/ueber_uns/personen_a___z/{dept}/prof_dr_{last}_{first}/
+- **Key endpoint**: edu.unibe.ch/ueber_uns/personen_a___z/
+- **Failed**: erz.unibe.ch blocked by browser policy
+- **Last verified**: 2026-06-29
+
+#### University of Innsbruck
+- **Layer**: L3 (Anubis anti-bot)
+- **Architecture**: IEZW site protected by Anubis web firewall (v1.25.0)
+- **Best method**: Not accessible via automated tools. Manual search needed.
+- **Failed**: curl 404 on team pages; browser blocked by Anubis
+- **Last verified**: 2026-06-29
+
+#### University of Waikato
+- **Layer**: L1 (staff directory static) + L2 (Symplectic SPA for individuals)
+- **Architecture**: Static HTML staff list at waikato.ac.nz/about/faculties-schools/education/our-staff/. Individual profiles at profiles.waikato.ac.nz/{username} (Symplectic/Elsevier JS SPA - needs browser).
+- **Best method**: Get names from static staff page; open Symplectic profiles in browser to verify research content (JS renders research areas).
+- **Key endpoint**: https://www.waikato.ac.nz/about/faculties-schools/education/our-staff/
+- **Last verified**: 2026-06-29
+
+#### University of Tübingen
+- **Layer**: L1 (static Personal/Team pages)
+- **Architecture**: WiSo Faculty → IfE → Static HTML for department personal pages
+- **Best method**: Navigate from https://uni-tuebingen.de/ → "Fakultäten" → "Wirtschafts- und Sozialwissenschaftliche Fakultät" → "Fachbereich Sozialwissenschaften" → "Erziehungswissenschaft" → "Institut". Key personal pages:
+  - Sozialpädagogik: .../abteilungen/sozialpaedagogik/personal/
+  - Allgemeine Pädagogik: .../abteilungen/allgemeine-paedagogik/personal/
+  - Individual profiles: .../institut/team/{name-slug}/
+- **Key discovery**: Old URL de/242 returns 404; new path through WiSo Fakultät navigation works. 15 professors across 4 departments.
+- **Failed**: Direct old URLs all 404; site completely restructured in 2025/2026
+- **Last verified**: 2026-06-29
+
+#### University of Vienna (u:find)
+- **Layer**: L2 (person.html?id=XXXX for individual profiles)
+- **Architecture**: u:find JS SPA at ufind.univie.ac.at. Individual profile URLs use format `person.html?id=XXXX`. UCRIS portal on separate subdomain.
+- **Best method**: Search Google for "[Name] University Vienna u:find" → find person ID → use `ufind.univie.ac.at/en/person.html?id=XXXX`. Check "Currently not an active member of staff" status on the profile.
+- **Key endpoint**: https://ufind.univie.ac.at/en/person.html?id={numeric_id}
+- **Failed**: ufind search.html URLs don't work; need direct person ID; UCRIS blocked by Cloudflare
+- **Last verified**: 2026-06-29
+
+#### University of Hamburg
+- **Layer**: L3 (site restructured, person search needed)
+- **Architecture**: Education faculty (Fakultät für Erziehungswissenschaft) has restructured website. Most English URLs return 404.
+- **Best method**: Use university person search (Personensuche) from main site. German URLs work better than English.
+- **Failed**: /en/personal.html → 404; /personen/ → 404; most EW subpages broken
+- **Last verified**: 2026-06-29

@@ -387,3 +387,57 @@ Do NOT add supervisors who are:
 
 If such a record already exists in the table, **delete it**.
 
+
+---
+
+## Pre-Flight Checklist (MANDATORY before adding ANY supervisor)
+
+Before writing any supervisor record to the table, complete ALL of these steps. Skip NONE.
+
+```
+[ ] 1. GOOGLE SEARCH: Search "[Name] [University] professor" or "[Name] [University] [Department]"
+       → NEVER guess URLs from naming conventions
+       → If Google is blocked, use Bing, DuckDuckGo, or the university's own search
+       → Copy the EXACT URL from the search result
+
+[ ] 2. OPEN PROFILE PAGE: Navigate to the URL in the browser
+       → Verify the page contains the person's NAME
+       → Verify the page shows their TITLE and DEPARTMENT
+       → If 404 or redirects to search → search again with different query
+
+[ ] 3. CHECK RESEARCH: Find and read the "Research Interests" / "Forschungsschwerpunkte" section
+       → For JS-rendered pages: CLICK tabs like "Research", "Forschung", "Publications"
+       → Never add a supervisor whose research you haven't actually read
+       → If research content is hidden behind JS and cannot be revealed → mark ⚠️
+
+[ ] 4. CHECK ACTIVE STATUS: Verify the person is CURRENTLY active
+       → Watch for: "Currently not an active member of staff", "Emeritus", "Emerita", 
+         "pensioniert", "im Ruhestand", "retired", "Honorary", "Visiting"
+       → Check u:find, HISinOne, or university directory for employment status
+       → If inactive, emeritus, or retired → DO NOT ADD → DELETE immediately if already in table
+
+[ ] 5. MATCH DIRECTIONS: Compare research keywords against student's stated directions
+       → Direction 1 (Comparative/International Education): comparative education, international 
+         education, education policy, global education, cross-cultural education
+       → Direction 2 (Sociology of Education): sociology of education, social class, cultural 
+         capital, educational inequality, social stratification, education equity
+       → If research does NOT match either direction → DO NOT ADD
+       → Do not add based on title alone (e.g., "Head of Education" ≠ sociology of education)
+
+[ ] 6. INDIVIDUAL URL: Verify导师主页 is an INDIVIDUAL profile URL
+       → NOT a department listing page /people/ or /staff/
+       → NOT a research group page (unless no individual page exists)
+       → If only a research group page is available → mark ⚠️ in 备注
+
+[ ] 7. WRITE RECORD: Only after all 6 checks pass, write to Vika/Excel
+```
+
+## Common Mistakes (DO NOT REPEAT)
+
+| Mistake | Example | Correct Approach |
+|---------|---------|-----------------|
+| Guessing URLs | `person.html?id=XXXX` never tried; assumed u:find was broken | Google search first: "Stefan Hopmann University Vienna u:find" |
+| Adding by title alone | Added "Head of Education" without checking research (Sally Peters = early childhood) | Open profile → read research → verify match |
+| Not verifying active status | Added Stefan Hopmann without checking u:find employment status | Check u:find, HISinOne, person search for "active member of staff" |
+| Using generic department pages | Used `bildungswissenschaft.univie.ac.at/` for Hopmann instead of individual URL | Keep searching until individual profile URL is found |
+| Adding without browser verification | Added Petra Herzmann/Matthias Proske with guessed URLs → both 404 | Open every profile page in browser before writing |
