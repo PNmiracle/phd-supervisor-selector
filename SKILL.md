@@ -544,3 +544,58 @@ When the user says **"反思"** (reflect), it means a mistake was caught. Immedi
 | Vienna u:find | `ufind.univie.ac.at/en/person.html?id={id}` | `ufind.univie.ac.at/de/search.html?query=...` |
 | Freiburg HISinOne | `uni-freiburg.link/personensuche` → `campus.uni-freiburg.de` | All erzwiss subdomain URLs |
 | Göttingen eCampus | `ecampus.uni-goettingen.de` (200) → VL 0-text JS shell | All univz subdomain URLs |
+
+## Session Post-Mortem: 王晨阳 (2026-06-30)
+
+### What Went Wrong
+
+| Problem | Root Cause | Fix Applied |
+|---------|-----------|-------------|
+| CUHK MAE 4人备注全错 | 用了泛知识而非主页内容（Darwin Lau写了"柔索驱动"实际是"机器人技术"） | 逐条进入/peoples/页面核对Research Interests原文 |
+| PolyU ISE RPG页面找不到 | 猜了research-postgraduate-programmes（复数SPA壳）就放弃 | 翻study/父页面的内容链接，找到research-postgraduate-programme-mphil-phd（单数） |
+| NTU 6人导师主页全undefined | 子代理创建记录时完全没填导师主页字段 | 逐个通过DDG搜索/Wayback Machine找到真实链接并补写 |
+| Sam Kwong、Pai Zheng、Darwin Lau等标题写错 | 用了系列表页的旧职称 | 进个人页核实，Pai Zheng写的是Professor不是Associate |
+| WANG Hao备注被改错 | 一个子代理把别人的研究方向写到了Wang Hao名下 | 回退到原始内容，注明子代理不可信 |
+| 39条记录全部判为缺失字段的假阳性 | 用了fieldKey=id导致字段key是fldxxx，且URL字段是dict(text)不是string | 改用fieldKey=name，URL提取用val.get('text')而非val.get('link') |
+| NTU RP ID全部猜错 | rp00930是Qu Jingyi不是Wei Tech ANG | 使用Wayback Machine确认entities/person/Name模式 |
+| Sydney/UNSW/ANU交叉链接 | 批量构造URL时把Sydney模式套到了不同学校 | 逐条核对Department字段与URL域名匹配 |
+| 子代理写入延迟/不一致 | 多个代理同时操作同一张表导致记录混乱 | 主代理在子代理完成后立即审计、修正 |
+
+### What Worked
+
+| Technique | Use Case | Example |
+|-----------|----------|---------|
+| DDG HTML搜索 | 发现正确的slug | cssamk（非sam-kwong）、wang-hao-victor（非wang-hao） |
+| Wayback Machine | 绕过Cloudflare/SPA | 确认NTU实体页URL正确，提取Campolo研究方向 |
+| Google Cache | 确认页面存在 | NTU entities/person/页面在缓存中有90K+内容 |
+| 父页面链接扫描 | 发现SPA壳背后的真实链接 | ISE study/页->找到RPG子页 |
+| CUHK /peoples/路径 | 与/people/区分 | /peoples/liao-wei-hsin/不是/people/liao-weihsin/ |
+| CityU stfprofile | 绕过SPA的静态备用页 | cityu.edu.hk/stfprofile/cssamk.htm（但后来变成212壳） |
+| NUS staff路径 | 与people路径区分 | cde.nus.edu.sg/me/staff/可用，/me/people/是SPA |
+| Sydney name.html模式 | 统一构造个人页 | sydney.edu.au/.../academic-staff/{name}.html |
+
+### Vika API Pitfalls
+
+1. DELETE 400 bug: 所有DELETE请求返回400，需用PATCH改名字标记删除
+2. 10记录限制: POST/PATCH每批最多10条，需分批+0.4s延迟
+3. URL字段是dict: 值为{title, text, favicon}，用.get('text')取URL
+4. fieldKey=id时字段名是fldXXX: 需用fieldKey=name才能用中文字段名
+5. OneWayLink/MagicLookUp不可写: 学校名字、Location、QS排名通过API无法写入
+
+### Title/Research Extraction Rules by School
+
+| School | Title Location | Research Location | Pitfalls |
+|--------|---------------|-------------------|----------|
+| PolyU ISE | Professor; 在页面顶部 | Research Interests 在~9300字符处 | 别用导航菜单当研究方向（"Research Areas"在~1925处是菜单） |
+| PolyU AAE | Professor of ... 在页面顶部 | Area of Specialisation 或 Biography | 页面把所有人都简写为"Professor"，实际职称需交叉核对 |
+| CUHK MAE | /peoples/页标题在图片里 | Research Interests 在~1000字符处 | 用/peoples/不用/people/；slug姓在前 |
+| NTU DR | entities/person/页的JSON里 | Research Keywords在JSON数据中 | 全是Angular SPA；需Wayback Machine提取 |
+| NUS CDE | /me/staff/路径，页面SPA | SPA无法提取 | 仅确认URL可达，内容需浏览器 |
+| Sydney | academic-staff路径，SPA | SPA无法提取 | 仅确认URL可达，内容需浏览器 |
+
+### Sub-Agent Rules (from this session)
+
+1. 子代理创建记录后，主代理必须立即审计：URL是否个人页、备注是否从主页提取、是否有交叉链接
+2. 子代理不能信任自己的"已完成"声明——本次有代理声称"40条全部完整"但实际29条URL为空
+3. 子代理之间可能冲突：hkust_search和sg_search同时操作NUS记录导致Wang Hao被覆盖
+4. 子代理适合"搜索发现"，不适合"精确写入"——发现候选人后应由主代理完成写入和验证
