@@ -144,3 +144,30 @@ vika("PATCH", "/records", {"records": [{"recordId": "recXXX", "fields": {"导师
 
 ### GET Cache Staleness
 After DELETE or PATCH, subsequent GET requests may return stale data from an API cache. The Vika UI typically reflects changes faster than the API. Always verify in the UI after making changes.
+
+## Critical Discovery: OneWayLink/MagicLookUp Write Workaround (2026-06-30)
+
+**Problem**: Vika Fusion API rejects `OneWayLink` and `MagicLookUp` fields with "Lookup field can't be edited" when using `fieldKey=name` parameter.
+
+**Root Cause**: When `fieldKey=name` is present in the URL query string, the API treats ALL field values as plain text and rejects references to linked record IDs. This affects both POST (create) and PATCH (update).
+
+**Solution**: Remove `fieldKey=name` from the URL when PATCHing linked fields. Use the default field key mode (which uses field IDs internally).
+
+```python
+# ❌ CORRECT - PATCH with fieldKey=name
+url = f'{base}/datasheets/{ds}/records?fieldKey=name'
+# This fails for OneWayLink fields
+
+# ✅ CORRECT - PATCH without fieldKey
+url = f'{base}/datasheets/{ds}/records'
+# No fieldKey parameter - this allows setting OneWayLink/MagicLookUp fields
+
+# POST (create) still cannot set these fields regardless of fieldKey mode
+```
+
+**Workaround for creating records with linked fields**:
+1. POST record WITHOUT `非美国地区学校` and `Location` fields (use `fieldKey=name` for regular fields)
+2. PATCH the record WITHOUT `fieldKey=name` to set `非美国地区学校: [school_record_id]`
+3. `Location` and `QS排名` will auto-fill after school link is set
+
+**Note**: This only works for PATCH, NOT for POST. Records must be created first, then school link patched in a separate call.
