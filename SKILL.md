@@ -675,3 +675,33 @@ Sub-agents must NOT commit to the skill repo. Instead:
 1. Sub-agent sends discovered patterns via message to main agent
 2. Main agent writes to `references/school-strategies.md`
 3. Main agent handles the commit
+
+## Data Privacy: Student Name Anonymization (CRITICAL)
+
+NEVER write the student real name into the skill repository. Use anonymized identifiers:
+- Search state files: search-state/Student_A.md instead of search-state/actual-name.md
+- Session post-mortems: Session Post-Mortem: Student A instead of real name
+- Commit messages: session: Student A - HK+SG search instead of including real name
+- School-strategies and other reference files: never mention student names
+
+Supervisor names CAN be included — they are public information from university websites.
+
+Anonymization protocol:
+1. When creating a new search state file, use Student_{Letter} (A, B, C...) or a user-provided pseudonym
+2. When writing session post-mortems, use the same anonymized identifier
+3. Never include real name in commit messages
+4. If a previous session already used a real name, rename the state file and update references
+
+What to anonymize:
+- Search state filenames and content
+- Post-mortem section headers
+- Git commit messages
+- Any notes or comments in reference files
+
+What NOT to anonymize:
+- Supervisor names (public information)
+- School names, URLs, research keywords
+- Technical strategies and patterns discovered
+
+Existing cleanup:
+If real student names exist in the repo (search-state/ or SKILL.md post-mortems), rename immediately and update all references.
