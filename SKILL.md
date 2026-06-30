@@ -599,3 +599,20 @@ When the user says **"反思"** (reflect), it means a mistake was caught. Immedi
 2. 子代理不能信任自己的"已完成"声明——本次有代理声称"40条全部完整"但实际29条URL为空
 3. 子代理之间可能冲突：hkust_search和sg_search同时操作NUS记录导致Wang Hao被覆盖
 4. 子代理适合"搜索发现"，不适合"精确写入"——发现候选人后应由主代理完成写入和验证
+
+## Browser Selection (CRITICAL)
+
+When the skill calls for browser verification of profile pages, always use the in-app browser, NEVER the user Chrome browser.
+
+Why:
+- The user Chrome browser is their personal workspace — do not disturb it
+- The in-app browser opens inside the Codex side panel, visible to the user but not intrusive
+- Both browsers share the same Node REPL backend, so there is no technical reason to prefer Chrome
+
+Implementation:
+- In-app browser: import browser-client from browser plugin, then agent.browsers.get("iab")
+- Chrome: import browser-client from chrome plugin, then agent.browsers.get("extension") — DO NOT USE
+
+If neither browser works (both return empty evaluate() results), fall back to non-browser methods: DDG HTML search, Wayback Machine, Google Cache, ORCID API, Google Scholar. Do not escalate to Chrome as a fix for broken in-app browser — the issue is in the Node REPL layer, not the browser target.
+
+Known limitation: In-app browser playwright.evaluate() may return empty strings for JavaScript-rendered pages due to sandbox restrictions. This is a known issue with the current browser-client implementation, not a reason to switch to Chrome.
