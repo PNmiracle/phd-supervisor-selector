@@ -441,6 +441,7 @@ Before writing any supervisor record to the table, complete ALL of these steps. 
 | Not verifying active status | Added Stefan Hopmann without checking u:find employment status | Check u:find, HISinOne, person search for "active member of staff" |
 | Using generic department pages | Used `bildungswissenschaft.univie.ac.at/` for Hopmann instead of individual URL | Keep searching until individual profile URL is found |
 | Adding without browser verification | Added Petra Herzmann/Matthias Proske with guessed URLs → both 404 | Open every profile page in browser before writing |
+| Guessing URL patterns and giving up | Tried /ise/study/research-postgraduate-programmes/ (SPA shell) -> marked blocked | Search the parent page content to discover actual links instead of guessing URL variants. |
 
 ## Caution: Visiting / Guest Professors
 
