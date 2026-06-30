@@ -616,3 +616,62 @@ Implementation:
 If neither browser works (both return empty evaluate() results), fall back to non-browser methods: DDG HTML search, Wayback Machine, Google Cache, ORCID API, Google Scholar. Do not escalate to Chrome as a fix for broken in-app browser — the issue is in the Node REPL layer, not the browser target.
 
 Known limitation: In-app browser playwright.evaluate() may return empty strings for JavaScript-rendered pages due to sandbox restrictions. This is a known issue with the current browser-client implementation, not a reason to switch to Chrome.
+
+## Post-Write Audit (MANDATORY)
+
+After EVERY batch write to Vika (or after sub-agents complete their work), run the audit script:
+
+```bash
+python3 scripts/audit.py
+```
+
+The audit checks:
+1. Cross-linked URLs (domain mismatch with Department field)
+2. Note format (missing ；separator, missing trailing 。)
+3. Garbage content in 备注
+4. Missing required fields (导师主页, 博士申请信息, 其他导师信息)
+5. URL accessibility (sample check on 1/3 of records)
+
+If any issues are found, fix them immediately before reporting completion. The agent should NOT claim "all done" until audit passes clean.
+
+### Audit + Different Model (Future)
+
+When Codex supports model selection for sub-agents, the ideal workflow is:
+1. Main agent completes search and writes records
+2. Spawn audit sub-agent with a DIFFERENT model (e.g., Claude or o4-mini)
+3. Audit agent runs checks and reports discrepancies
+4. Main agent fixes discrepancies
+
+This adversarial approach catches errors that a single model can miss (as demonstrated in the 王晨阳 session where the same model consistently wrote wrong 备注 for CUHK MAE professors).
+
+---
+
+## Session Sync Protocol
+
+Every search session must follow this Git workflow:
+
+**Session start:**
+```bash
+cd $SKILL_DIR && git pull --rebase || echo "⚠️ pull failed - manual intervention needed"
+```
+
+**During session:**
+- Update `references/school-strategies.md` after each school search
+- Do NOT commit after every single change — batch at end of session
+
+**Session end:**
+```bash
+cd $SKILL_DIR && git add -A && git commit -m "session: [date] - [brief summary]" && git push
+```
+
+**Conflict handling:**
+If `git push` fails due to conflicts (another session pushed changes):
+1. `git pull --rebase` to get remote changes
+2. Resolve conflicts manually
+3. If auto-resolution fails, save local changes to a temp branch: `git checkout -b temp-$(date +%s) && git add -A && git commit -m "temp: unmerged changes"`
+
+**Sub-agent learning:**
+Sub-agents must NOT commit to the skill repo. Instead:
+1. Sub-agent sends discovered patterns via message to main agent
+2. Main agent writes to `references/school-strategies.md`
+3. Main agent handles the commit
