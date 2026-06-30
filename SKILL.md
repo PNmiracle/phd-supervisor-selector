@@ -502,3 +502,45 @@ When the user says **"反思"** (reflect), it means a mistake was caught. Immedi
 | Hamburg EW | `ew.uni-hamburg.de/ueber-die-fakultaet/personen/{lastname}.html` | `ew.uni-hamburg.de/en/personal.html` |
 | Vienna u:find | `ufind.univie.ac.at/en/person.html?id={numeric_id}` | `ufind.univie.ac.at/de/search.html?query=...` |
 | Geneva FPSE | Various: `erdie/notreequipe/{slug}`, `edumij/equipe/{slug}`, `ggape/equipe/{slug}`, `satie/equipe/{slug}` | All used same SSED team page |
+
+---
+
+## Session Post-Mortem: 陈思语 (2026-06-29~30)
+
+### Timeline & Mistakes
+
+| Stage | Mistake | Root Cause | Fix Applied |
+|-------|---------|------------|-------------|
+| Geneva profiles | All 4 used same SSED team page URL | Didn't search for individual notreequipe/equipe pages | Google search → found individual URLs |
+| Hopmann added | Was "not active" since 2022 | Didn't check u:find employment status | Pre-Flight Checklist Step 4 |
+| Wiseman added | Was "Visiting Professor" | Added by reputation, didn't read profile page | Visiting/Guest exclusion rule |
+| Sally Peters added | Early childhood transitions, NOT comparative/sociology | Added by "Head of Education" title, didn't read research | Pre-Flight Checklist Step 3 |
+| Sonja Ellis added | LGBTQ psychology, NOT education research | Never opened profile page | Pre-Flight Checklist Step 2 |
+| Cologne URLs 404 | Guessed `/personen/petra-herzmann/` → actual is `/33878` | Guessed URLs instead of searching | Verification Gate: Google search first |
+| Tübingen URLs 404 | Guessed `/institut/team/` → actual is `/abteilungen/.../personal/` | Didn't extract href from Personal page | Extract from actual page links |
+| Vika DELETE failed | 400 on all DELETE calls | API format: `["recXXX"]` doesn't work, needs `{"recordIds": ["recXXX"]}` but both fail | PATCH clear workaround |
+| GET cache staleness | Deleted records still appear in GET | Vika API caching bug | Verify in UI, not just API |
+| Hamburg added without 其他导师信息 | Sub-agent didn't fill all fields | Didn't verify sub-agent output | Check all required fields after sub-agent |
+| Paseka/Beck added without research verification | Profile pages too thin to confirm match | Didn't read research content | Deleted after verification |
+
+### What Went Right
+
+| Achievement | How |
+|-------------|-----|
+| VUW 6 supervisors | Extracted from School of Education JSON data |
+| Geneva 4 individual URLs | Found by navigating research group sites |
+| Tübingen 7 supervisors discovered | Navigated WiSo → IfE → Personal pages |
+| Hamburg 2 confirmed | Verified individual profile pages work |
+| Freiburg Personensuche + VL accessed | Found `uni-freiburg.link` shortlinks, bypassed main site 404s |
+| All 7 dead ends diagnosed | Documented each barrier (HISinOne, Anubis, QIS login, JS shells) |
+
+### Key Patterns Discovered
+
+| University | Profile URL Pattern | Wrong Pattern Tried |
+|-----------|-------------------|-------------------|
+| Tübingen IfE | `/abteilungen/{dept}/personal/prof-dr-{slug}/` | `/institut/team/{name}/` |
+| Cologne HF | `hf.uni-koeln.de/{numeric_id}` | `hf.uni-koeln.de/personen/{name-slug}/` |
+| Hamburg EW | `ew.uni-hamburg.de/ueber-die-fakultaet/personen/{lastname}.html` | `ew.uni-hamburg.de/en/personal.html` |
+| Vienna u:find | `ufind.univie.ac.at/en/person.html?id={id}` | `ufind.univie.ac.at/de/search.html?query=...` |
+| Freiburg HISinOne | `uni-freiburg.link/personensuche` → `campus.uni-freiburg.de` | All erzwiss subdomain URLs |
+| Göttingen eCampus | `ecampus.uni-goettingen.de` (200) → VL 0-text JS shell | All univz subdomain URLs |
