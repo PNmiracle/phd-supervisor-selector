@@ -197,7 +197,7 @@ When filling `导师主页`, `博士申请信息`, `其他导师信息`:
 
 - **`导师主页`**: Prefer the **official school/department page** that lists the supervisor (e.g., faculty directory, department staff page, lab team page). This is more stable and authoritative than a personal lab website.
 - **个人主页** (personal lab/Google Scholar/ResearchGate): if more informative than the official page, put it here, but also **append the personal URL to `备注`** so it's not lost.
-- **`博士申请信息`**: Always use the official graduate school or department PhD program page.
+- **`博士申请信息`**: Prefer the department-level Research Postgraduate (RPG) programme page (e.g. /{dept}/study/research-postgraduate-programmes/ for PolyU, /{dept}/research-postgraduate-programme/ for CUHK). These have program-specific admission requirements. Fall back to the university graduate school page only when department-level pages are SPA/blocked. See references/school-strategies.md for per-school PhD URL patterns.
 - **`其他导师信息`**: Official staff directory or supervisor list for the same department/school.
 
 If only a personal page is available, use it for `导师主页` and note `⚠️仅有个人主页，无官方院系页面。` in 备注.
