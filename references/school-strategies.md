@@ -973,3 +973,31 @@ Last verified: 2026-06-30
 - **Note**: /me/people/ paths are SPA shells; individual staff pages accessible via /me/staff/{slug}/
 - **Last verified**: 2026-06-30
 
+
+#### University of Sydney
+- **Layer**: L3 (Symplectic Elements SPA)
+- **Architecture**: Symplectic Elements Discovery portal at profiles.sydney.edu.au. All individual profiles and group pages are pure SPAs (2118 bytes shell). CSS/JS loaded dynamically.
+- **Best method**: Main education page (sydney.edu.au/arts/schools/sydney-school-of-education-and-social-work.html) returns 67KB with some profile links embedded. Individual profiles require browser verification.
+- **Key endpoint**: profiles.sydney.edu.au/{username} (SPA)
+- **Failed**: All API paths (v1/api/individuals, api/rest/v1, etc.), model.json feeds, JSON/RDF format parameters, print view
+- **Last verified**: 2026-06-30
+
+#### UNSW Sydney
+- **Layer**: L2 (Adobe AEM SPA, staff profiles accessible)
+- **Architecture**: Adobe Experience Manager (AEM) SPA for listing pages. Individual staff profiles at unsw.edu.au/staff/{slug} return real content (100-500KB) with research data embedded in HTML. Research profile pages (research.unsw.edu.au/people/{slug}) also accessible.
+- **Best method**: Use known staff names to construct unsw.edu.au/staff/{slug} URLs. Parse HTML for research keywords, publications, grants. School of Education research strengths include "Sociology of education."
+- **Key endpoint**: https://www.unsw.edu.au/staff/{slug}
+- **Failed**: AEM model.json returns minimal structure only; Our People listing page is SPA; newsroom expert finder API returns HTML only; research.unsw.edu.au/people search returns SPA
+- **Last verified**: 2026-06-30
+
+## Dead End Diagnosis (exhaustive for 陈思语, 2026-06)
+
+| School | Last Attempt | Barrier | Manual Bypass |
+|--------|-------------|---------|---------------|
+| Göttingen | eCampus HISinOne VL catalog | JS-rendered zero-content page; person search needs HRZ login | Google: "Erziehungswissenschaft Professor Uni Göttingen" |
+| Frankfurt | QIS/LSF person tab | Needs HRZ login; old site 404 | Google: "Erziehungswissenschaft Professor Goethe Uni Frankfurt" |
+| Freiburg | New site search / Fakultäten nav | Full site restructure (all old URLs 404); search returns 0 results; Fakultäten page 404 | Google: "Erziehungswissenschaft Professor Uni Freiburg" |
+| Innsbruck | Anubis v1.25.0 anti-bot | Full site WAF; FODOK search returns 410 | Google: "IEZW Innsbruck Professor" |
+| Bern | edu.unibe.ch Personen A-Z | JS-only search UI with no accessible API | Google: "Institut für Erziehungswissenschaft Uni Bern Professor" |
+| Lausanne | SSP main page | No education-specific prof directory under SSP | Google: "sciences de l'éducation professeur UNIL" |
+| Canterbury | Academic staff page | 404; all staff-related URLs dead | Google: "Education lecturer University of Canterbury" |
