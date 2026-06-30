@@ -935,3 +935,27 @@ Rule: Always try /{dept}/study/research-postgraduate-programmes/ (PolyU) or /{de
 
 Last verified: 2026-06-30
 
+
+
+#### CUHK MAE - Individual Profile URLs
+- **Individual profile path**: /peoples/ NOT /people/ (the static HTML listing page uses /people/academic-staff/ but individual profiles use /peoples/{name-slug}/)
+- **Slug format**: surname-first (e.g. lau-darwin-tat-ming, liao-wei-hsin, liu-yun-hui, au-kwok-wai-samuel)
+- **Best method**: Bing search "[Name] CUHK MAE" to discover the exact slug, then verify with curl
+- **Last verified**: 2026-06-30
+
+#### CityU CS - Individual Profile URLs
+- **Architecture**: SPA (department site) + Scholars Portal (static)
+- **Layer**: L3 for department site, L1 for Scholars Portal
+- **Best method**: Use CityU Scholars Portal for individual profiles: https://scholars.cityu.edu.hk/en/persons/{name}({uuid}) - search Bing for "[Name] CityU" to discover UUID
+- **Key endpoint**: https://scholars.cityu.edu.hk/ (Pure Portal variant, returns static HTML)
+- **Failed**: cs.cityu.edu.hk individual pages are SPA; ee.cityu.edu.hk individual pages also SPA; ~cssamk/ personal pages 404
+- **Last verified**: 2026-06-30
+
+#### NUS CDE - Individual Profile URLs
+- **Architecture**: Full SPA (all cde.nus.edu.sg pages)
+- **Layer**: L3 only
+- **Best method**: None via curl - ALL CDE pages return SPA shells (212 chars). Use browser for individual profile verification.
+- **Key endpoint**: https://cde.nus.edu.sg/me/people/ (department listing, SPA shell)
+- **Failed**: Curl on all CDE subpages returns SPA; Bing search returns encrypted URLs
+- **Last verified**: 2026-06-30
+
