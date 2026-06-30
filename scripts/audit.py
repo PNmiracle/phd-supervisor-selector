@@ -44,7 +44,7 @@ domain_map = {
     'cityu.edu.hk': ['City University', 'CityU'],
     'ntu.edu.sg': ['Nanyang Technological', 'NTU'],
     'nus.edu.sg': ['National University of Singapore', 'NUS'],
-    ''sydney.edu.au': ['University of Sydney', 'Sydney'],
+    'sydney.edu.au': ['University of Sydney', 'Sydney'],
     'unsw.edu.au': ['UNSW'],
     'anu.edu.au': ['Australian National', 'ANU'],
     'unimelb.edu.au': ['Melbourne'],
