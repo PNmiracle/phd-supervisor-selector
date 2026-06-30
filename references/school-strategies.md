@@ -1183,3 +1183,12 @@ ID slug format: lowercase-lastname-initial(s), e.g. `dyball-rj`, `marshall-v`, `
 
 This is a significant improvement over previous understanding where ANU was marked as "completely inaccessible" for automated verification.
 
+
+#### University of Freiburg (2026-06-30 update)
+- **Layer**: L3-L4 (HISinOne getter-protected, site restructured)
+- **Architecture**: New uni-freiburg.de site (2025/2026 relaunch); old erzwiss domain returns 000/timout
+- **Key discovery**: `uni-freiburg.link/personensuche` resolves to HISinOne Personensuche which loads publicly ("ohne Anmeldung am System nur öffentlich sichtbare Personen"). BUT: input fields are getter-protected — `Cannot set property value of [object Object] which has only a getter` — preventing any automated form manipulation. Same protection for Vorlesungsverzeichnis semester selector.
+- **Working URLs**: Main page (uni-freiburg.de), Personensuche HISinOne (loads), VVZ (loads), Fakultäten overview page (uni-freiburg.de/universitaet/fakultaeten/)
+- **Failed**: Erzwiss domain (timeout), search (0 results), philolfak domain (empty page), all faculty sub-pages (404), all form manipulation (getter-protected)
+- **German university pattern confirmed**: Personensuche → HISinOne/QIS system, all protected from external automation
+- **Last verified**: 2026-06-30
