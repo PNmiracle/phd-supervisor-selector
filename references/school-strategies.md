@@ -1192,3 +1192,19 @@ This is a significant improvement over previous understanding where ANU was mark
 - **Failed**: Erzwiss domain (timeout), search (0 results), philolfak domain (empty page), all faculty sub-pages (404), all form manipulation (getter-protected)
 - **German university pattern confirmed**: Personensuche → HISinOne/QIS system, all protected from external automation
 - **Last verified**: 2026-06-30
+
+## HISinOne Tree Bypass Pattern (Freiburg Discovery)
+
+HISinOne tree expand controls are `<input type="image">` elements (not `<button>`). All automated click methods blocked:
+- `.click()` → method doesn't exist on input[type="image"]
+- `dispatchEvent(new MouseEvent('click'))` → JSF ajax handler not triggered
+- `getElementById(id).click()` → IDs regenerate per JSF lifecycle
+- Playwright `locator.click()` → selector can't find dynamic tree elements
+
+**Workaround for manual operator:**
+1. Navigate to https://uni-freiburg.link/vvz
+2. Select semester (e.g., Sommersemester 2026)
+3. Expand "1.6 Philosophische Fakultät" by clicking ▶ arrow in browser
+4. Browse child departments for Erziehungswissenschaft
+
+This pattern applies to ALL German universities using HISinOne (Freiburg, Göttingen, partially Frankfurt).
