@@ -476,7 +476,7 @@ When the user says **"反思"** (reflect), it means a mistake was caught. Immedi
 
 ---
 
-## Session Post-Mortem: 陈思语 (2026-06-29)
+## Session Post-Mortem: Student B (2026-06-29)
 
 ### Problems Encountered & Solutions
 
@@ -505,7 +505,7 @@ When the user says **"反思"** (reflect), it means a mistake was caught. Immedi
 
 ---
 
-## Session Post-Mortem: 陈思语 (2026-06-29~30)
+## Session Post-Mortem: Student B (2026-06-29~30)
 
 ### Timeline & Mistakes
 
@@ -545,7 +545,7 @@ When the user says **"反思"** (reflect), it means a mistake was caught. Immedi
 | Freiburg HISinOne | `uni-freiburg.link/personensuche` → `campus.uni-freiburg.de` | All erzwiss subdomain URLs |
 | Göttingen eCampus | `ecampus.uni-goettingen.de` (200) → VL 0-text JS shell | All univz subdomain URLs |
 
-## Session Post-Mortem: 王晨阳 (2026-06-30)
+## Session Post-Mortem: Student A (2026-06-30)
 
 ### What Went Wrong
 
@@ -642,7 +642,7 @@ When Codex supports model selection for sub-agents, the ideal workflow is:
 3. Audit agent runs checks and reports discrepancies
 4. Main agent fixes discrepancies
 
-This adversarial approach catches errors that a single model can miss (as demonstrated in the 王晨阳 session where the same model consistently wrote wrong 备注 for CUHK MAE professors).
+This adversarial approach catches errors that a single model can miss (as demonstrated in the Student A session where the same model consistently wrote wrong 备注 for CUHK MAE professors).
 
 ---
 

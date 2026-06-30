@@ -990,7 +990,7 @@ Last verified: 2026-06-30
 - **Failed**: AEM model.json returns minimal structure only; Our People listing page is SPA; newsroom expert finder API returns HTML only; research.unsw.edu.au/people search returns SPA
 - **Last verified**: 2026-06-30
 
-## Dead End Diagnosis (exhaustive for 陈思语, 2026-06)
+## Dead End Diagnosis (exhaustive for Student B, 2026-06)
 
 | School | Last Attempt | Barrier | Manual Bypass |
 |--------|-------------|---------|---------------|
