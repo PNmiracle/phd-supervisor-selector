@@ -959,3 +959,17 @@ Last verified: 2026-06-30
 - **Failed**: Curl on all CDE subpages returns SPA; Bing search returns encrypted URLs
 - **Last verified**: 2026-06-30
 
+
+#### CityU Sam Kwong - Staff Profile
+- **Individual profile**: https://www.cityu.edu.hk/stfprofile/cssamk.htm (static HTML, not SPA)
+- **Slug**: cssamk (NOT sam-kwong)
+- **Discovery**: DDG HTML search "Sam Kwong CityU"
+- **Last verified**: 2026-06-30
+
+#### NUS Wang Hao - Staff Profile  
+- **Individual profile**: https://cde.nus.edu.sg/me/staff/wang-hao-victor/ (NOT /people/wang-hao/)
+- **Slug**: wang-hao-victor (NOT wang-hao)
+- **Discovery**: DDG HTML search "Wang Hao NUS mechanical engineering"
+- **Note**: /me/people/ paths are SPA shells; individual staff pages accessible via /me/staff/{slug}/
+- **Last verified**: 2026-06-30
+

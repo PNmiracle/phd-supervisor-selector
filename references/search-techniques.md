@@ -188,3 +188,20 @@ When APIs and direct URL access both fail:
 - Use DuckDuckGo/Google with site-specific queries: `site:{university}.edu {name} {department}`
 - Search for the person's Google Scholar, ORCID, or ResearchGate profile as secondary evidence
 - Always verify found URLs by opening them; never use search result snippets as evidence
+
+
+### DDG HTML Search (CRITICAL - when Bing/Google are blocked)
+
+When Bing and Google return encrypted URLs or block curl/browser, use DuckDuckGo's HTML-only search:
+
+**URL**: https://html.duckduckgo.com/html/?q=ENCODED+QUERY
+
+This returns plain HTML with unencrypted result URLs that can be parsed with regex. Essential for discovering:
+- Slug patterns unknown to the search agent (e.g. cssamk vs sam-kwong, wang-hao-victor vs wang-hao)
+- Official staff profile pages on non-standard paths (e.g. cityu.edu.hk/stfprofile/cssamk.htm)
+- SPA-blocked school profile URLs that only appear in search results
+
+**DDG result link format**: //duckduckgo.com/l/?uddg=URL_ENCODED_TARGET - decode with urllib.parse.unquote()
+
+**Last verified**: 2026-06-30
+
