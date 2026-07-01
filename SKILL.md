@@ -200,6 +200,18 @@ When filling `导师主页`, `博士申请信息`, `其他导师信息`:
 - **`博士申请信息`**: Prefer the department-level Research Postgraduate (RPG) programme page (e.g. /{dept}/study/research-postgraduate-programmes/ for PolyU, /{dept}/research-postgraduate-programme/ for CUHK). These have program-specific admission requirements. Fall back to the university graduate school page only when department-level pages are SPA/blocked. See references/school-strategies.md for per-school PhD URL patterns.
 - **`其他导师信息`**: Official staff directory or supervisor list for the same department/school.
 
+
+**`导师主页` URL 优先级（严格顺序）**:
+1. **学校官方个人页** — 最高优先级。如 `findanexpert.unimelb.edu.au/display/person-{slug}`
+2. **院系教职员列表页上的独立个人页** — 通过搜索引擎 `"[导师名] [大学] [院系]"` 找到
+3. **Google Scholar / Semantic Scholar** — 仅当前两种找不到时才用，且须确认所属大学。在备注标注来源
+
+**禁止**:
+- ❌ curl 403/WAF ≠ 链接失效。很多澳洲大学Cloudflare拦截curl但浏览器正常。保留官方链接+标注⚠️
+- ❌ 不能因为curl打不开就改用Google Scholar替代
+- ❌ 不能跳过搜索引擎直接给GS链接
+
+**当curl和搜索引擎均不可用时**: 告诉用户浏览器搜 `"[导师名] [大学名] professor"` 找官方页，Codex写入。不要自作主张。
 If only a personal page is available, use it for `导师主页` and note `⚠️仅有个人主页，无官方院系页面。` in 备注.
 
 ## Search Standards
