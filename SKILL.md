@@ -333,6 +333,38 @@ for record in new_records:
 
 ### CRITICAL: Do NOT fill student-facing columns
 
+
+### CRITICAL: NEVER modify records with existing 选导意向
+
+When working on a Vika table that already has records, use this strict rule:
+
+**Records where `选导意向（点击选择）` is NOT empty** → **DO NOT MODIFY, DO NOT DELETE, DO NOT UPDATE, DO NOT TOUCH**.
+
+These records have been manually reviewed and categorized by the student. Changing them would corrupt the student's own work. Only the student modifies these records.
+
+**Records where `选导意向（点击选择）` IS empty** → These are new records (written by the AI) that have not yet been reviewed by the student. You MAY modify these.
+
+**Practical implementation**:
+1. Before any PATCH or DELETE operation, always check `选导意向`:
+   ```python
+   records_to_modify = [r for r in records if not r['fields'].get('选导意向（点击选择）')]
+   ```
+2. When adding NEW supervisor records, always leave `选导意向` empty (see rule below).
+3. When fixing data quality issues (URLs, notes, Department), ONLY fix records where `选导意向` is empty.
+4. When doing bulk operations, FILTER OUT records with non-empty `选导意向` first.
+5. NEVER delete or overwrite a record just because the data looks stale — if `选导意向` is filled, the student has purposefully kept that record.
+
+**Why**: The student uses `选导意向` to track their application pipeline (优先套磁, 第二批套磁, 完全不考虑, etc.). These are the student's personal decisions. Modifying or deleting them would destroy weeks or months of the student's work.
+
+**Examples**:
+- ❌ BAD: "I see 5 old records with outdated URLs, let me fix all of them" → if `选导意向` is filled, DO NOT modify.
+- ✅ GOOD: "These 3 records have empty `选导意向` → I can fix their URLs and notes."
+- ❌ BAD: "This professor was rejected by the student, let me delete the record" → NEVER delete records with `选导意向`.
+- ✅ GOOD: "I'll add 5 new Melbourne professors" → leave `选导意向` empty on all of them.
+
+**When you MUST modify a record with existing 选导意向** (extremely rare, only upon explicit student request):
+- The student must explicitly say "修改 XXX 记录" and specify exactly which record.
+- Never batch-modify or guess.
 When adding NEW supervisor records, **NEVER** set these columns:
 - `选导意向（点击选择）` — for the student to choose
 - `你的反馈（具体原因）` — for the student to write
