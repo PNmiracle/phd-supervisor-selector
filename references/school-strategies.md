@@ -716,7 +716,14 @@ Every 5 schools: `git add references/school-strategies.md && git commit -m "lear
 ### 🇦🇺 Australia (updated)
 
 #### UNSW Sydney
-- **Architecture**: Static HTML staff profiles
+- **Layer**: L1
+- **Architecture**: Static HTML staff profiles (unsw.edu.au/staff/) + Adobe AEM (main domain)
+- **Access**: curl directly — unsw.edu.au/staff/{slug} returns full HTML with title tag containing professor name. VERIFIED 2026-07-01 with 6 profiles.
+- **Key endpoint**: https://www.unsw.edu.au/staff/{slug}
+- **PhD application**: https://www.unsw.edu.au/study/research-degrees
+- **Note**: Main domain (unsw.edu.au) may trigger Cloudflare, but staff sub-pages consistently work with curl.
+- **Failed**: newsroom.unsw.edu.au/find-an-expert redirects/times out
+- **Last verified**: 2026-07-01
 - **Access**: https://www.unsw.edu.au/staff/{name}
 - **Key endpoint**: https://www.unsw.edu.au/staff/ben-newell
 - **Note**: Ben Newell moved from UCL/others → UNSW; not at Carleton
@@ -1021,167 +1028,15 @@ Last verified: 2026-06-30
 | Macquarie | Pure Portal (researchers) | researchers.mq.edu.au/en/persons/{id} → SPA | researchers.mq.edu.au/en/persons/{id} |
 | Curtin | Staff Portal (static HTML) | staffportal.curtin.edu.au/staff/profile/view/{id}/ → accessible | staffportal.curtin.edu.au/staff/profile/view/{id}/ |
 | Wollongong | Symplectic Elements | scholars.uow.edu.au/{name}/about → SPA | scholars.uow.edu.au/{firstname}-{lastname}/about |
-| Deakin | Pure Portal (experts) + CMS (people) | experts.deakin.edu.au/{name} (Pure) OR deakin.edu.au/about-deakin/people/{name} (CMS, Cloudflare blocked) | experts.deakin.edu.au/{name} |
-
-### University of Melbourne
-- **Architecture**: Pure Portal v5.x (React SPA)
-- **Layer**: L3 (SPA-only, no JSON API without Accept header)
-- **Best method**: Use findanexpert.unimelb.edu.au. Individual profile pages have names in URL path. MSD pages (msd.unimelb.edu.au) are Cloudflare-blocked (403).
-- **Key endpoint**: https://findanexpert.unimelb.edu.au/ (React SPA, data loaded client-side)
-- **PhD application**: https://study.unimelb.edu.au/how-to-apply (preferred) or https://study.unimelb.edu.au/find/courses/graduate/doctor-of-philosophy-architecture-building-and-planning/
-- **Failed**: msd.unimelb.edu.au/our-people → 403 Cloudflare; msd.unimelb.edu.au/about/our-people/academic → 403; findanexpert search API → SPA shell
-- **Last verified**: 2026-06-30
-
-### University of Sydney
-- **Architecture**: Symplectic Elements SPA (profiles.sydney.edu.au)
-- **Layer**: L3 (all profiles are SPA shells, 2118 bytes)
-- **Best method**: Construct profile URL from name: profiles.sydney.edu.au/{firstname}.{lastname}. Pages return SPA shell; verify via browser.
-- **Key endpoint**: https://profiles.sydney.edu.au/{firstname}.{lastname}
-- **PhD application**: https://www.sydney.edu.au/study/study-options/postgraduate-research.html
-- **Failed**: All API paths (v1/api/individuals, api/rest/v1, etc.); model.json feeds; JSON/RDF format parameters; print view
-- **Last verified**: 2026-06-30
-
-### UNSW Sydney
-- **Architecture**: Adobe AEM (staff pages return real HTML, 100-500KB)
-- **Layer**: L2 (staff pages accessible, listing pages are SPA)
-- **Best method**: Construct URL: unsw.edu.au/staff/{firstname}-{lastname}. Pages return real HTML with research data. WARNING: Cloudflare WAF blocks curl → 403. Works in browser. These URLs are individual profile pages, NOT generic listings.
-- **Key endpoint**: https://www.unsw.edu.au/staff/{slug}
-- **PhD application**: https://www.unsw.edu.au/study/research-degrees (preferred) or https://www.unsw.edu.au/research/hdr/application
-- **Failed**: ADA Our People page → 404; research.unsw.edu.au/people search → SPA; curl gives 403 from Cloudflare
-- **Last verified**: 2026-06-30
-
-### Australian National University (ANU)
-- **Architecture**: Pure Portal v5.x (React SPA with SSR title injection)
-- **Layer**: L3 (SPA-only; API routes intercepted by React Router)
-- **BEST DISCOVERY**: Individual profile pages (researchers.anu.edu.au/researchers/{id-slug}) return 27KB HTML with researcher name in `<title>` tag and partial org info in HTML body. Can verify researcher EXISTS by checking page title and body content!
-- **Pure Portal API**: /ws/api/524/persons?size=N → 500 error (React intercepts). /ws/api/524/persons?query=X → returns persons?query... non-JSON. Individual profile pages ARE accessible but content is JS-rendered.
-- **Key endpoint**: https://researchers.anu.edu.au/researchers/{id-slug}
-- **Profile ID format**: lowercase lastname-initial (e.g., dyball-rj, marshall-v, frieman-c, van-kerkhoff-l, read-pj, carruthers-a)
-- **PhD application**: https://www.anu.edu.au/study/apply/doctor-of-philosophy-phd
-- **Verification trick**: Access individual profile page → extract `<title>` tag → researcher name appears in title! This confirms the person exists at ANU even though full research content requires browser.
-- **Failed**: All /ws/api/ paths return HTML not JSON; search.json → SPA shell; persons.json → SPA shell; organizations.json → SPA shell
-- **Last verified**: 2026-06-30
-
-### Monash University
-- **Architecture**: Pure Portal v5.x (research.monash.edu)
-- **Layer**: L3 (SPA-only)
-- **Best method**: research.monash.edu/en/persons/ → search for researcher name → profile page
-- **PhD application**: https://www.monash.edu/graduate-research/future-students/apply
-- **Last verified**: 2026-06-30
-
-### University of Queensland (UQ)
-- **Architecture**: Drupal / UQ Experts system (about.uq.edu.au/experts/{id})
-- **Layer**: L2 (expert pages return HTML, but URLs use numeric IDs only - no name in path)
-- **Best method**: UQ Experts profile URLs: about.uq.edu.au/experts/{numeric_id}. Cannot cross-verify by name in URL due to numeric IDs. Individual pages likely accessible.
-- **Key endpoint**: https://about.uq.edu.au/experts/{numeric_id}
-- **PhD application**: https://study.uq.edu.au/study-options/programs/doctor-philosophy-7500
-- **Cross-verification**: Not possible via URL name matching (numeric IDs). Requires browser to open each profile page.
-- **Failed**: about.uq.edu.au/ws/api/ → 404 (not Pure Portal at this domain)
-- **Last verified**: 2026-06-30
-
-### University of Western Australia (UWA)
-- **Architecture**: Pure Portal (research-repository.uwa.edu.au)
-- **Layer**: L3 (SPA-only)
-- **Best method**: research-repository.uwa.edu.au/en/persons/{name}/ → profile page (SPA)
-- **Key endpoint**: https://research-repository.uwa.edu.au/en/persons/{name}/
-- **PhD application**: https://www.uwa.edu.au/study/courses/doctor-of-philosophy
-- **Warning**: UWA Pure portal staff search page may be used as 其他导师信息
-- **Last verified**: 2026-06-30
-
-### University of Adelaide
-- **Architecture**: Pure Portal v5.x (researchers.adelaide.edu.au)
-- **Layer**: L3 (SPA-only)
-- **Best method**: researchers.adelaide.edu.au/profile/{firstname}.{lastname}
-- **PhD application**: https://www.adelaide.edu.au/study/research-degrees
-- **Last verified**: 2026-06-30
-
-### University of Technology Sydney (UTS)
-- **Architecture**: UTS Profiles system (SPA)
-- **Layer**: L3 (SPA-only)
-- **Best method**: profiles.uts.edu.au/{Firstname}.{Lastname}/about
-- **PhD application**: https://www.uts.edu.au/for-students/admissions-entry/how-to-apply
-- **Last verified**: 2026-06-30
-
-### RMIT University
-- **Architecture**: Pure Portal (academics.rmit.edu.au)
-- **Layer**: L3 (SPA-only)
-- **Best method**: academics.rmit.edu.au/{name-slug}
-- **PhD application**: https://www.rmit.edu.au/study-with-us/research-degrees
-- **Last verified**: 2026-06-30
-
-### Macquarie University
-- **Architecture**: Pure Portal (researchers.mq.edu.au)
-- **Layer**: L3 (SPA-only)
-- **Best method**: researchers.mq.edu.au/en/persons/{id}
-- **PhD application**: https://www.mq.edu.au/research/phd-and-research-degrees/how-to-apply
-- **Last verified**: 2026-06-30
-
-### Curtin University
-- **Architecture**: Staff Portal (static HTML)
-- **Layer**: L1 (staff pages return real HTML)
-- **Best method**: staffportal.curtin.edu.au/staff/profile/view/{id}/
-- **PhD application**: https://www.curtin.edu.au/study/offering/course-research-doctor-of-philosophy--phd/
-- **Last verified**: 2026-06-30
-
-### University of Wollongong
-- **Architecture**: Symplectic Elements (scholars.uow.edu.au)
-- **Layer**: L3 (SPA-only)
-- **Best method**: scholars.uow.edu.au/{firstname}-{lastname}/about
-- **PhD application**: https://www.uow.edu.au/research/graduate-research/future-students/how-to-apply/
-- **Last verified**: 2026-06-30
-
-### Deakin University
-- **Architecture**: Pure Portal (experts.deakin.edu.au) + CMS (www.deakin.edu.au/about-deakin/people/)
-- **Layer**: L3 for both
-- **Best method**: PREFER experts.deakin.edu.au/{name} (Pure Portal, more standard). www.deakin.edu.au/about-deakin/people/{name} is Cloudflare-blocked (403) and returns 403 for programmatic access.
-- **Key endpoint**: https://experts.deakin.edu.au/{name}
-- **PhD application**: https://www.deakin.edu.au/study/find-a-course/research-degrees 
-- **Note**: Two URL patterns exist for Deakin. Always use experts.deakin.edu.au for consistency. The deakin.edu.au/about-deakin/people pattern is alternative but less reliable.
+#### Deakin University
+- **Layer**: L3
+- **Architecture**: Pure Portal SPA (experts.deakin.edu.au) + Cloudflare WAF (deakin.edu.au CMS pages)
+- **Access**: experts.deakin.edu.au/{slug} returns "Discovery" SPA shell (~2KB). Individual profiles require browser. deakin.edu.au/about-deakin/people blocked by Cloudflare.
+- **Key endpoint**: https://experts.deakin.edu.au/{slug}
+- **PhD application**: https://www.deakin.edu.au/study/find-a-course/research-degrees
+- **Note**: experts.deakin.edu.au is the consistent URL pattern.
 - **Failed**: deakin.edu.au/about-deakin/people/{name} → 403 Cloudflare
-- **Last verified**: 2026-06-30
-
-### General Australian University Anti-Scraping Patterns
-
-| Barrier | Universities Affected | Workaround |
-|---------|----------------------|------------|
-| Cloudflare WAF (403) | UNSW, Deakin (CMS pages), Melbourne (MSD) | Use alternative subdomain or accept browser-only verification |
-| React SPA + SSR shell | ANU, Monash, Melbourne, RMIT, Macquarie, UQ, UWA, Adelaide, UTS, Wollongong | Access individual profile pages (title/metadata may be extractable) |
-| Symplectic Elements SPA | Sydney, Wollongong | Browser only; no API available |
-| Adobe AEM + Cloudflare | UNSW | Staff pages return HTML but Cloudflare blocks curl |
-| Pure Portal SPA (dominant pattern) | ANU, Monash, Melbourne, RMIT, Macquarie, UWA, Adelaide | /ws/api/{version}/ endpoints exist but React Router intercepts requests |
-
-### Australian PhD Program URL Priorities
-
-When filling 博士申请信息 for Australian universities:
-
-| University | Preferred PhD URL |
-|-----------|------------------|
-| Melbourne | study.unimelb.edu.au/how-to-apply |
-| Sydney | sydney.edu.au/study/study-options/postgraduate-research.html |
-| UNSW | unsw.edu.au/study/research-degrees |
-| ANU | anu.edu.au/study/apply/doctor-of-philosophy-phd |
-| Monash | monash.edu/graduate-research/future-students/apply |
-| UQ | study.uq.edu.au/study-options/programs/doctor-philosophy-7500 |
-| UWA | uwa.edu.au/study/courses/doctor-of-philosophy |
-| Adelaide | adelaide.edu.au/study/research-degrees |
-| UTS | uts.edu.au/for-students/admissions-entry/how-to-apply |
-| RMIT | rmit.edu.au/study-with-us/research-degrees |
-| Macquarie | mq.edu.au/research/phd-and-research-degrees/how-to-apply |
-| Curtin | curtin.edu.au/study/offering/course-research-doctor-of-philosophy--phd/ |
-| Wollongong | uow.edu.au/research/graduate-research/future-students/how-to-apply/ |
-| Deakin | deakin.edu.au/study/find-a-course/research-degrees |
-
-### ANU Verification Discovery (2026-06-30)
-
-**Breakthrough**: ANU individual researcher profile pages DO return meaningful data despite being React SPA shells. The `<title>` tag contains the researcher's full name, and the HTML body contains partial organizational data. This is sufficient to verify:
-1. Researcher exists at ANU ✅
-2. Researcher's name matches expected name ✅
-3. Researcher's college/school affiliation (partially) ✅
-
-URL for individual profiles: `https://researchers.anu.edu.au/researchers/{id-slug}`
-ID slug format: lowercase-lastname-initial(s), e.g. `dyball-rj`, `marshall-v`, `frieman-c`, `van-kerkhoff-l`, `read-pj`, `carruthers-a`
-
-This is a significant improvement over previous understanding where ANU was marked as "completely inaccessible" for automated verification.
+- **Last verified**: 2026-07-01
 
 
 #### University of Freiburg (2026-06-30 update)
@@ -1208,3 +1063,63 @@ HISinOne tree expand controls are `<input type="image">` elements (not `<button>
 4. Browse child departments for Erziehungswissenschaft
 
 This pattern applies to ALL German universities using HISinOne (Freiburg, Göttingen, partially Frankfurt).
+
+### City University of Hong Kong (2026-07-01 update)
+- **Architecture**: Incapsula WAF on main domain + various subdomain architectures
+- **Layer**: L4 (Fully blocked from curl)
+- **Subdomain probe results**:
+  - www.cityu.edu.hk/*: Incapsula WAF (212-951 bytes)
+  - www6.cityu.edu.hk: Incapsula
+  - www2/www3.cityu.edu.hk: SSL EOF
+  - com.cityu.edu.hk: 73 bytes (unreachable)
+  - moodle.cityu.edu.hk: SSL EOF
+  - canvas.cityu.edu.hk: OK 40KB (Canvas LMS, not faculty data)
+  - sgs.cityu.edu.hk: SSL EOF
+  - scholars.cityu.edu.hk: 404
+  - lbms03.cityu.edu.hk: 122 bytes
+- **Failed**: 12 subdomains probed, 0 return faculty data
+- **Last verified**: 2026-07-01
+
+### Lingnan University, Hong Kong (2026-07-01 update)
+- **Architecture**: Unknown — all URLs return 234 bytes
+- **Layer**: L4 (Fully blocked)
+- **Failed**: ln.edu.hk/daci, ln.edu.hk/visualstudies, main domain
+- **Last verified**: 2026-07-01
+
+### University of Auckland (2026-07-01 update)
+- **Architecture**: Drupal/JS-rendered profiles + multiple subdomains
+- **Layer**: L3-L4 (Mostly blocked)
+- **Accessible**: calendar.auckland.ac.nz (249K), researchspace.auckland.ac.nz (203K), arts about page (325K)
+- **Blocked**: profiles.auckland.ac.nz (JS shell 2122B), unidirectory.auckland.ac.nz (0B), most dept pages (403/406)
+- **Failed**: All staff listing approaches
+- **Last verified**: 2026-07-01
+
+### Victoria University of Wellington (2026-07-01 update)
+- **Architecture**: Semi-static HTML with embedded JS data
+- **Layer**: L2-L3 (Some pages accessible, profiles are JS shells)
+- **Accessible pages**: som/about/staff (250KB), fhss/about/staff (191KB), business/about/staff (268KB), explore/subjects (9KB)
+- **Key data source**: HTML contains embedded JSON in `<script>` tags (`parsedEmails` key). Staff data includes firstName, lastName, hrOrgUnitName, hrJobTitle, researchInterests, people.wgtn.ac.nz profile links
+- **JS shells**: people.wgtn.ac.nz/* (4150 bytes), people.wgtn.ac.nz/json (4150 bytes)
+- **Blocked**: wgtn.ac.nz/communication (0 bytes), communication/about/staff (0 bytes)
+- **Note**: Communication school is under School of Communication, Journalism and Marketing within Wellington School of Business and Government. SoM staff page only shows management professors. Communication-specific page inaccessible.
+- **Workaround**: Extract staff data from embedded JSON in business/som pages; filter by research interests for communication keywords
+- **Wayback Machine**: comm staff page not archived (2022-2024)
+- **Last verified**: 2026-07-01
+
+### Curtin University (2026-07-01 update)
+- **Architecture**: WordPress CMS + SSO-protected staff portal
+- **Layer**: L2-L3 (Staff portal accessible, directory requires SSO)  
+- **Accessible**: about/our-people (280KB), staffportal profile pages (80KB each), humanities.curtin.edu.au (273KB)
+- **Blocked**: staffportal directory (SSO SAML redirect), school-specific staff pages (JS-rendered)
+- **Note**: School of Media, Creative Arts and Social Inquiry confirmed to exist in Faculty of Humanities. Staff profiles accessible individually but cannot filter by school from static HTML.
+- **Previous L1 status invalidated**: staffportal.curtin.edu.au/staff/directory/ now requires SSO login
+- **Last verified**: 2026-07-01
+
+### Hong Kong Baptist University (2026-07-01 update)
+- **Architecture**: Adobe AEM (main domain) + Pure Portal SPA (scholars portal) + separate infra for comm subdomain
+- **Layer**: L3-L4 (Scholars portal blocked, comm subdomain network-unreachable)
+- **Accessible**: gs.hkbu.edu.hk (Grad School), scholars.hkbu.edu.hk (Pure Portal, JS-only for people), hkbu.edu.hk (main domain, Adobe AEM — all guessed URLs return 63KB 404 templates)
+- **Blocked**: comm.hkbu.edu.hk (SSL timeout — all protocols), scholars portal API (403)
+- **Note**: HKBU has the strongest communication school in HK. Scholars portal UUID-based person pages return 31-byte empty shells. PhD programme URL confirmed: gs.hkbu.edu.hk/programmes/doctor-of-philosophy-master-of-philosophy-school-of-communication
+- **Wayback Machine**: scholars organization page archived (235KB) but person data still JS-rendered in archive
+- **Last verified**: 2026-07-01
