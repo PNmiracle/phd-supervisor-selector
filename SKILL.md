@@ -331,6 +331,16 @@ for record in new_records:
 - Read `references/vika-operations-guide.md` for the complete Vika table CRUD operations guide (list, create, update, delete, import, deduplicate, translate).
 - Read `references/vika-api-patterns.md` for reusable Python code snippets for common Vika API calls.
 
+
+### CRITICAL: Never modify records with select-intent already filled
+
+When the user provides a Vika table that already has records with non-empty select-intent column:
+- DO NOT modify, delete, or overwrite any record where select-intent is not empty. These records have already been reviewed by the student.
+- ONLY operate on records where select-intent is empty: add new records with empty select-intent, update empty-record fields, or delete empty records.
+- When verifying links and notes, skip records with non-empty select-intent entirely.
+
+This rule applies to ALL operations: adding, updating, deleting, verifying, and batch processing.
+
 ### CRITICAL: Do NOT fill student-facing columns
 
 
