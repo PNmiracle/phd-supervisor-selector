@@ -747,3 +747,54 @@ What NOT to anonymize:
 
 Existing cleanup:
 If real student names exist in the repo (search-state/ or SKILL.md post-mortems), rename immediately and update all references.
+
+---
+
+### CRITICAL: Never modify records with filled 选导意向
+
+When operating on a Vika table that already has records:
+- `选导意向（点击选择）` is a SingleSelect field the student uses to mark their decisions
+- **If this field is NOT empty**, the student has already reviewed this record — DO NOT modify or delete it
+- **Only operate on records where `选导意向（点击选择）` is empty**
+- This applies to ALL operations: updating notes, changing URLs, deleting, etc.
+- By default, all records written by the AI should have `选导意向（点击选择）` left empty
+
+
+### CRITICAL: Never write to MagicLookUp or computed fields
+
+MagicLookUp fields (QS排名, Location, 美国USNEWS排名) are read-only via the Fusion API.
+- Do NOT include these fields in POST/PATCH requests — the API will return 400
+- These fields are automatically computed from the linked school table
+- The `学校名字` field should be a OneWayLink with the school's record ID in the linked table
+- Write only writable fields: 导师, 学校名字, Department, 导师主页, 博士申请信息, 其他导师信息, 备注
+
+### CRITICAL: Dedup — NEVER add a professor that already exists with 选导意向 filled
+
+Before writing ANY new record to Vika, cross-check against existing records where `选导意向（点击选择）` is NOT empty.
+
+**The check (every single time):**
+```python
+# Before adding new supervisor:
+existing_reviewed = {r['fields'].get('导师','').strip().lower() 
+                     for r in records if r['fields'].get('选导意向（点击选择）','')}
+if new_name.lower() in existing_reviewed:
+    # SKIP — this professor was ALREADY reviewed by the student
+    print(f"SKIPPING {new_name}: already in student's reviewed list")
+    continue
+```
+
+**Why**: Adding a new record for a professor the student has already evaluated creates confusion (two records for the same person, one with student notes and one without). The student shouldn't have to re-evaluate someone they already processed.
+
+**Examples**:
+- ❌ BAD: Adding "Jago Dodson" at RMIT → but there's already a Jago Dodson at RMIT with 选导意向=第二批套磁
+- ✅ GOOD: Adding "Andrew Beer" at Adelaide → not found in any reviewed records, go ahead
+- ⚠️ EDGE CASE: Kate Bishop at UTS (new) vs Kate Bishop at UNSW (reviewed) — might be different person at different university. Check profile page to confirm. If same person, skip. If different, check with user.
+
+**Practical implementation**:
+1. At start of any write session, fetch ALL existing records
+2. Build a set of lowercase names from records with non-empty 选导意向
+3. Before writing, check each new name against this set
+4. Skip if found
+5. Log all skips for the user to review
+
+**Also applies to near-duplicates**: If names are very similar (e.g., "J. Dodson" vs "Jago Dodson"), flag for user review.
