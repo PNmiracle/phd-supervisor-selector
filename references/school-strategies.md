@@ -469,12 +469,17 @@ The agent should update this file manually as part of the search workflow — af
 - **Last verified**: 2026-06-26
 
 #### University of Melbourne
-- **Architecture**: Imperva/Incapsula WAF (findanexpert.unimelb.edu.au) + Cloudflare (finearts-music)
-- **Layer**: L3
-- **Access**: BLOCKED — needs manual browser from user side
-- **Key endpoint**: https://findanexpert.unimelb.edu.au/
-- **Failed**: curl + browser both blocked
-- **Last verified**: 2026-06-26
+- **Architecture**: findanexpert SPA (Pure Portal variant) — /display/person-* returns same SPA shell for all slugs ⚠️; /profile/{id}/{slug} has unique individual profile IDs but still 0-byte SPA via curl
+- **Layer**: L3 (curl useless for content; browser required)
+- **Access**: curl returns 200 with 0 bytes (SPA shell). MSD pages (msd.unimelb.edu.au) return 403 via curl. Browser renders findanexpert correctly.
+- **Key endpoint**: `https://findanexpert.unimelb.edu.au/profile/{id}/{slug}` — individual profile pages with unique IDs
+- **Individual profile URL pattern**: `https://findanexpert.unimelb.edu.au/profile/{numeric_id}/{name-slug}`
+- **Staff directory**: `https://findanexpert.unimelb.edu.au/college/1/faculty-of-architecture-building-and-planning`
+- **PhD info**: `https://study.unimelb.edu.au/find/study-areas/architecture-building-and-planning/`
+- **⚠️ CRITICAL**: /display/person-* endpoint matches ANY slug with same SPA shell → DO NOT use to verify affiliation. Use /profile/{id} format or browser verification.
+- **⚠️ David Beynon lesson**: findanexpert returned 200 for "person-david-beynon" but he was actually at UTAS. Always browser-verify or use /profile/{id} format.
+- **Failed**: /display/ endpoint is unreliable; MSD direct pages 403
+- **Last verified**: 2026-06-30
 
 #### QUT
 - **Architecture**: Cloudflare WAF (全站)
