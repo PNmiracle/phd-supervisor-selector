@@ -1330,3 +1330,34 @@ When all other access methods (curl, browser, search engines) are blocked by WAF
 - **New pattern**: findanexpert.unimelb.edu.au/display/person-{name-slug} → Works (6183b SPA shell)
 - **Discovery**: The /profile/ path was deprecated. All profiles moved to /display/person-{slug}.
 - **Verified**: 2026-07-01
+
+### Melbourne findanexpert — CRITICAL URL Pattern Update (2026-07-01)
+
+**DISCOVERY**: findanexpert.unimelb.edu.au has TWO URL patterns:
+
+| Pattern | Behavior | Status |
+|---------|----------|--------|
+| `/display/person-{slug}` | Returns 200 SPA shell for **ANY** slug (even non-existent professors) | ❌ BROKEN - cannot verify existence |
+| `/profile/{id}/{slug}` | Returns 200 SPA shell for **REAL** profiles only, 404 for fake ones | ✅ CORRECT - has unique profile ID |
+
+**Profile ID discovery**: Each professor has a unique numeric profile ID. The `/profile/{id}/{slug}` URL contains this ID. These IDs can be found by:
+- Searching via browser on findanexpert
+- Checking Semantic Scholar for profile URLs
+- Using the sub-agent approach that worked on 2026-07-01
+
+**Verified profile IDs** (2026-07-01):
+- Alan Pert: `/profile/11727/alan-pert`
+- Sofia Prado: `/profile/52639/sofia-prado`
+- Julie Willis: `/profile/4492/julie-willis`
+- Amanda Achmadi: `/profile/48121/amanda-achmadi`
+- Sidh Sintusingha: `/profile/66045/sidh-sintusingha`
+- Gini Lee: `/profile/66008/gini-lee`
+- Margaret Grose: `/profile/14457/margaret-grose`
+- Andrew Saniga: `/profile/66248/andrew-saniga`
+
+**David Beynon counter-example**: His `/display/person-david-beynon` returned the same SPA shell, but he's actually at University of Tasmania (UTAS), NOT Melbourne. The `/display/` endpoint accepts any slug and never returns 404 — it's a catch-all route in the React SPA.
+
+**Lesson**: NEVER use the `/display/` endpoint for verification. Always find the `/profile/{id}/` URL. If you can't find the profile ID, mark the record as ⚠️学校归属未验证.
+
+**Cloudflare WAF**: All findanexpert URLs return "Pardon Our Interruption" via curl (6183 bytes). They work correctly in browser. Same situation as UNSW staff pages.
+
