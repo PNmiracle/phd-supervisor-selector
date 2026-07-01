@@ -1284,3 +1284,44 @@ When all other access methods (curl, browser, search engines) are blocked by WAF
 - Department affiliation not always recorded
 - Cannot verify research fit without employment context
 
+
+## AU Schools Access Layer Summary (2026-07-01)
+
+| University | Architecture | Access Method | Key Endpoint |
+|-----------|-------------|---------------|--------------|
+| The University of Melbourne | L3 (Incapsula on findanexpert) | Individual profile pages via findanexpert.unimelb.edu.au/profile/{id}-{name} can be accessed via curl (200 OK) | findanexpert.unimelb.edu.au/profile/{id}-{slug} |
+| Monash University | L1 (Pure Portal) | Pure portal research.monash.edu.au works; individual persons pages accessible | research.monash.edu.au/en/persons/{slug} |
+| UNSW Sydney | L2 | Staff profile pages at unsw.edu.au/staff/{slug} may work; JS-rendered | unsw.edu.au/staff/{slug} |
+| The University of Sydney | L3 (JS SPA) | Architecture faculty pages are JS-rendered; individual profiles need browser verification | sydney.edu.au/architecture/about/our-people/academic-staff/{slug}.html |
+| RMIT University | L3 (Cloudflare) | Cloudflare WAF blocks all curl access; browser required | rmit.edu.au/contact/staff-contacts/academic-staff/ |
+| Deakin University | L3 (Cloudflare) | Cloudflare WAF blocks all curl access; browser required | deakin.edu.au/about-deakin/people/{slug} |
+| University of Queensland | L3 (JS SPA) | Researchers portal is JS-rendered; browser required | researchers.uq.edu.au/researcher/{id} |
+| Adelaide University | L3 (JS SPA) | Researchers portal is JS-rendered; browser required | researchers.adelaide.edu.au/profile/{slug} |
+| UTS | L3 (Cloudflare) | Cloudflare/Imperva blocks all curl access; browser required | profiles.uts.edu.au/{slug} |
+| Macquarie University | L2 | Researchers portal may be accessible | researchers.mq.edu.au/en/persons/{slug} |
+| Curtin University | L2 | Staff portal may be accessible | staffportal.curtin.edu.au/staff/profile/view/{slug}/ |
+| The University of Newcastle | L2 | Staff profiles may be accessible | newcastle.edu.au/profile/{slug} |
+
+### Vika School IDs (in dstMNzQU9Aa58DpgW3)
+| University | Record ID |
+|-----------|----------|
+| The University of Melbourne | reco6LXk2RdNg |
+| The University of Sydney | recSCi2HYh18f |
+| UNSW Sydney | recupYqG8sNJD |
+| Australian National University | recd2grjzT9Vf |
+| Monash University | recTyuPatx4kC |
+| The University of Queensland | recPsoUbww7Zr |
+| The University of Western Australia | recr6NH4J8ZxM |
+| The University of Adelaide | recMJr4zMuQw8 |
+| UTS | recx6JttsSALF |
+| RMIT University | rec8y6BX5nvqK |
+| Macquarie University | recys0of2k2QN |
+| The University of Newcastle | recNh5iNGwa8V |
+| Curtin University | recY5NYqlEXX0 |
+| Deakin University | recP7hhnKGdHw |
+
+### Melbourne findanexpert URL Pattern Change (2026-07-01)
+- **Old pattern**: findanexpert.unimelb.edu.au/profile/{id}-{name-slug} → **BROKEN** (404)
+- **New pattern**: findanexpert.unimelb.edu.au/display/person-{name-slug} → Works (6183b SPA shell)
+- **Discovery**: The /profile/ path was deprecated. All profiles moved to /display/person-{slug}.
+- **Verified**: 2026-07-01
