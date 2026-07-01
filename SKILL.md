@@ -286,6 +286,31 @@ When the user drops a template `.xlsx`:
 6. Add new sheets (`说明与颜色图例`, `排除或待确认`) if the template does not already have them.
 
 
+
+### CRITICAL: SPA壳返回200 ≠ 链接有效 — 必须交叉验证
+
+**David Beynon 案例 (2026-07-01)**: findanexpert.unimelb.edu.au/display/person-david-beynon 返回 200 + 6183字节 SPA壳，子代理错误地将其归类为Melbourne教授。实际上Beynon在University of Tasmania (discover.utas.edu.au/David.Beynon)。
+
+**根本原因**: SPA网站对所有请求返回200和相同的空壳HTML，无论该人员是否真的在该网站注册。findanexpert接受任何slug (`/display/person-{anything}`) 都返回200。
+
+**强制规则**: 
+1. 200状态码 + SPA壳 (同域所有请求返回相同字节数) → **不能确认该导师存在**
+2. 必须通过以下之一确认导师与学校的关联:
+   - 页面title/meta含导师姓名
+   - 页面HTML含导师姓名或其研究关键词
+   - Semantic Scholar/Google Scholar明确显示该大学affiliation
+   - 浏览器打开页面确认内容
+3. 如果无法确认 → **标记 ⚠️学校归属未验证** ,不要写入该校
+
+**检测方法**:
+```python
+# 判断是否为SPA壳
+if len(text) < 10000 and site_pattern in text:
+    # 可能是SPA壳 - 需要额外验证
+    if professor_name.lower() not in text.lower():
+        flag_as_unverified()
+```
+
 ### CRITICAL: 导师主页 must be an INDIVIDUAL profile URL
 
 **Never** use generic department/listing pages as `导师主页`. Every supervisor must have their own unique profile URL.
