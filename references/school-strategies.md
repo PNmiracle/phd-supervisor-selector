@@ -1228,3 +1228,59 @@ This pattern applies to ALL German universities using HISinOne (Freiburg, Götti
 - **⚠️ Auckland has NO dedicated Communication/Advertising/Brand programme. Media and Screen Studies is purely film/TV/media studies.**
 - **Last verified**: 2026-07-01
 
+
+#### City University of Hong Kong (CityU) - Department of Media and Communication
+- **Layer**: L3
+- **Architecture**: Incapsula WAF (main site) + Cloudflare WAF (scholars.cityu.edu.hk)
+- **Best method**: L3 - DuckDuckGo search for individual professor names. Use queries like "[Name] City University Hong Kong professor communication" to discover profile URLs. All curl/browser access is blocked.
+- **Key URL**: scholars.cityu.edu.hk/en/persons/{slug} (Cloudflare), stfprofile also Incapsula-blocked (846 bytes). com.cityu.edu.hk Incapsula (843 bytes).
+- **Failed**: All curl approaches (main site, scholars subdomain, stfprofile). All return WAF challenge pages.
+- **Last verified**: 2026-07-01
+
+#### University of Auckland - Communication/Advertising/Brand
+- **Layer**: L3
+- **Architecture**: SPA (profiles.auckland.ac.nz, 2122 bytes), Imperva on Business School (406)
+- **Best method**: Staff contact page accessible via curl (290KB HTML) but names in SPA. profiles.auckland.ac.nz/{slug} are JS shells. No communication/advertising/brand department - Media and Screen Studies is cinema/TV/media studies.
+- **Key URL**: https://www.auckland.ac.nz/en/arts/about-the-faculty/school-of-humanities/our-people/contact-an-academic/contact-an-academic-in-media-and-screen-studies.html (290KB, accessible)
+- **Failed**: Individual profile pages (SPA shells), Business School (406/Imperva), GraphQL API, profiles search API (SPA shell)
+- **Last verified**: 2026-07-01
+- **Status**: Dead end - no matching department for communication/advertising/brand
+
+
+#### City University of Hong Kong (CityU) - ORCID Discovery Method (2026-07-01)
+- **Architecture**: Incapsula WAF (all subdomains blocked)
+- **Layer**: L4 (No direct access) → L3 (ORCID fallback) 
+- **New method**: ORCID API keyword search broken through where DDG/Bing/Google all failed
+- **Best method**: 1) `curl "https://pub.orcid.org/v3.0/search/?q=affiliation-org-name:%22City+University+of+Hong+Kong%22+AND+keyword:communication"` → get ORCID IDs
+  2) `curl "https://pub.orcid.org/v3.0/{orcid}/person"` → get researcher names
+  3) Use external knowledge to match ORCID names to COM department
+  4) Write to Vika with ⚠️ marker since profile pages unverifiable
+- **Key endpoint**: https://pub.orcid.org/v3.0/search/?q=affiliation-org-name:%22City+University+of+Hong+Kong%22+AND+(keyword:media+OR+keyword:communication)
+- **Found via ORCID**: Tai-Quan Peng, Dani Madrid-Morales, Hai Liang (COM dept)
+- **Failed**: All curl/browser approaches; all Incapsula; scholars blocked (403); www6 blocked (840B); stfprofile dead
+- **Last verified**: 2026-07-01
+
+#### University of Auckland - ORCID Discovery Method (2026-07-01)
+- **Architecture**: Imperva WAF (staff pages) + Angular SPA (profiles) + static HTML (calendar/researchspace)
+- **Layer**: L3-L4 (staff pages blocked, calendar accessible) 
+- **ORCID method works**: Found 16+ Auckland researchers via ORCID keyword search but employment data incomplete (ORCID records not filled by researchers)
+- **Best method**: ORCID → names → Google Scholar cross-reference → verify affiliation
+- **Key endpoint**: https://pub.orcid.org/v3.0/search/?q=affiliation-org-name:%22University+of+Auckland%22+AND+(keyword:media+OR+keyword:film+OR+keyword:screen)
+- **Accessible pages**: calendar.auckland.ac.nz (249KB), researchspace.auckland.ac.nz (203KB), arts about page (312KB)
+- **Blocked**: All /our-people/ and /staff/ paths (406); profiles subdomain SPA shell (2122B); unidirectory SSL error
+- **Last verified**: 2026-07-01
+
+### ORCID Discovery Pattern (Cross-School)
+
+When all other access methods (curl, browser, search engines) are blocked by WAF:
+1. Use ORCID API with affiliation filter: `affiliation-org-name:"[University Name]"`
+2. Add keyword filters: `AND+(keyword:media+OR+keyword:communication+OR+keyword:advertising)`
+3. Resolve ORCID IDs → researcher names via `/v3.0/{orcid}/person`
+4. Cross-reference with external knowledge for department confirmation
+5. Note: ORCID employment data requires `/v3.0/{orcid}/employments` (separate endpoint)
+
+**Limitations**:
+- ORCID records rely on researchers self-filling data — many have NO employment data
+- Department affiliation not always recorded
+- Cannot verify research fit without employment context
+
