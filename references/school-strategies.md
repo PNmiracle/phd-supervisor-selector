@@ -1155,3 +1155,76 @@ This pattern applies to ALL German universities using HISinOne (Freiburg, Götti
 - **Key endpoint**: None accessible
 - **Failed**: All curl, browser, and search approaches exhausted
 - **Last verified**: 2026-07-01
+
+#### Victoria University of Wellington (VUW)
+- **Layer**: L1 (Squiz CMS server-rendered) / L3 (Angular SPA for /explore/ pages)
+- **Architecture**: Hybrid - Squiz CMS for school pages (sim, sam, fhss) with server-rendered staff listings; Angular SPA for /explore/ and people.wgtn.ac.nz
+- **Best method**: School staff pages (e.g., /sam/about/staff) contain server-rendered staff data with data-cy email attributes. Extract emails via `grep -Eo 'data-cy="[^@]+@vuw\.ac\.nz"' | sort -u`. Use people.wgtn.ac.nz/{username} for individual profile URLs (JS-rendered, content not accessible via curl).
+- **Key endpoint**: `https://www.wgtn.ac.nz/sam/about/staff` (368KB server-rendered page)
+- **Profile URL**: `https://people.wgtn.ac.nz/{email.username}` (e.g., people.wgtn.ac.nz/geoff.stahl)
+- **Failed**: people.wgtn.ac.nz profiles are React SPA - curl returns empty shell; /explore/ pages are Angular SPA; /communication-studies returns 404
+- **Last verified**: 2026-07-01
+
+#### Lingnan University
+- **Layer**: L1
+- **Architecture**: Static HTML (Department of Cultural Studies)
+- **Best method**: Direct curl → parse faculty listing at ln.edu.hk/cultural/people/faculty
+- **Key endpoint**: `https://www.ln.edu.hk/cultural/people/faculty`
+- **Profile URL**: `https://www.ln.edu.hk/cultural/people/faculty/prof-{name-slug}`
+- **Failed**: —
+- **Last verified**: 2026-07-01
+
+#### City University of Hong Kong (CityU)
+- **Layer**: L3 (BLOCKED)
+- **Architecture**: Incapsula WAF
+- **Best method**: None working. All subdomains blocked (com.cityu.edu.hk, cityu.edu.hk). Incapsula returns 403/captcha for curl, browser, and search engines. Requires manual browser access from user.
+- **Key endpoint**: BLOCKED
+- **Failed**: All curl attempts → Incapsula 403; in-app browser → Incapsula; DDG/Google search → no usable results
+- **Last verified**: 2026-07-01
+- **⚠️ Manual access needed**: https://www.cityu.edu.hk/com/
+
+#### University of Auckland
+- **Layer**: L3 (BLOCKED)
+- **Architecture**: Imperva/Incapsula WAF + SSL errors on unidirectory
+- **Best method**: None working. 406 responses + SSL errors. Profiles subdomain returns SPA shell.
+- **Key endpoint**: BLOCKED
+- **Failed**: All access attempts → 406 or SSL errors; profiles subdomain → SPA shell
+- **Last verified**: 2026-07-01
+- **⚠️ Manual access needed**: https://www.auckland.ac.nz/en/arts/about-the-faculty/school-of-humanities/our-people/contact-an-academic/contact-an-academic-in-media-and-screen-studies.html
+
+#### BNU-HKBU UIC
+- **Layer**: L3
+- **Architecture**: Vue SPA (Chinese Visual SiteBuilder CMS) - faculty page is hash-routed SPA
+- **Best method**: Google search for individual names. No separate individual profile HTML pages exist - all are served via faculty.htm SPA.
+- **Key endpoint**: `https://fhss.bnbu.edu.cn/comm_en/faculty/faculty.htm`
+- **Profile URL**: `https://fhss.bnbu.edu.cn/comm_en/faculty/faculty.htm#/{username}/en` (hash fragment, SPA-rendered)
+- **Failed**: Individual HTML pages don't exist; all profiles are SPA hash-routed
+- **⚠️ PhD supervision**: UIC is primarily a teaching institution. MPhil/PhD offered through HKBU co-supervision. Assistant Professors may have limited supervision capacity.
+- **Last verified**: 2026-07-01
+
+### CityU Department of Media and Communication (COM) (2026-07-01 update)
+
+#### Access Overview
+- **Layer**: L3 (Search Engine Fallback) — ALL subdomains now blocked
+- **Architecture**: Mixed (Pure Portal for scholars.cityu.edu.hk, Custom CMS for com.cityu.edu.hk)
+- **Blocked**: scholars.cityu.edu.hk (Cloudflare WAF), www.cityu.edu.hk (Incapsula WAF), www6.cityu.edu.hk (Incapsula), com.cityu.edu.hk (73 bytes), moodle.cityu.edu.hk (SSL EOF), sgs.cityu.edu.hk (SSL EOF)
+- **Accessible**: canvas.cityu.edu.hk (Canvas LMS, no faculty data)
+- **Best method**: DDG/Bing search "\"{Name}\" \"City University of Hong Kong\" professor" → extract scholars.cityu.edu.hk UUID from search results
+- **Profile URL format**: scholars.cityu.edu.hk/en/persons/{name}({uuid}) OR www.cityu.edu.hk/com/people/dr-{name-slug}
+- **Failed**: All curl methods (Cloudflare + Incapsula on every subdomain that matters)
+- **⚠️**: None of the profile URLs can be verified by curl; all require browser or manual user verification
+- **Last verified**: 2026-07-01
+
+### Auckland University Communication/Media (2026-07-01 update)
+
+#### Access Overview
+- **Layer**: L3✗ (DEAD END) — No communication programme found, all domains blocked
+- **Architecture**: Adobe AEM (www subdomain), React SPA (profiles subdomain)
+- **Media and Screen Studies**: 9 staff found via contact page, ALL film/TV/media studies focus — NOT communication/advertising/brand
+- **Blocked**: profiles.auckland.ac.nz (JS shell 2122B), unidirectory.auckland.ac.nz (0B), business school marketing dept (406), most dept pages (403/406)
+- **Accessible but useless**: calendar.auckland.ac.nz (249K), researchspace.auckland.ac.nz (203K), arts contact page (325K)
+- **Best method**: None. The arts about page lists staff names and profile links but all profiles are JS-rendered shells. 
+- **Manual URL** (last resort): https://www.auckland.ac.nz/en/arts/about-the-faculty/school-of-humanities/our-people/contact-an-academic/contact-an-academic-in-media-and-screen-studies.html
+- **⚠️ Auckland has NO dedicated Communication/Advertising/Brand programme. Media and Screen Studies is purely film/TV/media studies.**
+- **Last verified**: 2026-07-01
+
