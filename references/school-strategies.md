@@ -1123,3 +1123,35 @@ This pattern applies to ALL German universities using HISinOne (Freiburg, Götti
 - **Note**: HKBU has the strongest communication school in HK. Scholars portal UUID-based person pages return 31-byte empty shells. PhD programme URL confirmed: gs.hkbu.edu.hk/programmes/doctor-of-philosophy-master-of-philosophy-school-of-communication
 - **Wayback Machine**: scholars organization page archived (235KB) but person data still JS-rendered in archive
 - **Last verified**: 2026-07-01
+
+#### Lingnan University
+- **Architecture**: Static HTML
+- **Layer**: L1
+- **Access**: Direct curl → parse profile pages at ln.edu.hk/cultural/people/faculty/{slug}
+- **Key endpoint**: https://www.ln.edu.hk/cultural/people/faculty
+- **Failed**: uni-directory returns 404; staffdir.htm too thin
+- **Last verified**: 2026-07-01
+
+#### Victoria University of Wellington (VUW)
+- **Architecture**: Squiz CMS (static pages) + Angular SPA (people profiles)
+- **Layer**: L1 (static pages) / L3 (profiles)
+- **Access**: Static pages via curl; people.wgtn.ac.nz profiles are SPA shells (4150B) → browser needed
+- **Key endpoint**: https://www.wgtn.ac.nz/sam/research/staff-research-interests/media-and-communication
+- **Failed**: people.wgtn.ac.nz profiles all return 4150B JS shells; researchers subdomain 404; seftms 404
+- **Last verified**: 2026-07-01
+
+#### University of Auckland
+- **Architecture**: Imperva/Incapsula WAF
+- **Layer**: L3
+- **Access**: BLOCKED - 406 on all www subdomains; unidirectory SSL errors; profiles SPA shells; calendar blocked
+- **Key endpoint**: None accessible
+- **Failed**: All curl, browser, and search engine approaches exhausted
+- **Last verified**: 2026-07-01
+
+#### City University of Hong Kong (CityU)
+- **Architecture**: Incapsula WAF
+- **Layer**: L3
+- **Access**: BLOCKED - all www subdomains blocked; canvas.cityu.edu.hk accessible but no staff data
+- **Key endpoint**: None accessible
+- **Failed**: All curl, browser, and search approaches exhausted
+- **Last verified**: 2026-07-01
