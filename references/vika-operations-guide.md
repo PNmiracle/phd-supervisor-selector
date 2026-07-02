@@ -123,8 +123,11 @@ vika("PATCH", "/records", {"records": updates, "fieldKey": "name"})
 ```
 
 ### 4.2 Update URL Fields
+
+**⚠️ CRITICAL**: URL-type fields (导师主页, 博士申请信息, 其他导师信息) do NOT work with `fieldKey="name"`. The API returns 200 but silently fails to update the URL values. **Must use field IDs without fieldKey parameter.**
+
 ```python
-# URL fields can be set as plain strings
+# ❌ WRONG — silently fails for URL fields
 updates = [
     {"recordId": "recXXX", "fields": {
         "导师主页": "https://www.university.edu/department/faculty/prof-name",
@@ -132,6 +135,22 @@ updates = [
     }},
 ]
 vika("PATCH", "/records", {"records": updates, "fieldKey": "name"})
+
+# ✅ CORRECT — omit fieldKey, use field IDs
+# First get field IDs from GET /fields, then:
+updates = [
+    {"recordId": "recXXX", "fields": {
+        "fldYm8R3l4Bnu": "https://www.university.edu/department/faculty/prof-name",
+        "fldI3KsjPCYWp": "https://gradschool.university.edu/phd/program"
+    }},
+]
+# No fieldKey in the request body
+req = Request(
+    f"{BASE}/datasheets/{DATASHEET}/records",
+    data=json.dumps({"records": updates}).encode(),
+    headers={"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"},
+    method='PATCH'
+)
 ```
 
 ### 4.3 Update SingleSelect / Checkbox

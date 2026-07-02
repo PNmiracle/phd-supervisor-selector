@@ -1,27 +1,40 @@
 #!/usr/bin/env python3
 """Audit script for PhD supervisor table.
-Run after every batch write to catch: cross-links, note format issues, 
+Run after every batch write to catch: cross-links, note format issues,
 garbage content, missing fields, and URL accessibility problems.
 
-Usage: python3 scripts/audit.py
+Usage: python3 scripts/audit.py [DATASHEET_ID] [VIKA_TOKEN]
+  - DATASHEET_ID: Vika datasheet ID (dstXXX), defaults to $VIKA_DSID env var
+  - VIKA_TOKEN: Vika API token, defaults to $VIKA_TOKEN env var
 """
-import urllib.request, json, ssl, gzip, re
+import urllib.request, json, ssl, gzip, re, os, sys
 
-ssl_ctx = ssl.create_default_context()
-ssl_ctx.check_hostname = False
-ssl_ctx.verify_mode = ssl.CERT_NONE
+# ---- SECURITY: Use env vars or CLI args, NEVER hardcode tokens ----
+TOKEN = sys.argv[2] if len(sys.argv) > 2 else os.environ.get("VIKA_TOKEN", "")
+DSID = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("VIKA_DSID", "")
+# --------------------------------------------------------------------
 
-TOKEN = 'uskYugNg7aN8sSz5sWZxT7F'
-DSID = 'dsteK35wW67qmaW5ix'
+if not TOKEN:
+    print("[ERROR] VIKA_TOKEN not set. Provide it via env var or CLI argument:")
+    print("  export VIKA_TOKEN=your_token_here")
+    print("  python3 scripts/audit.py dstXXX your_token_here")
+    sys.exit(1)
+if not DSID:
+    print("[ERROR] VIKA_DSID not set. Provide datasheet ID via env var or CLI argument:")
+    print("  export VIKA_DSID=dstXXX")
+    print("  python3 scripts/audit.py dstXXX")
+    sys.exit(1)
+
 BASE = 'https://api.vika.cn/fusion/v1'
 
 def get_page(url):
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        resp = urllib.request.urlopen(req, timeout=10, context=ssl_ctx)
+        resp = urllib.request.urlopen(req, timeout=10)
         data = resp.read()
         return data.decode('utf-8', errors='ignore'), resp.status
-    except: return "", 0
+    except Exception:
+        return "", 0
 
 def get_url_val(val):
     if isinstance(val, dict): return val.get('text', '') or ''
@@ -31,8 +44,8 @@ v_url = f"{BASE}/datasheets/{DSID}/records?maxRecords=50&fieldKey=id"
 req = urllib.request.Request(v_url, headers={"Authorization": f"Bearer {TOKEN}"})
 resp = urllib.request.urlopen(req, timeout=15)
 data = json.loads(resp.read())
-records = [r for r in data['data']['records'] 
-           if r['fields'].get('fld1RxfRZuKA3') 
+records = [r for r in data['data']['records']
+           if r['fields'].get('fld1RxfRZuKA3')
            and 'PLEASE_DELETE' not in str(r['fields'].get('fld1RxfRZuKA3', ''))]
 
 issues = []
@@ -50,7 +63,7 @@ domain_map = {
     'unimelb.edu.au': ['Melbourne'],
     'monash.edu': ['Monash'],
 }
-GARBAGE = ['个人页面JS渲染', '需浏览器确认', '方向匹配', '⚠️', '✅']
+GARBAGE = ['个人页面JS渲染', '需浏览器确认', '方向匹配', '\u26a0\ufe0f', '\u2705']
 
 for r in records:
     name = r['fields'].get('fld1RxfRZuKA3', '?')
@@ -60,7 +73,7 @@ for r in records:
     phd = get_url_val(r['fields'].get('fldYm8R3l4Bnu', ''))
     staff = get_url_val(r['fields'].get('fldI3KsjPCYWp', ''))
     remark = r['fields'].get('fldt2UATh9Ofp', '')
-    
+
     # Cross-link check
     if homepage and dept:
         expected = None
@@ -70,10 +83,10 @@ for r in records:
         if expected and expected not in homepage.lower():
             issues.append(('CROSS_LINK', name, f'Expected {expected}, URL: {homepage[:60]}'))
     # Note format
-    if '；' not in remark:
-        issues.append(('NOTE_FORMAT', name, 'No ；separator'))
-    if remark and not remark.rstrip().endswith('。'):
-        issues.append(('NOTE_PERIOD', name, 'No trailing 。'))
+    if '\uff1b' not in remark:
+        issues.append(('NOTE_FORMAT', name, 'No \uff1bseparator'))
+    if remark and not remark.rstrip().endswith('\u3002'):
+        issues.append(('NOTE_PERIOD', name, 'No trailing \u3002'))
     # Garbage
     for gw in GARBAGE:
         if gw in remark:

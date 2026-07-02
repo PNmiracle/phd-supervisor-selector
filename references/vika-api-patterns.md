@@ -145,6 +145,37 @@ vika("PATCH", "/records", {"records": [{"recordId": "recXXX", "fields": {"导师
 ### GET Cache Staleness
 After DELETE or PATCH, subsequent GET requests may return stale data from an API cache. The Vika UI typically reflects changes faster than the API. Always verify in the UI after making changes.
 
+### URL Field PATCH with fieldKey="name" Returns 200 but Silently Fails (2026-07-02)
+
+**Problem**: When PATCHing URL-type fields (e.g., 博士申请信息, 其他导师信息, 导师主页) with `fieldKey="name"` in the request body, the API returns 200 success but the URL field values are NOT actually updated.
+
+**Root Cause**: URL-type fields behave similarly to OneWayLink/MagicLookUp fields when `fieldKey="name"` is used — the API cannot resolve the field correctly.
+
+**Solution**: Omit `fieldKey` entirely and use field IDs (`fldXXX`) as keys instead. Get field IDs from `GET /fields`.
+
+```python
+# ❌ WRONG — returns 200 but URL fields are NOT updated
+updates = [
+    {"recordId": "recXXX", "fields": {
+        "博士申请信息": "https://example.com/phd",
+        "其他导师信息": "https://example.com/faculty"
+    }}
+]
+vika("PATCH", "/records", {"records": updates, "fieldKey": "name"})
+
+# ✅ CORRECT — omit fieldKey, use field IDs
+updates = [
+    {"recordId": "recXXX", "fields": {
+        "fldYm8R3l4Bnu": "https://example.com/phd",
+        "fldI3KsjPCYWp": "https://example.com/faculty"
+    }}
+]
+# No fieldKey parameter in request body
+req = Request(url, data=json.dumps({"records": updates}).encode(), ...)
+```
+
+**Note**: This ONLY affects PATCH operations on URL-type fields. Text/SingleSelect/Checkbox fields still work fine with `fieldKey="name"`.
+
 ## Critical Discovery: OneWayLink/MagicLookUp Write Workaround (2026-06-30)
 
 **Problem**: Vika Fusion API rejects `OneWayLink` and `MagicLookUp` fields with "Lookup field can't be edited" when using `fieldKey=name` parameter.

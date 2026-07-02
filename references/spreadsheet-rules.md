@@ -45,6 +45,35 @@ When opening an existing workbook:
 - Match by column header name, not by position.
 - Do not assume the simplified format if a template format is detected.
 
+### ⚠️ Column Offset Detection (序号列陷阱)
+
+When the Excel has an `序号` column in the header but the data rows have no actual sequence numbers (the column is empty in the body), all subsequent data shifts left by one position. **This is a common error when importing from sheets that have header-only ordinal columns.**
+
+**Detection steps:**
+1. Parse the header row and note column positions
+2. Read the first 3-5 data rows
+3. Check if the `序号` column has values in the data rows
+4. If `序号` is empty in all data rows → data is offset: column N in data maps to column N+1 in header
+
+**Example:**
+```
+Header: [优先级, 序号, 学校, 学院/系, 导师姓名, 职称, 研究方向, ...]
+Data:   [P0,     空,   NUS,  商学院,    Xiuping Li, 副教授, Consumer..., ...]
+                     ↑ 实际是"学校"列的数据，不是"序号"
+```
+
+**Correction mapping:**
+```python
+# Offset detected: skip col 2 (序号), map data col 2 → header col 3 (学校)
+# data_idx 0 → header col 1 (优先级)
+# data_idx 1 → header col 3 (学校, skip 序号)
+# data_idx 2 → header col 4 (学院/系)
+# data_idx 3 → header col 5 (导师姓名)
+# etc.
+```
+
+After confirming the offset pattern, apply it to ALL rows. Print a warning to the user about the detected offset.
+
 ## Homepage Link Rules
 
 The supervisor homepage link must be openable and must visibly correspond to the supervisor. Never invent, infer, or keep a profile URL just because it follows a plausible pattern.
