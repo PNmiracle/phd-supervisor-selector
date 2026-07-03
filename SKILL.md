@@ -12,6 +12,16 @@ agent_created: true
 
 **支持两种模式：Vika（在线表格直接 CRUD）和 Excel（本地电子表格）。**
 
+## Optional Companion Skill
+
+**tavily-search-pro** — AI-powered search platform that acts as **L4 fallback** when L1-L3 access methods all fail (WAF blocks curl+browser+search). Provides:
+- **extract**: Server-side page content extraction (bypasses Cloudflare/Incapsula WAF)
+- **search**: Alternative search engine with clean, unencrypted result URLs
+- **crawl/map**: Site structure discovery for blocked university sites
+- **research**: Deep department analysis with citations
+
+Requires `TAVILY_API_KEY` environment variable. If installed, search automatically escalates to Tavily when all other access methods are blocked. See `references/search-techniques.md` (L4 section) and `references/school-strategies.md` (L4 layer).
+
 ## 搜索编排（首先阅读）
 
 开始搜索任务前，阅读 `references/search-orchestrator.md`。它定义了：
@@ -63,6 +73,24 @@ agent_created: true
    ```
 3. Base URL: `https://api.vika.cn/fusion/v1`
 
+### 操作前必做：过滤选导意向非空行
+
+**每次执行增删改操作前，必须先获取所有记录并排除 `选导意向（点击选择）` 非空的行：**
+
+```python
+# 获取所有记录
+result = vika("GET", "/records?maxRecords=200&fieldKey=name")
+all_records = result["data"]["records"]
+
+# 仅保留选导意向为空的行（这些是待编辑的行）
+editable = [r for r in all_records if not r["fields"].get("选导意向（点击选择）")]
+
+# 选导意向非空的行（这些是受保护的行，只能读取）
+locked = [r for r in all_records if r["fields"].get("选导意向（点击选择）")]
+
+# 所有增删改操作只针对 editable 列表中的 recordId
+```
+
 ### 能力（记录级 CRUD）
 
 | 操作 | 端点 | 备注 |
@@ -113,7 +141,7 @@ agent_created: true
 1. 解析学生背景、研究方向、硬排除条件、目标地区/学校、排名限制
 2. **检测表格格式**（见 `references/spreadsheet-rules.md`）：若用户提供模板，沿用其列结构；否则使用默认简化格式
 3. 优先搜索官方大学来源
-4. **SPA/动态站点**：探测 JS bundle 中的 API 端点再放弃
+4. **SPA/动态站点**：先查 `references/search-techniques.md` L0-SPA 策略（找替代来源而非死磕 SPA 壳）；若无替代来源再探测 JS bundle 中的 API 端点
 5. 按内容验证每个导师主页
 6. 使用 `references/selection-rules.md` 判断指导资格
 7. 使用 `references/spreadsheet-rules.md` 填写表格
@@ -132,7 +160,7 @@ agent_created: true
 - **搜索引擎为主要策略**查找个人导师资料。搜 `"[导师名] [大学] professor"` 获取真实 URL——不要猜测 URL
 - 优先官方大学页面而非个人网站
 - **禁止 URL 猜测**：不要通过命名规则构造 URL（失败率约 90%）
-- **SPA/JS 渲染页面**：不接受 200 空壳。见 `references/search-techniques.md`
+- **SPA/JS 渲染页面**：不接受 200 空壳。**优先尝试 L0-SPA 策略**（找替代来源：个人网站、ResearchGate、研究中心页面），不要死磕 SPA 壳。详见 `references/search-techniques.md` L0-SPA 节和 `references/school-strategies.md` 各学校策略
 - **并行搜索**：使用 WorkBuddy Agent 工具对不同的学校/域名进行并行检查。给每个 Agent 清晰的独立任务
 
 ### 浏览器验证替代方案
@@ -158,33 +186,89 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 
 **默认使用中文填写备注**，即使 Excel 源数据的研究方向为英文也需翻译为中文关键词。格式：`职称；研究方向（中文关键词）；风险/注意事项。`
 
-保持备注简短具体。**禁止使用主观评价用语**如 `高度匹配`、`很匹配`、`完美匹配`。描述事实，不做评判。
+### 🎯 语气要求：像面对面和学生说话
+
+备注是给申请学生看的，语气要自然、有"人味"，像坐在旁边帮 ta 梳理信息的口吻。
+
+- **不要**写"符合XX方向""匹配XX方向"——太机械，像机器打分
+- **要**写"可以往XX方向贴合""可以试试往XX靠""和XX方向能搭上"——有商量感，留余量
+- **不要**堆砌术语关键词——写完要读一遍，想象你是说给一个紧张的申请者听的
+- **要**写短句，多用"，"和"；"，少用长定语句
+- 信息量要保持，但语气要松弛——是"帮你梳理"不是"给你打分"
+
+### 📊 匹配度分级（备注结尾标识）
+
+每条备注结尾根据匹配度加一句标识，让学生一眼能判断优先级：
+
+| 级别 | 标识语 | 触发条件 |
+|------|--------|----------|
+| 🔥 强匹配 | `特别推荐看一下～` | 方向多重重叠 + 顶刊发表 + 正在招博士/有成熟指导记录 |
+| 👍 一般匹配 | `比较相关～` | 研究方向与学生1-2个目标方向直接相关，有合理发表记录 |
+| 👀 弱相关 | `可以备选一下哈～` | 方向有一定交叉但非核心对应，或资历/职称偏早期 |
+
+**禁止使用主观评价用语**如 `高度匹配`、`很匹配`、`完美匹配`。描述事实，不做评判。
 
 示例：
-- `副教授；博物馆研究、装饰艺术、珍奇柜；教学岗待确认。`
-- `教授；文化遗产、建筑史、遗产保护；建筑遗产偏重。`
-- `副教授；消费者判断与决策、跨期选择。`
-- `助理教授；消费者决策、道德决策、自我概念清晰度。MIT PhD。`
+- `副教授；研究博物馆、装饰艺术、珍奇柜这些；教学岗，辅导资格待确认。`
+- `教授；做文化遗产和建筑史，可以往遗产保护方向靠；建筑遗产方面偏重一些。`
+- `副教授；消费者判断与决策、跨期选择，和品牌传播能搭上。`
+- `助理教授；消费者决策、道德决策、自我概念清晰度；MIT PhD，可以关注一下。`
+- `副教授；做数字消费者行为和 AI 在营销里的应用，品牌传播和媒介技术都能搭上；Nature和JMR都有发，正在招博士生。特别推荐看一下～`
 
 ### 当学校匹配导师极少时（1-2位）
 
 **在备注末尾补充说明该系其他教师的主要方向**，让学生有"已全面搜索"的信心。使用客观描述，不要写"确实没有"等主观判断。
 
 正确示例：
-- `教授；决策神经科学、风险与社会决策、无创脑刺激；该系教师主要研究临床/辅导实践方向，仅有一位与消费者决策相关。`
-- `副教授；消费者判断与决策；该系以社会认知与神经犯罪学为主，仅此一位与消费者行为相关。`
+- `教授；决策神经科学、风险与社会决策、无创脑刺激；这个系老师主要做临床和辅导实践方向，只有这一位和消费者决策搭边。`
+- `副教授；消费者判断与决策；这个系以社会认知和神经犯罪学为主，就这一位和消费者行为能搭上。`
 
 要点：
-- 说明"该系教师主要研究XX方向"——客观陈述事实
-- 说明"仅有X位与目标方向相关"——给出数量，让学生有"全面看过了"的感觉
+- 说明"这个系老师主要做XX方向"——客观陈述事实
+- 说明"只有这一位和XX搭边"——给出数量，让学生有"全面看过了"的感觉
 - 不要写"没有合适的"、"确实没有"等主观评价
+
+**补充信息行写入规则**：当需要另起一行单独写入系/院的补充说明（如某系无匹配导师）时，只需填写 `导师` 和 `备注` 两个字段，无需填写导师主页、博士申请信息等其他字段。
+
+---
+
+## 操作权限（CRITICAL — 所有操作前首先检查）
+
+### 🚫 表格隔离：只操作用户指定的那张表
+
+用户每次提供 Vika 分享链接时，从 URL 解析 `datasheetId`（`dstXXX`）。**本轮所有 CRUD 操作仅限于用户本次传入的这张表**。
+
+**绝对禁止：**
+- 操作用户未明确指定的其他 datasheet（即使 API token 有权限）
+- 操作关联的学校主表（OneWayLink/MagicLookUp 引用的表）
+- 通过 API 修改关联表的任何字段
+- 在用户未给链接时自行假设或复用之前的 datasheetId
+
+### 🚫 选导意向保护：已填写=不可触碰
+
+当 Vika 表中 `选导意向（点击选择）` 字段有值（非空/非 null）时：
+- **禁止修改**该行的任何字段
+- **禁止删除**该行
+- **禁止覆盖**该行的备注、研究方向、导师主页等字段
+- **仅可读取**，不可写入
+
+这些是学生已经审阅并反馈过的记录，任何修改都会造成数据损失。
+
+**操作前必须：**
+1. 先 GET 所有记录
+2. 过滤掉 `选导意向（点击选择）` 非空的行
+3. 仅对 `选导意向` 为空的行执行增删改操作
+
+### 📋 当前活跃表（由用户传入）
+
+表的链接和 datasheetId 随每次任务由用户提供，不固定。首次操作时从链接解析并确认。
 
 ---
 
 ## 关键规则（CRITICAL）
 
 ### SPA 壳返回 200 ≠ 链接有效
-200 状态码 + SPA 壳（同域所有请求返回相同字节数）→ **不能确认导师存在**。必须交叉验证。
+200 状态码 + SPA 壳（响应 <5KB，同域所有请求返回相同字节数）→ **不能确认导师存在**。立即切换到 **L0-SPA 策略**：通过 WebSearch 找替代来源（个人网站、ResearchGate、研究中心页面），不要在 SPA 壳上浪费尝试。详见 `references/search-techniques.md` L0-SPA 节。
 
 ### 导师主页必须是个人 URL
 禁止使用通用院系列表页。每位导师必须有自己唯一的个人主页 URL。
@@ -201,8 +285,9 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 ### 排除退休/名誉教授
 不添加 Emeritus、退休、约 70 岁以上、或不在当前教职员目录中的导师。
 
-### 禁止修改已填写选导意向的记录
-当 Vika 表中 `选导意向（点击选择）` 非空时 → **不要修改、删除或覆盖**。这些都是学生已审阅的记录。
+### 禁止修改已填写选导意向的记录（见上方「操作权限」）
+
+当 Vika 表中 `选导意向（点击选择）` 非空时，该行即被锁定——不得修改、删除或覆盖。详见「操作权限 → 选导意向保护」。
 
 ### 禁止向 MagicLookUp 或计算字段写入
 QS排名、Location、美国USNEWS排名等字段通过 API 只读。

@@ -4,27 +4,89 @@ Living registry of which access layer to use for each university. Discipline-agn
 
 ---
 
-## Universal Access Framework (L1 → L2 → L3)
+## Universal Access Framework (L0-SPA → L1 → L2 → L3 → L4)
 
-Not every school needs a unique trick. Most fall into one of three layers:
+Not every school needs a unique trick. Most fall into one of five layers:
 
 | Layer | Name | When to use | Method | Requires |
 |:---:|------|-------------|--------|----------|
+| **L0-SPA** | Alternative Source Workaround | SPA returns empty shell, no accessible API, but scholars have personal sites/ResearchGate/etc. | WebSearch → find alternative domains → WebFetch personal sites/ResearchGate/research center pages | Nothing |
 | **L1** | Direct Access | curl returns full HTML content | `curl` → parse staff list → extract names/links | Nothing |
 | **L2** | API Mining | curl returns empty shell (SPA) but API exists | Download JS → grep `api\|baseUrl` → call API with `?size=1000` | JS bundle access |
 | **L3** | Search Engine Fallback | curl blocked (403/WAF) OR JS renders but no API | Google `site:{uni} "{name}" professor` → click result in browser | In-app browser |
+| **L4** | Tavily Extract/Crawl | L3 fails (WAF blocks even search, encrypted URLs, DDG empty) | `tavily-search-pro extract/crawl/search/research` → bypass client-side WAF via server-side fetch | `TAVILY_API_KEY` env var |
 
 ### Decision Tree
 
 ```
-curl staff page
-├── 200 + HTML table/links → L1: parse directly
-├── 200 + empty shell (<5KB) → L2: hunt API in JS bundle
-│   ├── API found → L2: call API, filter results
-│   └── No API → L3: search engine per name
-├── 403/1020/Cloudflare → L3: browser + search engine
-└── Timeout/DNS → Try graduate school subdomain or L3 fallback
+For each professor, identify the school →
+Check school-strategies.md for that school's known layer
+
+├── L0-SPA: Skip staff portal → WebSearch for alternative sources
+│   ├── Found personal website → WebFetch (rich HTML, full content)
+│   ├── Found ResearchGate → WebFetch (publications + research areas)
+│   ├── Found research center page → WebFetch (role + projects)
+│   └── Combine all sources → verified research profile
+│
+├── L1: curl → 200 + HTML table/links → parse directly
+│
+├── L2: curl → 200 + empty shell (<5KB) → hunt API in JS bundle
+│   ├── API found → call API, filter results
+│   └── No API → escalate to L3
+│
+├── L3: curl blocked (403/WAF) → search engine per name
+│   ├── Search results found → verify in browser
+│   └── Search blocked/encrypted → L4
+│
+└── L4: Tavily fallback for WAF/blocked pages
 ```
+
+### L0-SPA — Alternative Source Strategy (NEW)
+
+When a university's staff profile portal is pure SPA (returns <5KB empty HTML shell, status 200 but no content):
+
+**Why SPA portals fail**: React/Vue/Angular render content client-side. WebFetch, curl, and even Tavily extract only receive the JS shell. The actual professor data never reaches the server response.
+
+**Key insight**: Scholars maintain academic identities on MULTIPLE platforms — most are server-rendered and accessible:
+
+| Source | Reliability | Access | Typical Content |
+|--------|-------------|--------|-----------------|
+| Personal academic website | **High** | WebFetch | Research areas, projects, CV, PhD students, teaching |
+| Research center/lab page | **High** | WebFetch | Role description, funded projects, collaborators |
+| ResearchGate | **Med-High** | WebFetch | All publications, research areas/tags, citation stats, co-authors |
+| ORCID | **Medium** | WebFetch | Structured profile, affiliations, limited publication list |
+| Google Scholar (snippet) | **Medium** | WebSearch | Citation count, research field tags (from search result snippet) |
+
+**Discovery workflow**:
+1. WebSearch `"[Name] [University] professor research"`
+2. Scan results for non-staffportal domains (wordpress.com, .net, researchgate.net, .org.au, ORCID)
+3. WebFetch 2-3 alternative sources for each professor
+4. Cross-reference: research areas from personal site + publications from ResearchGate + citations from Scholar
+
+**Reliability rule**: A research direction confirmed by 2+ independent alternative sources = verified. Single-source data = noted with source.
+
+### L4 — Tavily Search-Pro Integration
+
+When all L1-L3 methods fail (WAF blocks curl+browser+search, DDG returns empty, Google encrypts URLs), use tavily-search-pro as a server-side proxy that bypasses client-side anti-crawl protections.
+
+**Command location**: `/Users/chengxinzhi/.workbuddy/skills/tavily-search-pro/lib/tavily_search.py`
+**Python runtime**: `/Users/chengxinzhi/.workbuddy/binaries/python/envs/default/bin/python3`
+**Required**: `TAVILY_API_KEY` environment variable set
+
+| Tavily Mode | When to Use | Example |
+|-------------|-------------|---------|
+| **extract** | WebFetch/curl blocked by WAF (403, Cloudflare, Incapsula) | Extract a professor's profile page content when direct access is blocked |
+| **search** | Search engines return encrypted URLs or no results; DDG HTML empty | Search `"John Smith NUS professor"` when Google/DDG fail |
+| **crawl** | Need to discover all faculty pages on a university site | Crawl a department's website to find all professor profile URLs |
+| **map** | Need a sitemap of faculty-related URLs | Map `nus.edu.sg` to discover all staff directory paths |
+| **research** | Deep analysis of a department's faculty composition | Research `"NUS Psychology department PhD supervisors"` for comprehensive results |
+
+**L4 Command Syntax**:
+```bash
+TAVILY_API_KEY="$TAVILY_API_KEY" /Users/chengxinzhi/.workbuddy/binaries/python/envs/default/bin/python3 /Users/chengxinzhi/.workbuddy/skills/tavily-search-pro/lib/tavily_search.py <mode> "query" [options]
+```
+
+**L4 Escalation Rule**: Only escalate to L4 after L3 has been attempted and confirmed to fail. L4 consumes credits (1-2 per call), so reserve it for genuine blockers.
 
 ### Why this works for any discipline
 
@@ -42,8 +104,8 @@ The layer is about **how the university website is built**, not what subject you
 | Pure Portal (no API) | **L3** | JS-rendered, API blocked → search engine |
 | Vue SPA | **L2** | JS bundle → API endpoint |
 | React SPA | **L2** | JS bundle → API endpoint |
-| Cloudflare WAF | **L3** | curl blocked → browser + search engine |
-| Imperva/Incapsula | **L3** | Browser may also be blocked → manual |
+| Cloudflare WAF | **L3→L4** | curl blocked → browser + search engine → Tavily extract/crawl |
+| Imperva/Incapsula | **L3→L4** | Browser may also be blocked → Tavily extract fallback |
 | Custom CMS | **L1→L3** | Try L1 first, escalate if blocked |
 
 ---
@@ -1111,14 +1173,30 @@ This pattern applies to ALL German universities using HISinOne (Freiburg, Götti
 - **Wayback Machine**: comm staff page not archived (2022-2024)
 - **Last verified**: 2026-07-01
 
-### Curtin University (2026-07-01 update)
-- **Architecture**: WordPress CMS + SSO-protected staff portal
-- **Layer**: L2-L3 (Staff portal accessible, directory requires SSO)  
-- **Accessible**: about/our-people (280KB), staffportal profile pages (80KB each), humanities.curtin.edu.au (273KB)
-- **Blocked**: staffportal directory (SSO SAML redirect), school-specific staff pages (JS-rendered)
-- **Note**: School of Media, Creative Arts and Social Inquiry confirmed to exist in Faculty of Humanities. Staff profiles accessible individually but cannot filter by school from static HTML.
-- **Previous L1 status invalidated**: staffportal.curtin.edu.au/staff/directory/ now requires SSO login
-- **Last verified**: 2026-07-01
+### Curtin University (2026-07-03 update — SPA CORRECTION)
+
+⚠️ **Previous assessment was incorrect.** staffportal.curtin.edu.au is a **pure React SPA** — all profile pages return ~2KB empty HTML shells to WebFetch/curl, even though browsers render them fine. about/our-people also uses JS accordions with no static content.
+
+- **Architecture**: React SPA (staffportal) + WordPress (personal sites) + JS accordion (about pages)
+- **Layer**: L0-SPA (SPA Workaround — skip staffportal entirely, use ALTERNATIVE sources)
+- **Accessible** (WORKING):
+  - **Personal academic websites**: tamaleaver.net, wishcrys.com (WordPress, static HTML, full content)
+  - **Research center pages**: digitalchild.org.au/team-members/ (ARC Centre — server-rendered, full profiles)
+  - **ResearchGate**: profiles with publications, stats, research areas (server-rendered)
+  - **Google Scholar**: search snippets give research tags + citation counts
+  - **ORCID**: structured profile data
+- **Blocked**: staffportal.curtin.edu.au ALL pages (SPA shell, ~2KB, zero extractable content), about/our-people (JS accordion, no names visible)
+- **SPA Workaround Strategy** (L0):
+  1. WebSearch `"[Name] Curtin University professor research"` → find alternative domains
+  2. Prioritize: personal WordPress sites > research center pages > ResearchGate > Google Scholar
+  3. WebFetch alternative sources for detailed content
+  4. Combine data: personal site for research areas + ResearchGate for publications + Scholar for citations
+- **Verified examples**:
+  - Tama Leaver: tamaleaver.net (full profile, research, books, teaching awards) + digitalchild.org.au (CI role)
+  - Crystal Abidin: wishcrys.com (full profile, 250+ pubs, h-index 42, awards) + ierlab.com (lab director)
+  - Michele Willson: researchgate.net (43 pubs, Monash PhD, research areas) + ORCID
+  - Mike Kent: Google Scholar snippet (cited 2,517, Internet Studies/Disability Studies/eLearning) + ResearchGate
+- **Last verified**: 2026-07-03
 
 ### Hong Kong Baptist University (2026-07-01 update)
 - **Architecture**: Adobe AEM (main domain) + Pure Portal SPA (scholars portal) + separate infra for comm subdomain
@@ -1304,7 +1382,7 @@ When all other access methods (curl, browser, search engines) are blocked by WAF
 | Adelaide University | L3 (JS SPA) | Researchers portal is JS-rendered; browser required | researchers.adelaide.edu.au/profile/{slug} |
 | UTS | L3 (Cloudflare) | Cloudflare/Imperva blocks all curl access; browser required | profiles.uts.edu.au/{slug} |
 | Macquarie University | L2 | Researchers portal may be accessible | researchers.mq.edu.au/en/persons/{slug} |
-| Curtin University | L2 | Staff portal may be accessible | staffportal.curtin.edu.au/staff/profile/view/{slug}/ |
+| Curtin University | L0-SPA | Staff portal is SPA shell; use personal sites + ResearchGate + research center pages | tamaleaver.net, wishcrys.com, researchgate.net, digitalchild.org.au |
 | The University of Newcastle | L2 | Staff profiles may be accessible | newcastle.edu.au/profile/{slug} |
 
 ### Vika School IDs (in dstMNzQU9Aa58DpgW3)
