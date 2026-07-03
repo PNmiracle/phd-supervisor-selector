@@ -339,6 +339,24 @@ python3 scripts/audit.py [DATASHEET_ID] [VIKA_TOKEN]
 
 ---
 
+## 知识沉淀（"结束学生"命令）
+
+当用户说"**结束学生**"或类似表达时，执行知识提取 + 同步工作流：
+
+1. 回顾本轮对话，提取可入库的经验
+2. 更新 `SKILL.md` / `references/school-strategies.md` / `references/search-techniques.md`
+3. 提交并推送到 GitHub 仓库 `PNmiracle/phd-supervisor-selector`：
+   ```bash
+   cd ~/.workbuddy/skills/phd-supervisor-selector
+   git add -A && git commit -m "feat: <摘要>"
+   git pull --rebase origin main   # 先拉协作方更新
+   git push origin main            # 再推送
+   ```
+4. **冲突处理**：优先保留双方的增量改动，不覆盖对方更新的内容
+5. **协作模式**：多位老师通过同一 GitHub 仓库共同维护
+
+---
+
 ## 参考文献
 
 - 决定候选人能否进入主表前，阅读 `references/selection-rules.md`

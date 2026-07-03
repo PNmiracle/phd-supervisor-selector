@@ -107,6 +107,50 @@ Phase 4 ── 持续维护
 
 ---
 
+## 多人协作 · 共同维护 Skill
+
+如果你和另一位老师一起使用这个 Skill，通过在 GitHub 共享同一仓库来保持 Skill 同步：
+
+### 协作方（第二位老师）设置
+
+**前提：** 仓库拥有者已把你添加为 GitHub 仓库 `PNmiracle/phd-supervisor-selector` 的 Collaborator（Settings → Collaborators）。
+
+```bash
+# 如果之前没有安装过这个 skill
+git clone git@github.com:PNmiracle/phd-supervisor-selector.git ~/.workbuddy/skills/phd-supervisor-selector/
+
+# 如果之前通过 WorkBuddy 安装过，只需切换到 git 版本
+cd ~/.workbuddy/skills/phd-supervisor-selector
+git init
+git remote add origin git@github.com:PNmiracle/phd-supervisor-selector.git
+git fetch origin
+git reset --hard origin/main
+```
+
+### 日常同步工作流
+
+每次你或另一位老师说 **"结束学生"** 时，AI 会自动：
+1. 从这次搜索中提取可沉淀的知识
+2. 更新 `SKILL.md` 和 `references/*.md`
+3. **先 `git pull --rebase` 拉取对方更新**
+4. **再 `git push` 推送你的更新**
+5. 如有冲突，AI 会智能合并后重试
+
+### 手动同步（如果需要）
+
+```bash
+cd ~/.workbuddy/skills/phd-supervisor-selector
+git pull --rebase origin main
+```
+
+### 协作规则
+
+- **"结束学生"** 之前，AI 会自动 pull 最新版本，避免覆盖对方的改动
+- 如果 git pull 发现冲突，AI 会优先保留双方的增量改动，不做破坏性覆盖
+- 推荐每次搜索前先说一次 `git pull` 风格的同步提示给 AI
+
+---
+
 ## 目录结构
 
 ```
