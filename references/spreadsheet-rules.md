@@ -128,6 +128,21 @@ Use careful risk labels instead of hard rejection language when the student may 
 - `方向相关但不完全贴合`: adjacent topic worth student review.
 - `无合适导师`: school-level note when the school was searched but no usable person was found.
 
+### 当学校匹配导师极少时（1-2位）
+
+当某个学校符合学生方向的导师极少（仅1-2位）时，在备注末尾补充说明该系其他教师的主要方向，让学生有"已全面搜索"的信心。
+
+正确写法：
+- `教授；决策神经科学、风险与社会决策；该系教师主要研究临床/辅导实践方向，仅有一位与消费者决策相关。`
+- `副教授；消费者判断与决策；该系以社会认知与神经犯罪学为主，仅此一位与消费者行为相关。`
+
+要点：
+1. 客观描述："该系教师主要研究XX方向"——陈述事实，不做评判
+2. 给出数量："仅有一位与目标方向相关"——让学生知道已全面查看
+3. 禁止主观：不要写"没有合适的"、"确实没有"、"不匹配"等评价性语言
+
+这个补充说明可以放在备注末尾，用分号与前面的内容分隔。
+
 ## Extra Sheets
 
 Add these sheets for researched lists:

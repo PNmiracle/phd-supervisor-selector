@@ -218,7 +218,7 @@ After searching EACH school, update this file. Do NOT defer to end of session �
 2. **Record failures** — "Tried API at /api/staff → 404" is AS VALUABLE as a success. It prevents the next session from wasting time on the same dead end.
 3. **Update, don't duplicate** — if the school already has an entry, update its fields rather than adding a second entry.
 4. **New schools go at the bottom** of their country section.
-5. **After updating, commit**: `git add references/school-strategies.md && git commit -m "learn: {School} → {Architecture}"`
+5. **After updating, save the file**. (Optional: if the skill directory is a git repo and the user consents, commit the changes. Do not auto-commit without confirmation.)
 
 ### Why this compounds
 
@@ -508,9 +508,9 @@ After searching each school, add or update its entry. One sentence per field.
 - **Last verified**: YYYY-MM-DD
 ```
 
-### Commit cadence
+### Save cadence
 
-Every 5 schools: `git add references/school-strategies.md && git commit -m "learn: [School]→L?" && git push`
+After updating entries for several schools, ensure the file is saved. (Optional git commit: only with user consent, not automatically.)
 
 #### Hong Kong University of Science and Technology (HKUST)
 - **Architecture**: Static HTML

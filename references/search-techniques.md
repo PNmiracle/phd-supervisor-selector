@@ -74,7 +74,9 @@ Always verify constructed URLs by opening them in the browser. Do not assume the
 
 ## Parallel Sub-Agent Strategy
 
-When checking multiple independent targets (different schools, domains, or systems), use `spawn_agent` with `agent_type: "explorer"` to run checks in parallel.
+When checking multiple independent targets (different schools, domains, or systems), launch parallel sub-agents to run checks concurrently.
+
+> **Tool note**: The exact sub-agent launch command varies by coding agent. In WorkBuddy, use the `Agent` tool with `subagent_type="Explore"`. In Codex, use `spawn_agent`. In other agents, use the equivalent parallel/sub-agent feature.
 
 ### When to Parallelize
 
@@ -106,41 +108,41 @@ Check CUHKSZ for urban planning faculty:
 
 ## Browser Automation for Verification
 
-Use the in-app browser (`browser:control-in-app-browser` skill) for content verification that curl cannot do.
+Use browser automation to verify page content that curl cannot access (JS-rendered content, hidden tabs, etc.).
+
+> **Tool note**: The exact browser tool varies by coding agent. In WorkBuddy, use the `Agent` tool to fetch and verify URLs, or use an available browser skill. In other agents, use the equivalent browser automation feature. If no browser tool is available, use WebFetch as a fallback and note any limitations.
 
 ### Verifying Personal Pages
 
-For each candidate URL:
-```javascript
-await tab.goto(profileUrl, { waitUntil: "networkidle", timeoutMs: 10000 });
-var text = await tab.playwright.evaluate(() => document.body.innerText);
-// Check that the page contains the person's name, title, department
-```
+For each candidate URL, use a browser tool or WebFetch to:
+1. Navigate to the profile URL
+2. Wait for the page to fully render (if using browser automation)
+3. Extract the page text content
+4. Verify the page contains the person's name, title, and department
+
+If using browser automation, the steps are:
+- Go to the URL and wait for network idle
+- Extract `document.body.innerText`
+- Check for the person's name and research keywords
+
+If browser automation is unavailable, use WebFetch and note any JS-rendered content that could not be verified.
 
 ### Accessing Hidden Content (Tabs/Accordions)
 
-Many profile pages hide research interests behind clickable tabs:
+Many profile pages hide research interests behind clickable tabs. If using browser automation:
+1. Locate the tab (e.g., "RESEARCH INTEREST", "Publications")
+2. Click to reveal hidden content
+3. Extract the now-visible text
 
-```javascript
-// Click the RESEARCH INTEREST tab to reveal content
-var researchTab = tab.playwright.getByRole("tab", { name: "RESEARCH INTEREST" });
-await researchTab.click();
-// Then extract the now-visible text
-```
+If using WebFetch only, check whether the content appears in the static HTML. If not, note: "研究兴趣可能在JS标签页中，需浏览器验证."
 
 ### Batch Verification Pattern
 
-Verify multiple candidate pages sequentially in one session:
-```javascript
-var candidates = [
-  { name: "Name1", url: "https://..." },
-  { name: "Name2", url: "https://..." },
-];
-for (var c of candidates) {
-  await tab.goto(c.url, { waitUntil: "networkidle" });
-  // Extract and record content
-}
-```
+Verify multiple candidate pages sequentially:
+- For each candidate, fetch the page content
+- Extract name, title, department, research interests
+- If JS-rendered content is missing, note it
+- Record findings in the table's 备注 field
 
 ## Deep Discovery: Full-to-Filter-to-Verify Pipeline
 

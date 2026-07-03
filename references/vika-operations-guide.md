@@ -16,7 +16,7 @@ Complete guide for all common Vika table operations via Fusion API. All patterns
 > ```bash
 > echo 'export VIKA_TOKEN=uskXXXXXX' > .vika_env && source .vika_env
 > ```
-> Codex reads `$VIKA_TOKEN` from the environment — the token stays on your machine only.
+> The agent reads `$VIKA_TOKEN` from the environment — the token stays on your machine only.
 
 ```python
 import os, json
@@ -28,15 +28,37 @@ BASE = "https://api.vika.cn/fusion/v1"
 
 def vika(method, path, body=None):
     url = f"{BASE}/datasheets/{DATASHEET}{path}"
-    h = {"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"}
-    data = json.dumps(body).encode() if body else None
-    r = Request(url, data=data, headers=h, method=method)
+    headers = {"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"}
+    
+    # DELETE uses query parameter ?recordIds=recXXX,recYYY (not request body)
+    if method == "DELETE" and body:
+        if isinstance(body, list):
+            record_ids = ",".join(body)
+            url += f"?recordIds={record_ids}"
+            data = None
+        elif isinstance(body, dict) and "records" in body:
+            record_ids = ",".join(body["records"])
+            url += f"?recordIds={record_ids}"
+            data = None
+        else:
+            data = json.dumps(body).encode() if body else None
+    else:
+        data = json.dumps(body).encode() if body else None
+    
+    req = Request(url, data=data, headers=headers, method=method)
     try:
-        resp = urlopen(r)
-        return json.loads(resp.read())
+        resp = urlopen(req)
+        raw = resp.read()
+        return json.loads(raw) if raw else {"code": 0, "message": "OK", "data": {}}
     except Exception as e:
-        body = json.loads(e.read()) if hasattr(e, 'read') else {}
-        raise Exception(f"API {getattr(e,'code','?')}: {body.get('message',str(e))}")
+        try:
+            if hasattr(e, 'read'):
+                raw = e.read()
+                body = json.loads(raw) if raw else {}
+                raise Exception(f"API {getattr(e,'code','?')}: {body.get('message',str(e))}")
+        except Exception:
+            pass
+        raise
 ```
 
 ---
@@ -195,8 +217,14 @@ for i in range(0, len(updates), 10):
 
 ### 5.1 Delete by ID
 ```python
+# ✅ CORRECT — pass record IDs as list or {"records": [...]} object
+# The `vika` function automatically converts to ?recordIds=recXXX query parameter
 vika("DELETE", "/records", ["recXXX", "recYYY"])
+# or
+vika("DELETE", "/records", {"records": ["recXXX", "recYYY"]})
 ```
+
+⚠️ **Critical**: Vika DELETE API expects recordIds in the URL query parameter, NOT in the request body. The `vika` function handles this automatically.
 
 ### 5.2 Deduplicate (Keep Most Complete)
 
@@ -218,6 +246,7 @@ for name, recs in name_map.items():
         to_delete.extend(r["recordId"] for r in recs[1:])
 
 if to_delete:
+    # ✅ CORRECT — pass list directly, `vika` function handles query parameter conversion
     vika("DELETE", "/records", to_delete)
     print(f"Deleted {len(to_delete)} duplicate records")
 ```
@@ -327,7 +356,7 @@ for r in records:
 
 if blanks:
     print(f"Found {len(blanks)} blank records: {blanks}")
-    # vika("DELETE", "/records", blanks)  # Uncomment to delete
+    # vika("DELETE", "/records", blanks)  # Uncomment to delete (pass list directly)
 ```
 
 ---

@@ -10,12 +10,41 @@ DATASHEET = "dstXXX"  # from URL
 BASE = "https://api.vika.cn/fusion/v1"
 
 def vika_req(method, path, body=None):
+    import json
+    from urllib.request import Request, urlopen
     url = f"{BASE}/datasheets/{DATASHEET}{path}"
     headers = {"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"}
-    data = json.dumps(body).encode() if body else None
+    
+    # DELETE uses query parameter ?recordIds=recXXX,recYYY (not request body)
+    if method == "DELETE" and body:
+        if isinstance(body, list):
+            record_ids = ",".join(body)
+            url += f"?recordIds={record_ids}"
+            data = None
+        elif isinstance(body, dict) and "records" in body:
+            record_ids = ",".join(body["records"])
+            url += f"?recordIds={record_ids}"
+            data = None
+        else:
+            data = json.dumps(body).encode()
+    else:
+        data = json.dumps(body).encode() if body else None
+    
     req = Request(url, data=data, headers=headers, method=method)
-    resp = urlopen(req)
-    return json.loads(resp.read())
+    try:
+        resp = urlopen(req)
+        # DELETE may return 204 No Content with empty body
+        raw = resp.read()
+        return json.loads(raw) if raw else {"code": 0, "message": "OK", "data": {}}
+    except Exception as e:
+        if hasattr(e, 'read'):
+            try:
+                raw = e.read()
+                body = json.loads(raw) if raw else {}
+                raise Exception(f"API {getattr(e,'code','?')}: {body.get('message',str(e))}")
+            except:
+                pass
+        raise
 ```
 
 ## URL Parsing
@@ -74,9 +103,15 @@ result = vika_req("PATCH", "/records", {"records": updates, "fieldKey": "name"})
 ## Delete Records
 
 ```python
+# ✅ CORRECT — pass record IDs as list or {"records": [...]} object
+# vika_req automatically converts to ?recordIds=recXXX,recYYY query parameter
 ids = ["recXXX", "recYYY"]
 vika_req("DELETE", "/records", ids)
+# or
+vika_req("DELETE", "/records", {"records": ids})
 ```
+
+⚠️ **Critical**: Vika DELETE API expects recordIds in the URL query parameter (`?recordIds=recXXX,recYYY`), NOT in the request body. The `vika_req` function handles this automatically for DELETE requests.
 
 ## Deduplication Pattern
 
@@ -129,17 +164,28 @@ for batch in chunks(new, 10):
 
 ## Known API Issues
 
-### DELETE Bug
-The DELETE endpoint (`DELETE /records`) may return `400: recordIds should not be empty` even when valid recordIds are sent. This is a Vika API bug.
+### DELETE Format (Critical)
 
-**Workaround:** Use PATCH to rename the record's 导师 field to `__DELETED__` or `__REMOVED__`, then ask the user to manually delete the record in the Vika UI.
+**Vika DELETE API uses query parameter, NOT request body.**
 
+❌ **Wrong** (sends recordIds in request body):
+```
+DELETE /records
+Body: {"records": ["recXXX"]}
+```
+
+✅ **Correct** (sends recordIds in URL query parameter):
+```
+DELETE /records?recordIds=recXXX,recYYY
+```
+
+The `vika_req` helper function handles this automatically: when `method="DELETE"` and `body` is provided, it converts the body to query parameter format.
+
+**Example**:
 ```python
-# Instead of:
-vika("DELETE", "/records", ["recXXX"])
-
-# Use:
-vika("PATCH", "/records", {"records": [{"recordId": "recXXX", "fields": {"导师": "__DELETED_VISITING_PROF__"}}], "fieldKey": "name"})
+# These both work correctly (vika_req handles the conversion):
+vika_req("DELETE", "/records", ["recXXX", "recYYY"])
+vika_req("DELETE", "/records", {"records": ["recXXX", "recYYY"]})
 ```
 
 ### GET Cache Staleness

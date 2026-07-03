@@ -7,7 +7,10 @@ Session-aware search coordination with state tracking, smart prioritization, and
 Before searching any school, check for a state file:
 
 ```bash
-cat ~/.codex/skills/phd-supervisor-selector/search-state/{student_name}.md 2>/dev/null
+# Path: {SKILL_DIR}/search-state/{student_name}.md
+# {SKILL_DIR} = the directory containing this skill's SKILL.md file.
+# For most agents: ~/.workbuddy/skills/phd-supervisor-selector/ or ~/.codex/skills/phd-supervisor-selector/
+cat "{SKILL_DIR}/search-state/{student_name}.md" 2>/dev/null
 ```
 
 If the file exists, resume from the recorded state. If not, create one and track progress as you go.
@@ -198,10 +201,10 @@ After completing EACH school, before moving to the next:
 
 This 30-second step compounds: every search makes every future search faster.
 
-### Commit cadence
+### State persistence
 
-- **Per school**: update the file (don't commit yet — batch at end)
-- **Every 5 schools OR end of session**: `git add references/school-strategies.md search-state/ && git commit -m "learn: 5 schools → strategies" && git push`
+- **Per school**: update the state file and `school-strategies.md` immediately after completing the school
+- **End of session**: ensure all state files are saved. (Optional: if the skill directory is a git repo, commit changes. Do not auto-commit without user confirmation.)
 
 ## 7. Optimization Principles
 

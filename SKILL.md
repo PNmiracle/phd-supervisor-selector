@@ -71,15 +71,38 @@ agent_created: true
 | 列出记录 | `GET /datasheets/{id}/records?viewId=...&maxRecords=...` | 支持 filterByFormula、sort、分页 |
 | 创建记录 | `POST /datasheets/{id}/records` | 每批最多 10 条，使用 `fieldKey: "name"` |
 | 更新记录 | `PATCH /datasheets/{id}/records` | 发送 `{"records": [{"recordId":"xxx","fields":{...}}], "fieldKey": "name"}` |
-| 删除记录 | `DELETE /datasheets/{id}/records` | 发送 recordIds JSON 数组 |
+| 删除记录 | `DELETE /datasheets/{id}/records?recordIds=recXXX` | recordIds 在 query parameter 中，非 request body |
 
 ### 关键限制
 
-- Vika DELETE API 有 bug，可能返回 400。解决方案：用 PATCH 改记录名做标记，让用户手动删除。
+- **DELETE 请求格式**：recordIds 必须在 URL query parameter 中（`?recordIds=recXXX,recYYY`），不能在 request body 中。Helper 函数已自动处理此转换。
 - MagicLookUp / OneWayLink 字段不可通过 API 写入。
 - 每批最多 10 条记录，批次间加 0.3-0.5 秒延迟。
 
 详细的 API 代码模板见 `references/vika-api-patterns.md`，完整操作指南见 `references/vika-operations-guide.md`。
+
+### 自然语言删除流程
+
+当用户说"删除导师XXX"或"删除这条记录"时，按以下步骤操作：
+
+1. **解析请求**：理解要删除什么（按导师名、按学校、按备注内容等）
+2. **查找记录**：用 GET + filterByFormula 找到匹配的记录
+   ```python
+   # 按导师名查找
+   filter_expr = urllib.parse.quote('{导师}="张三"')
+   result = vika("GET", f"/records?filterByFormula={filter_expr}&maxRecords=200")
+   records = result["data"]["records"]
+   ```
+3. **提取 recordIds**：从响应中提取 `recordId` 字段
+4. **确认删除**：向用户展示找到的记录，确认是否删除
+5. **执行删除**：使用正确格式调用 DELETE
+   ```python
+   # ✅ 正确格式
+   vika("DELETE", "/records", {"records": [r["recordId"] for r in records]})
+   ```
+6. **验证结果**：删除后再次 GET 确认记录已移除
+
+⚠️ **DELETE 格式陷阱**：必须发送 `{"records": ["recXXX"]}`，不能发送纯数组 `["recXXX"]`。
 
 ---
 
@@ -142,6 +165,19 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 - `教授；文化遗产、建筑史、遗产保护；建筑遗产偏重。`
 - `副教授；消费者判断与决策、跨期选择。`
 - `助理教授；消费者决策、道德决策、自我概念清晰度。MIT PhD。`
+
+### 当学校匹配导师极少时（1-2位）
+
+**在备注末尾补充说明该系其他教师的主要方向**，让学生有"已全面搜索"的信心。使用客观描述，不要写"确实没有"等主观判断。
+
+正确示例：
+- `教授；决策神经科学、风险与社会决策、无创脑刺激；该系教师主要研究临床/辅导实践方向，仅有一位与消费者决策相关。`
+- `副教授；消费者判断与决策；该系以社会认知与神经犯罪学为主，仅此一位与消费者行为相关。`
+
+要点：
+- 说明"该系教师主要研究XX方向"——客观陈述事实
+- 说明"仅有X位与目标方向相关"——给出数量，让学生有"全面看过了"的感觉
+- 不要写"没有合适的"、"确实没有"等主观评价
 
 ---
 

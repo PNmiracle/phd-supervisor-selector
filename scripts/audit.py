@@ -1,103 +1,213 @@
 #!/usr/bin/env python3
-"""Audit script for PhD supervisor table.
-Run after every batch write to catch: cross-links, note format issues,
-garbage content, missing fields, and URL accessibility problems.
-
-Usage: python3 scripts/audit.py [DATASHEET_ID] [VIKA_TOKEN]
-  - DATASHEET_ID: Vika datasheet ID (dstXXX), defaults to $VIKA_DSID env var
-  - VIKA_TOKEN: Vika API token, defaults to $VIKA_TOKEN env var
 """
-import urllib.request, json, ssl, gzip, re, os, sys
+Vika table audit script for PhD Supervisor Selector skill.
 
-# ---- SECURITY: Use env vars or CLI args, NEVER hardcode tokens ----
-TOKEN = sys.argv[2] if len(sys.argv) > 2 else os.environ.get("VIKA_TOKEN", "")
-DSID = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("VIKA_DSID", "")
-# --------------------------------------------------------------------
+Usage:
+    python3 audit.py [DATASHEET_ID] [VIKA_TOKEN]
 
-if not TOKEN:
-    print("[ERROR] VIKA_TOKEN not set. Provide it via env var or CLI argument:")
-    print("  export VIKA_TOKEN=your_token_here")
-    print("  python3 scripts/audit.py dstXXX your_token_here")
-    sys.exit(1)
-if not DSID:
-    print("[ERROR] VIKA_DSID not set. Provide datasheet ID via env var or CLI argument:")
-    print("  export VIKA_DSID=dstXXX")
-    print("  python3 scripts/audit.py dstXXX")
-    sys.exit(1)
+If arguments are not provided, reads from environment variables:
+    VIKA_DATASHEET_ID and VIKA_TOKEN
 
-BASE = 'https://api.vika.cn/fusion/v1'
+Audit checks:
+1. Cross links: URL domain does not match Department keyword
+2. Notes format: missing Chinese ； delimiter or ending period 。
+3. Notes with garbage/placeholder content
+4. Missing required fields: 导师主页, 博士申请信息, 其他导师信息
+"""
 
-def get_page(url):
+import os
+import sys
+import json
+import re
+import urllib.request
+import urllib.parse
+
+# ── Config ─────────────────────────────────────────────────────────────────────
+
+BASE = "https://api.vika.cn/fusion/v1"
+
+REQUIRED_FIELDS = ["导师主页", "博士申请信息", "其他导师信息"]
+NOTES_FIELD = "备注"
+
+# Fields that should contain URLs
+URL_FIELDS = ["导师主页", "博士申请信息", "其他导师信息"]
+
+# Garbage patterns in notes (case-insensitive)
+GARBAGE_PATTERNS = [
+    r"TODO",
+    r"FIXME",
+    r"placeholder",
+    r"test\s*test",
+    r"^.{0,3}$",  # too short to be useful
+]
+
+# ── Helpers ────────────────────────────────────────────────────────────────────
+
+
+def vika_request(method, url, token, body=None):
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
+    data = json.dumps(body).encode() if body else None
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
     try:
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        resp = urllib.request.urlopen(req, timeout=10)
-        data = resp.read()
-        return data.decode('utf-8', errors='ignore'), resp.status
-    except Exception:
-        return "", 0
+        resp = urllib.request.urlopen(req)
+        return json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        body_text = e.read().decode()
+        try:
+            body_json = json.loads(body_text)
+            msg = body_json.get("message", str(e))
+        except Exception:
+            msg = body_text[:200]
+        print(f"  [ERROR] API {e.code}: {msg}")
+        return None
+    except Exception as e:
+        print(f"  [ERROR] {e}")
+        return None
 
-def get_url_val(val):
-    if isinstance(val, dict): return val.get('text', '') or ''
-    return str(val) if val else ''
 
-v_url = f"{BASE}/datasheets/{DSID}/records?maxRecords=50&fieldKey=id"
-req = urllib.request.Request(v_url, headers={"Authorization": f"Bearer {TOKEN}"})
-resp = urllib.request.urlopen(req, timeout=15)
-data = json.loads(resp.read())
-records = [r for r in data['data']['records']
-           if r['fields'].get('fld1RxfRZuKA3')
-           and 'PLEASE_DELETE' not in str(r['fields'].get('fld1RxfRZuKA3', ''))]
+def get_all_records(datasheet_id, token):
+    """Fetch all records from the datasheet."""
+    all_records = []
+    page_token = None
 
-issues = []
-domain_map = {
-    'polyu.edu.hk': ['PolyU', 'Polytechnic'],
-    'cuhk.edu.hk': ['Chinese University', 'CUHK'],
-    'hku.hk': ['University of Hong Kong', 'HKU'],
-    'hkust.edu.hk': ['HKUST'],
-    'cityu.edu.hk': ['City University', 'CityU'],
-    'ntu.edu.sg': ['Nanyang Technological', 'NTU'],
-    'nus.edu.sg': ['National University of Singapore', 'NUS'],
-    'unsw.edu.au': ['UNSW'],
-    'sydney.edu.au': ['University of Sydney', 'Sydney'],
-    'anu.edu.au': ['Australian National', 'ANU'],
-    'unimelb.edu.au': ['Melbourne'],
-    'monash.edu': ['Monash'],
-}
-GARBAGE = ['个人页面JS渲染', '需浏览器确认', '方向匹配', '\u26a0\ufe0f', '\u2705']
+    while True:
+        params = urllib.parse.urlencode({
+            "maxRecords": 200,
+            "pageSize": 200,
+        })
+        if page_token:
+            params += f"&pageToken={urllib.parse.quote(page_token)}"
 
-for r in records:
-    name = r['fields'].get('fld1RxfRZuKA3', '?')
-    rid = r['recordId']
-    dept = r['fields'].get('fldagqfFthgX7', '')
-    homepage = get_url_val(r['fields'].get('fldv7ZuB1b06J', ''))
-    phd = get_url_val(r['fields'].get('fldYm8R3l4Bnu', ''))
-    staff = get_url_val(r['fields'].get('fldI3KsjPCYWp', ''))
-    remark = r['fields'].get('fldt2UATh9Ofp', '')
+        url = f"{BASE}/datasheets/{datasheet_id}/records?{params}"
+        result = vika_request("GET", url, token)
+        if not result:
+            break
 
-    # Cross-link check
-    if homepage and dept:
-        expected = None
-        for domain, keywords in domain_map.items():
-            if any(k.lower() in dept.lower() for k in keywords):
-                expected = domain; break
-        if expected and expected not in homepage.lower():
-            issues.append(('CROSS_LINK', name, f'Expected {expected}, URL: {homepage[:60]}'))
-    # Note format
-    if '\uff1b' not in remark:
-        issues.append(('NOTE_FORMAT', name, 'No \uff1bseparator'))
-    if remark and not remark.rstrip().endswith('\u3002'):
-        issues.append(('NOTE_PERIOD', name, 'No trailing \u3002'))
-    # Garbage
-    for gw in GARBAGE:
-        if gw in remark:
-            issues.append(('NOTE_GARBAGE', name, f'Has "{gw}"'))
-    # Missing fields
-    if not homepage: issues.append(('MISSING_URL', name, 'Empty'))
-    if not phd: issues.append(('MISSING_PHD', name, 'Empty'))
-    if not staff: issues.append(('MISSING_STAFF', name, 'Empty'))
+        data = result.get("data", {})
+        records = data.get("records", [])
+        all_records.extend(records)
 
-print(f"Audit: {len(records)} records, {len(issues)} issues\n")
-for t, n, d in issues:
-    print(f"[{t}] {n}: {d}")
-if not issues:
-    print("ALL CLEAN")
+        page_token = data.get("nextPageToken")
+        if not page_token:
+            break
+
+    return all_records
+
+
+def extract_domain(url_str):
+    """Extract domain from a URL string. Handles Vika URL field format."""
+    if not url_str:
+        return ""
+    # Vika URL fields may be returned as {"text": "...", "link": "..."}
+    if isinstance(url_str, dict):
+        url_str = url_str.get("link", "") or url_str.get("text", "")
+    # Extract domain
+    m = re.search(r"https?://([^/]+)", str(url_str))
+    return m.group(1) if m else ""
+
+
+def check_notes_format(notes):
+    """Check if notes field follows the required format."""
+    if not notes:
+        return []
+    issues = []
+    text = str(notes)
+
+    # Check for Chinese ； delimiter
+    if "；" not in text and len(text) > 10:
+        issues.append("missing Chinese delimiter ；")
+
+    # Check for ending period 。
+    if not text.rstrip().endswith("。"):
+        issues.append("missing ending period 。")
+
+    # Check for garbage patterns
+    for pattern in GARBAGE_PATTERNS:
+        if re.search(pattern, text, re.IGNORECASE):
+            issues.append(f"possible garbage content (matches: {pattern})")
+
+    return issues
+
+
+def audit_records(records):
+    """Run all audit checks on records. Returns list of (record_id, name, issues)."""
+    results = []
+
+    for rec in records:
+        rid = rec["recordId"]
+        f = rec.get("fields", {})
+        name = f.get("导师", "(unknown)")
+
+        issues = []
+
+        # 1. Missing required fields
+        for field in REQUIRED_FIELDS:
+            val = f.get(field)
+            if not val or (isinstance(val, str) and not val.strip()):
+                issues.append(f"missing {field}")
+
+        # 2. Notes format
+        notes = f.get(NOTES_FIELD, "")
+        if notes:
+            note_issues = check_notes_format(notes)
+            issues.extend([f"备注: {i}" for i in note_issues])
+
+        # 3. Cross-link check: URL domain vs Department
+        homepage = f.get("导师主页", "")
+        dept = f.get("Department", "")
+        if homepage and dept:
+            domain = extract_domain(homepage)
+            # Simple check: domain should contain a keyword from the department/school
+            if domain and dept:
+                # Extract likely keyword from dept (e.g., "University of Hong Kong" -> "hku")
+                dept_lower = dept.lower().replace(" ", "").replace("-", "")
+                if domain and domain.lower() not in dept_lower and dept_lower not in domain.lower():
+                    # Only flag if clearly mismatched (both non-empty)
+                    issues.append(f"cross-link: 导师主页 domain ({domain}) may not match Department ({dept})")
+
+        if issues:
+            results.append((rid, name, issues))
+
+    return results
+
+
+def main():
+    datasheet_id = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("VIKA_DATASHEET_ID", "")
+    token = sys.argv[2] if len(sys.argv) > 2 else os.environ.get("VIKA_TOKEN", "")
+
+    if not datasheet_id:
+        print("Usage: python3 audit.py [DATASHEET_ID] [VIKA_TOKEN]")
+        print("  or set VIKA_DATASHEET_ID and VIKA_TOKEN environment variables")
+        sys.exit(1)
+
+    if not token:
+        print("[ERROR] VIKA_TOKEN not set. Pass as argument or set environment variable.")
+        sys.exit(1)
+
+    print(f"Auditing datasheet: {datasheet_id}")
+    print("-" * 60)
+
+    records = get_all_records(datasheet_id, token)
+    print(f"Fetched {len(records)} records.\n")
+
+    results = audit_records(records)
+
+    if not results:
+        print("✅ No issues found!")
+    else:
+        print(f"Found issues in {len(results)} record(s):\n")
+        for rid, name, issues in results:
+            print(f"  {name} (id: {rid[:12]}...)")
+            for issue in issues:
+                print(f"    - {issue}")
+            print()
+
+    print("-" * 60)
+    print(f"Audit complete. {len(results)} record(s) with issues.")
+
+
+if __name__ == "__main__":
+    main()
