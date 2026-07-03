@@ -1,0 +1,80 @@
+name: pages-retry
+
+# Auto-rerun failed GitHub Pages deployments.
+#
+# Why this exists:
+#   The legacy `pages-build-deployment` workflow is a GitHub-managed
+#   dynamic workflow. Occasionally the `Deploy to GitHub Pages` step
+#   fails with a transient backend error such as
+#   "Deployment failed, try again later." The artifact upload succeeds
+#   but the Pages API call fails. Manually re-running the workflow via
+#   the UI / API / gh CLI recovers the deployment.
+#
+# What this does:
+#   - Listens for completed `pages-build-deployment` runs on the main
+#     branch that ended in failure.
+#   - Calls the GitHub REST API to re-run only the failed jobs, up to
+#     2 attempts per failed run, to give the Pages backend a chance
+#     to recover without infinite loops.
+#   - Uses the official `gh-aw`-style `github.rest.actions.reRunWorkflow`
+#     call pattern (no third-party actions required).
+#
+# Notes:
+#   - This workflow runs on `workflow_run`, so it does not show up in
+#     the same graph as `pages-build-deployment` (the official one
+#     is a dynamic workflow and cannot be referenced by `workflow_run`
+#     directly anyway).
+#   - Permissions: needs `actions: write` to re-run a workflow run.
+#     Repository admins get this by default; for non-admin
+#     fine-grained tokens you may need to grant it explicitly.
+
+on:
+  workflow_run:
+    workflows: ["pages-build-deployment"]
+    types:
+      - completed
+
+concurrency:
+  group: pages-retry-${{ github.event.workflow_run.id }}
+  cancel-in-progress: true
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  maybe-rerun:
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    name: Re-run failed Pages deployment (attempt ${{ github.event.workflow_run.run_attempt }}/2)
+    steps:
+      - name: Skip if already retried
+        id: guard
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          set -euo pipefail
+          echo "Run ${RUN_ID} attempt ${RUN_ATTEMPT}"
+          if [ "${RUN_ATTEMPT}" -ge 3 ]; then
+            echo "::notice::Run ${RUN_ID} already retried twice. Stopping to avoid loops."
+            echo "should_rerun=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_rerun=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Re-run failed Pages deployment
+        if: steps.guard.outputs.should_rerun == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          echo "Re-running workflow run ${RUN_ID} (failed jobs only)..."
+          gh api \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/actions/runs/${RUN_ID}/rerun-failed-jobs" \
+            > /dev/null
+          echo "Rerun request submitted."
+        shell: bash
