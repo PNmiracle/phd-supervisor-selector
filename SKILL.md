@@ -356,32 +356,48 @@ python3 scripts/audit.py [DATASHEET_ID] [VIKA_TOKEN]
 ```bash
 cd ~/.workbuddy/skills/phd-supervisor-selector
 
-# ① 确保当前在 main 且干净
+# ① 检查当前状态，展示改动文件让用户确认
+git status --short
+# ← 暂停：展示改动文件列表，问用户"这些文件都要提交吗？"
+#    如果用户说"只提交XX文件"，则 git add XX（不用 git add -A）
+#    如果用户确认全部提交，则 git add -A
+
+# ② 确保当前在 main 且拉取最新代码
 git checkout main
 git pull --rebase origin main
+# ← 如果冲突：暂停，展示冲突文件内容（带 <<<<<<< 标记的），
+#    让用户决定保留哪个版本，解决后 git add + git rebase --continue
 
-# ② 开新分支（自动命名：feat/日期-简述）
+# ③ 检查是否有未合并的 PR，提醒用户
+OPEN_PRS=$(gh pr list --state open --json number,title,headRefName 2>/dev/null)
+# ← 如果有其他未合并的 PR，提示用户：
+#    "还有未合并的 PR#XX（xxx），要不要等它合并后再开新的？"
+#    用户说"继续"才继续，说"先不管"也继续
+
+# ④ 开新分支（自动命名：feat/日期-简述）
 DATE=$(date +%Y-%m-%d)
 BRANCH="feat/${DATE}-技能更新"
 git checkout -b "$BRANCH"
 
-# ③ 把所有改动加进来
-git add -A
-
-# ④ 自动生成 commit 消息（根据 git status 看改了哪些文件）
+# ⑤ 提交（已经在第①步 add 过了）
 CHANGED=$(git diff --cached --name-only | tr '\n' '、' | sed 's/、$//')
 COMMIT_MSG="feat(技能更新): ${DATE} 更新 ${CHANGED}"
 git commit -m "$COMMIT_MSG"
 
-# ⑤ 推送到 GitHub
+# ⑥ 推送到 GitHub
 git push -u origin "$BRANCH"
 
-# ⑥ 自动开 PR（gh CLI）
+# ⑦ 自动开 PR（gh CLI）
 gh pr create \
   --title "$COMMIT_MSG" \
   --body "本次更新：${CHANGED}" \
   --base main \
   --head "$BRANCH"
+
+# ⑧ PR 创建成功后，输出链接并提示
+# "✅ PR 已创建：https://github.com/.../pull/XX"
+# "等待仓库管理员合并～"
+# "合并后我会自动同步最新代码，下次直接说'同步技能'就行"
 ```
 
 ### commit 消息自动生成规则
@@ -396,14 +412,29 @@ gh pr create \
 
 - 自动输出 PR 链接，告诉用户："PR 已创建，等待仓库管理员合并"
 - 管理员（你）收到通知后，review → Merge
-- 合并后，用户的下一次函数触发会先 `git checkout main && git pull`，自动同步最新代码
+- **合并后，用户下次说"同步技能"时**，AI 会在 pull 之后自动清理已合并的本地分支：
+  ```bash
+  # 删掉已经合并到 main 的本地分支（不包含 main 本身）
+  git branch --merged main | grep -v '^\*' | grep -v main | xargs -r git branch -d
+  ```
+- 这样同事的本地不会堆积一堆旧分支
 
 ### 冲突处理
 
 如果 `git pull --rebase` 时冲突：
-1. 暂停流程，告诉用户哪个文件冲突了
+1. 暂停流程，告诉用户哪个文件冲突了，展示冲突内容（`<<<<<<<` 标记的部分）
 2. 让用户决定保留哪个版本，或两边都在
-3. 解决后继续 rebase → push → 开 PR
+3. 解决后执行 `git add <文件>` → `git rebase --continue`
+4. 继续 push → 开 PR
+
+### 只提交部分文件的做法
+
+如果用户说"只提交 XX 文件，其他先不提交"：
+```bash
+# 不用 git add -A，只 add 指定的文件
+git add references/school-strategies.md
+# 其余流程不变
+```
 
 ---
 
