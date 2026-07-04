@@ -1445,3 +1445,9 @@ When all other access methods (curl, browser, search engines) are blocked by WAF
 - 这是一条测试改动，用于验证「同步技能」一键提交流程
 - 如果看到这条记录，说明流程跑通了 ✅
 
+
+---
+## 测试：2026-07-04 流程验证
+- 测试「同步技能」一键提交流程
+- 如果看到这条记录，说明流程跑通了 ✅
+
