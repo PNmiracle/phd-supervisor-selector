@@ -1,6 +1,6 @@
 ---
 name: phd-supervisor-selector
-description: 博士导师筛选与表格管理工具。当用户需要搜索、筛选、验证、扩充、清理或填充博士申请导师表时使用。支持关键词：博士选导、导师表、Supervisor List、博导、PhD supervisor、导师主页、博士申请信息、QS排名、备注、排除学校等。支持 Vika 在线表格和本地 Excel 两种模式。
+description: 博士导师筛选与表格管理工具。面向留学机构，为不同方向的学生快速建立可核验的导师列表。搜索各大学官方页面，判断导师是否具备 PhD 指导资格，填写表格各列。主力支持 Vika 在线表格直接 CRUD，Excel 作为可选回退模式。
 agent_created: true
 ---
 
@@ -10,7 +10,7 @@ agent_created: true
 
 为博士申请者建立有据可查的导师列表。搜索各大学官方页面，判断导师是否具备 PhD 指导资格，填写表格各列，将不合格或高风险候选人排除在主表之外。
 
-**支持两种模式：Vika（在线表格直接 CRUD）和 Excel（本地电子表格）。**
+**主力模式：Vika（在线表格直接 CRUD）。Excel 作为可选回退模式。**
 
 ## Optional Companion Skill
 
@@ -40,23 +40,15 @@ Requires `TAVILY_API_KEY` environment variable. If installed, search automatical
 2. **用户上传 `.xlsx` 文件**：操作本地电子表格
 3. **用户同时提供**：优先 Vika 做 CRUD，Excel 做参考/填充源
 
-### Excel 列偏移检测（CRITICAL）
+---
 
-当 Excel 表头包含 `序号` 列但数据体该列为空时，所有后续数据会整体左移一列。**必须在解析 Excel 前检测此情况：**
+## Excel 模式（可选）
 
-1. 读取表头，确认是否有 `序号` 列
-2. 读取前几行数据，检查 `序号` 列是否有实际值
-3. 若表头有 `序号` 但数据行为空 → 数据从 `序号` 的下一列开始，需修正列映射
-4. 修正方式：跳过空 `序号` 列，将表头第 N+1 列（学校等）映射到数据体第 N 列
+当用户上传 `.xlsx` 文件而非 Vika 链接时，使用 Excel 模式。详见 `references/spreadsheet-rules.md`（列格式选择、列偏移检测、备注规则、质量检查）。
 
-示例错行情况：
-```
-表头: [优先级, 序号, 学校, 学院/系, 导师姓名, 职称, 研究方向, ...]
-数据: [P0,      空,  NUS,  Business School,  Xiuping Li,  副教授,  Consumer..., ...]
-                                            ↑ 实际是第4列数据，映射到表头第5列
-```
+**默认输出列**：`导师`, `Location`, `学校名字`, `QS排名`, `美国USNEWS排名`, `Department`, `导师主页`, `博士申请信息`, `其他导师信息`, `备注`
 
-正确映射：`数据[0]→优先级, 数据[1]→学校(跳过序号), 数据[2]→学院/系, 数据[3]→导师姓名, ...`
+- `美国USNEWS排名`：仅当列表中有美国学校时包含此列
 
 ---
 
@@ -107,7 +99,7 @@ locked = [r for r in all_records if r["fields"].get("选导意向（点击选择
 - MagicLookUp / OneWayLink 字段不可通过 API 写入。
 - 每批最多 10 条记录，批次间加 0.3-0.5 秒延迟。
 
-详细的 API 代码模板见 `references/vika-api-patterns.md`，完整操作指南见 `references/vika-operations-guide.md`。
+详细的 API 代码模板和操作指南见 `references/vika-guide.md`。
 
 ### 自然语言删除流程
 
@@ -134,24 +126,16 @@ locked = [r for r in all_records if r["fields"].get("选导意向（点击选择
 
 ---
 
-## Excel 工作流
-
-### 核心流程
+## 搜索工作流（Vika 和 Excel 通用）
 
 1. 解析学生背景、研究方向、硬排除条件、目标地区/学校、排名限制
-2. **检测表格格式**（见 `references/spreadsheet-rules.md`）：若用户提供模板，沿用其列结构；否则使用默认简化格式
+2. **检测表格格式**（见 `references/spreadsheet-rules.md`）：Vika 模式从 URL 解析 datasheetId；Excel 模式若用户提供模板则沿用其列结构
 3. 优先搜索官方大学来源
 4. **SPA/动态站点**：先查 `references/search-techniques.md` L0-SPA 策略（找替代来源而非死磕 SPA 壳）；若无替代来源再探测 JS bundle 中的 API 端点
 5. 按内容验证每个导师主页
 6. 使用 `references/selection-rules.md` 判断指导资格
 7. 使用 `references/spreadsheet-rules.md` 填写表格
 8. 没找到合适导师的学校记录排除原因
-
-### 默认输出列
-
-`导师`, `Location`, `学校名字`, `QS排名`, `美国USNEWS排名`, `Department`, `导师主页`, `博士申请信息`, `其他导师信息`, `备注`
-
-- `美国USNEWS排名`：**仅当列表中有美国学校时包含此列**
 
 ---
 
@@ -339,233 +323,11 @@ python3 scripts/audit.py [DATASHEET_ID] [VIKA_TOKEN]
 
 ---
 
-## 一键提交（协作简化流程）
+## 协作流程（"同步技能" / "结束学生"）
 
-当用户说**"同步技能"**或**"提交更新"**或类似表达时，自动执行完整提交流程，无需用户手动操作 git。
+当用户说**"同步技能"**（或"提交更新"、"同步并提交"等）时，自动执行 pull -> branch -> commit -> push -> PR 全流程。当用户说**"结束学生"**时，先提取本轮搜索经验更新策略库，再自动执行同步流程。
 
-### 触发语
-
-以下任何一句都会触发：
-- `"同步技能"`
-- `"提交更新"`
-- `"帮我把改动推上去并开 PR"`
-- `"同步并提交"`
-
-### 执行流程（AI 按顺序自动完成）
-
-**核心原则**：先保证本地干净，再拉最新代码，最后提交推送。全程不需要用户懂 git。
-
----
-
-**第①步：检查 git 身份（避免提交者邮箱错误）**
-
-```bash
-cd ~/.workbuddy/skills/phd-supervisor-selector
-git config user.name
-git config user.email
-```
-
-- 如果输出为空，或邮箱以 `.local` 结尾（如 `<[email protected]>`）：
-  - **暂停流程**，告诉用户：
-    > ⚠️ git 身份未正确配置，commit 不会被 GitHub 认领。
-    > 请对 AI 说："帮我配置 git，用户名填 `你的GitHub用户名`，邮箱填 `你的GitHub注册邮箱`"
-  - 等用户配置好后，再重新执行第①步
-- 如果已正确配置，继续第②步
-
----
-
-**第②步：展示改动文件，让用户确认**
-
-```bash
-git status --short
-```
-
-- 把改动文件列表展示给用户看
-- **问用户**："这些文件都要提交吗？"
-- 如果用户说"只提交 XX 文件"：
-  - 记录文件名，第⑧步只用 `git add XX`（不用 `git add -A`）
-- 如果用户确认全部提交：
-  - 第⑧步用 `git add -A`
-
----
-
-**第③步：把当前改动 stash 起来（防止 pull 时报错）**
-
-```bash
-git stash push -m "临时保存：同步技能前"
-```
-
-- 这样即使有未暂存改动，`git pull --rebase` 也不会报错
-- 如果 `git stash` 失败（不太可能），暂停并告诉用户
-
----
-
-**第④步：确保在 main 分支，拉取最新代码**
-
-```bash
-git checkout main
-git pull --rebase origin main
-```
-
-- 如果 `git pull --rebase` 遇到冲突：
-  - **暂停流程**，告诉用户哪个文件冲突了
-  - 展示冲突内容（`<<<<<<<` 标记的部分）
-  - 让用户决定保留哪个版本，或两边都在
-  - 解决后执行 `git add <文件>` → `git rebase --continue`
-  - 然后继续第⑤步
-
----
-
-**第⑤步：检查是否有未合并的 PR（可选提醒）**
-
-```bash
-gh pr list --state open --json number,title,headRefName
-```
-
-- 如果有其他未合并的 PR：
-  - 提示用户：
-    > 还有未合并的 PR#XX（xxx），你可以等它合并后再开新的，也可以继续
-  - 用户说"继续"才继续，说"先等一下"则暂停
-- 如果没有未合并的 PR，直接继续第⑥步
-
----
-
-**第⑥步：开新分支（自动命名）**
-
-```bash
-DATE=$(date +%Y-%m-%d)
-BRANCH="feat/${DATE}-技能更新"
-
-# 如果当天已有同名分支，加序号：feat/2026-07-04-技能更新-2
-if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH"; then
-  N=2
-  while git show-ref --verify --quiet "refs/remotes/origin/${BRANCH}-${N}"; do N=$((N+1)); done
-  BRANCH="${BRANCH}-${N}"
-fi
-
-git checkout -b "$BRANCH"
-```
-
-- 分支名格式：`feat/YYYY-MM-DD-技能更新`（或加 `-2`、`-3` 后缀）
-- 这样同一天开多个 PR 也不会冲突
-
----
-
-**第⑦步：应用 stash（把第③步保存的改动拿回来）**
-
-```bash
-git stash pop
-```
-
-- 如果 `git stash pop` 冲突：
-  - **暂停流程**，展示冲突内容，让用户决定
-  - 解决后执行 `git add <文件>`，然后继续第⑧步
-
----
-
-**第⑧步：提交（根据第②步的用户选择）**
-
-```bash
-# 如果用户确认全部提交：
-git add -A
-
-# 如果用户说"只提交 XX 文件"：
-# git add XX
-
-# 自动生成 commit 消息
-CHANGED=$(git diff --cached --name-only | tr '\n' '、' | sed 's/、$//')
-COMMIT_MSG="feat(技能更新): $(date +%Y-%m-%d) 更新 ${CHANGED}"
-
-git commit -m "$COMMIT_MSG"
-```
-
-- commit 消息会自动包含改了哪些文件
-- 示例：`feat(技能更新): 2026-07-04 更新 references/school-strategies.md`
-
----
-
-**第⑨步：推送到 GitHub**
-
-```bash
-git push -u origin "$BRANCH"
-```
-
-- 如果 `git push` 失败（如网络问题），提示用户重试
-
----
-
-**第⑩步：自动开 PR（gh CLI）**
-
-```bash
-gh pr create \
-  --title "$COMMIT_MSG" \
-  --body "本次更新：${CHANGED}" \
-  --base main \
-  --head "$BRANCH"
-```
-
----
-
-**第⑪步：PR 创建成功后，输出链接并提示**
-
-告诉用户：
-> ✅ PR 已创建：`https://github.com/.../pull/XX`
-> 等待仓库管理员合并～
-> 合并后我会自动同步最新代码，下次直接说"同步技能"就行
-
-### commit 消息自动生成规则
-
-| 情况 | 生成的消息示例 |
-|------|----------------|
-| 改了 `school-strategies.md` | `feat(技能更新): 2026-07-04 更新 references/school-strategies.md` |
-| 改了多个文件 | `feat(技能更新): 2026-07-04 更新 references/school-strategies.md、SKILL.md` |
-| 新增文件 | 同上，文件路径会自动出现在消息里 |
-
-### PR 创建后
-
-- 自动输出 PR 链接，告诉用户："PR 已创建，等待仓库管理员合并"
-- 管理员（你）收到通知后，review → Merge
-- **合并后，用户下次说"同步技能"时**，AI 会在 pull 之后自动清理已合并的本地分支：
-  ```bash
-  # 删掉已经合并到 main 的本地分支（不包含 main 本身）
-  git branch --merged main | grep -v '^\*' | grep -v main | xargs -r git branch -d
-  ```
-- 这样同事的本地不会堆积一堆旧分支
-
-### 冲突处理
-
-如果 `git pull --rebase` 时冲突：
-1. 暂停流程，告诉用户哪个文件冲突了，展示冲突内容（`<<<<<<<` 标记的部分）
-2. 让用户决定保留哪个版本，或两边都在
-3. 解决后执行 `git add <文件>` → `git rebase --continue`
-4. 继续 push → 开 PR
-
-### 只提交部分文件的做法
-
-如果用户说"只提交 XX 文件，其他先不提交"：
-```bash
-# 不用 git add -A，只 add 指定的文件
-git add references/school-strategies.md
-# 其余流程不变
-```
-
----
-
-## 知识沉淀（"结束学生"命令）
-
-当用户说"**结束学生**"或类似表达时，执行知识提取 + 同步工作流：
-
-1. 回顾本轮对话，提取可入库的经验
-2. 更新 `SKILL.md` / `references/school-strategies.md` / `references/search-techniques.md`
-3. 提交并推送到 GitHub 仓库 `PNmiracle/phd-supervisor-selector`：
-   ```bash
-   cd ~/.workbuddy/skills/phd-supervisor-selector
-   git add -A && git commit -m "feat: <摘要>"
-   git pull --rebase origin main   # 先拉协作方更新
-   git push origin main            # 再推送
-   ```
-4. **冲突处理**：优先保留双方的增量改动，不覆盖对方更新的内容
-5. **协作模式**：多位老师通过同一 GitHub 仓库共同维护
+**完整执行步骤见 `references/collaboration-workflow.md`。** 触发后按该文档的 11 步流程执行，无需用户懂 git。
 
 ---
 
@@ -576,5 +338,5 @@ git add references/school-strategies.md
 - 开始搜索前，阅读 `references/search-orchestrator.md`
 - 访问学校前，检查 `references/school-strategies.md`
 - SPA/API 发现技巧，见 `references/search-techniques.md`
-- Vika 完整 CRUD 操作指南，见 `references/vika-operations-guide.md`
-- Vika API 代码模板，见 `references/vika-api-patterns.md`
+- Vika 完整 CRUD 操作 + API 代码模板，见 `references/vika-guide.md`
+- 协作流程（同步技能/结束学生），见 `references/collaboration-workflow.md`

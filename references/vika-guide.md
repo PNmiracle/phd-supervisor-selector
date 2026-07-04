@@ -1,50 +1,52 @@
-# Vika Table Operations Guide
+# Vika Guide — API 代码模板 + 完整操作指南
 
-Complete guide for all common Vika table operations via Fusion API. All patterns use Python 3 stdlib only — no SDK, no CLI, no npm.
+零依赖。所有操作使用 Python 3 标准库（`urllib` + `json`）——无需 `vika-cli`、npm 或第三方 SDK。仅需 API token 和任意 Python 3 安装。导入 Excel 时额外需要 `openpyxl`。
 
 ---
 
-## 0. Quick Setup (Token + Datasheet)
+## 0. Setup
 
-> 🔐 **Token security**: Never paste your API token into the chat. Set it in terminal:
->
-> **One-time (persists across all chats):**
+> **Token 安全**：不要把 API Token 贴到聊天框。在终端里跑：
 > ```bash
 > echo 'export VIKA_TOKEN=uskXXXXXX' >> ~/.zshrc && source ~/.zshrc
 > ```
-> **Temporary (current chat only):**
-> ```bash
-> echo 'export VIKA_TOKEN=uskXXXXXX' > .vika_env && source .vika_env
-> ```
-> The agent reads `$VIKA_TOKEN` from the environment — the token stays on your machine only.
+> Agent 从 `$VIKA_TOKEN` 环境变量读取，token 只存在你机器上。
+
+### URL 解析
+
+```
+https://vika.cn/share/shrXXX/dstXXX/viwXXX
+                              ^^^^^^  ^^^^^^
+                           datasheetId  viewId
+```
+
+### vika() 函数（所有操作的基础）
 
 ```python
-import os, json
+import os, json, time
 from urllib.request import Request, urlopen
 
 TOKEN = os.environ.get("VIKA_TOKEN", "")
-DATASHEET = "dstXXX"  # From URL: https://vika.cn/share/shrXXX/dstXXX/viwXXX
+DATASHEET = "dstXXX"  # 从 URL 解析
 BASE = "https://api.vika.cn/fusion/v1"
 
 def vika(method, path, body=None):
     url = f"{BASE}/datasheets/{DATASHEET}{path}"
     headers = {"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"}
-    
-    # DELETE uses query parameter ?recordIds=recXXX,recYYY (not request body)
+
+    # DELETE 用 query parameter ?recordIds=recXXX,recYYY（不是 request body）
     if method == "DELETE" and body:
         if isinstance(body, list):
-            record_ids = ",".join(body)
-            url += f"?recordIds={record_ids}"
+            url += f"?recordIds={','.join(body)}"
             data = None
         elif isinstance(body, dict) and "records" in body:
-            record_ids = ",".join(body["records"])
-            url += f"?recordIds={record_ids}"
+            url += f"?recordIds={','.join(body['records'])}"
             data = None
         else:
             data = json.dumps(body).encode() if body else None
     else:
         data = json.dumps(body).encode() if body else None
-    
+
     req = Request(url, data=data, headers=headers, method=method)
     try:
         resp = urlopen(req)
@@ -76,55 +78,63 @@ for f in result["data"]["fields"]:
 
 ---
 
-## 2. List Records
+## 2. Read Records
 
 ### 2.1 All Records
+
 ```python
 result = vika("GET", "/records?maxRecords=200&pageSize=200")
 records = result["data"]["records"]
 total = result["data"]["total"]
-for r in records:
-    f = r["fields"]
-    print(f"{r['recordId'][:12]}  {f.get('导师','')}  {f.get('Department','')}")
 ```
 
+Page size max 200. For >200 records, paginate with `pageNum` or `pageToken` parameter.
+
 ### 2.2 Filtered by Formula
+
 ```python
-# URL-encode Chinese: urllib.parse.quote('{状态}="待发邮件"')
 from urllib.parse import quote
 filter_expr = quote('{状态}="待发邮件"')
-path = f"/records?filterByFormula={filter_expr}&maxRecords=200"
-result = vika("GET", path)
+result = vika("GET", f"/records?filterByFormula={filter_expr}&maxRecords=200")
 ```
 
 ### 2.3 By Specific View
+
 ```python
 result = vika("GET", "/records?viewId=viwXXX&maxRecords=200")
 ```
 
 ### 2.4 Only Specific Fields
+
 ```python
-# Use Chinese field names, URL-encoded
 from urllib.parse import quote
 path = f"/records?fields={quote('导师,Department,备注')}&maxRecords=200"
 result = vika("GET", path)
 ```
+
+### 2.5 String Format (避免嵌套对象)
+
+```python
+result = vika("GET", "/records?maxRecords=200&pageSize=200&cellFormat=string")
+```
+
+使用 `cellFormat=string` 获取纯文本值，避免 URL 字段返回 `{"text":"...","link":"..."}` 嵌套对象。
 
 ---
 
 ## 3. Create Records (Batch up to 10)
 
 ```python
-# Use fieldKey: "name" for Chinese field names
 new_records = [
     {"fields": {"导师": "张三", "Department": "心理学院(XX大学)", "备注": "教授；决策研究"}},
     {"fields": {"导师": "李四", "Department": "商学院(YY大学)", "备注": "副教授；消费者行为"}},
 ]
 result = vika("POST", "/records", {"records": new_records, "fieldKey": "name"})
 print(f"Created {len(result['data']['records'])} records")
+```
 
-# For batch > 10, loop with delay:
-import time
+For batch > 10, loop with delay:
+```python
 for i in range(0, len(all_records), 10):
     batch = all_records[i:i+10]
     vika("POST", "/records", {"records": batch, "fieldKey": "name"})
@@ -135,7 +145,8 @@ for i in range(0, len(all_records), 10):
 
 ## 4. Update Records
 
-### 4.1 Update Specific Fields
+### 4.1 Text / SingleSelect / Checkbox Fields
+
 ```python
 updates = [
     {"recordId": "recXXX", "fields": {"Department": "心理学院(香港大学)", "状态": "待发邮件"}},
@@ -144,59 +155,42 @@ updates = [
 vika("PATCH", "/records", {"records": updates, "fieldKey": "name"})
 ```
 
-### 4.2 Update URL Fields
+### 4.2 URL Fields (CRITICAL — fieldKey="name" 静默失败)
 
-**⚠️ CRITICAL**: URL-type fields (导师主页, 博士申请信息, 其他导师信息) do NOT work with `fieldKey="name"`. The API returns 200 but silently fails to update the URL values. **Must use field IDs without fieldKey parameter.**
+URL-type fields (导师主页, 博士申请信息, 其他导师信息) do NOT work with `fieldKey="name"`. API returns 200 but silently fails. **Must use field IDs without fieldKey parameter.**
 
 ```python
-# ❌ WRONG — silently fails for URL fields
-updates = [
-    {"recordId": "recXXX", "fields": {
-        "导师主页": "https://www.university.edu/department/faculty/prof-name",
-        "博士申请信息": "https://gradschool.university.edu/phd/program"
-    }},
-]
-vika("PATCH", "/records", {"records": updates, "fieldKey": "name"})
+# 先获取 field IDs
+fields = vika("GET", "/fields")
+field_map = {f["name"]: f["id"] for f in fields["data"]["fields"]}
 
-# ✅ CORRECT — omit fieldKey, use field IDs
-# First get field IDs from GET /fields, then:
+# 用 field ID 做 key，不带 fieldKey
 updates = [
     {"recordId": "recXXX", "fields": {
-        "fldYm8R3l4Bnu": "https://www.university.edu/department/faculty/prof-name",
-        "fldI3KsjPCYWp": "https://gradschool.university.edu/phd/program"
-    }},
+        field_map["导师主页"]: "https://www.university.edu/faculty/prof-name",
+        field_map["博士申请信息"]: "https://gradschool.university.edu/phd"
+    }}
 ]
-# No fieldKey in the request body
+# 直接 PATCH，不加 fieldKey
 req = Request(
     f"{BASE}/datasheets/{DATASHEET}/records",
     data=json.dumps({"records": updates}).encode(),
     headers={"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"},
     method='PATCH'
 )
+urlopen(req)
 ```
 
-### 4.3 Update SingleSelect / Checkbox
-```python
-# SingleSelect: use the option name exactly as it appears
-vika("PATCH", "/records", {"records": [
-    {"recordId": "recXXX", "fields": {"状态": "待发邮件"}}
-], "fieldKey": "name"})
+**Note**: This ONLY affects PATCH on URL-type fields. Text/SingleSelect/Checkbox fields work fine with `fieldKey="name"`.
 
-# Checkbox: use true/false
-vika("PATCH", "/records", {"records": [
-    {"recordId": "recXXX", "fields": {"确认套磁": True}}
-], "fieldKey": "name"})
-```
+### 4.3 Bulk Department Translation
 
-### 4.4 Bulk Department Translation
 ```python
-# Get all records, build translation map, batch update
 records = vika("GET", "/records?maxRecords=200&pageSize=200")["data"]["records"]
 
 dept_map = {
     "Department of Psychology": "心理学院",
     "CUHK Business School": "香港中文大学商学院",
-    # ...
 }
 
 updates = []
@@ -205,7 +199,6 @@ for r in records:
     if dept in dept_map:
         updates.append({"recordId": r["recordId"], "fields": {"Department": dept_map[dept]}})
 
-# Batch update
 for i in range(0, len(updates), 10):
     vika("PATCH", "/records", {"records": updates[i:i+10], "fieldKey": "name"})
     time.sleep(0.3)
@@ -216,22 +209,21 @@ for i in range(0, len(updates), 10):
 ## 5. Delete Records
 
 ### 5.1 Delete by ID
+
 ```python
-# ✅ CORRECT — pass record IDs as list or {"records": [...]} object
-# The `vika` function automatically converts to ?recordIds=recXXX query parameter
+# vika() 函数自动把 list 转成 ?recordIds=recXXX,recYYY query parameter
 vika("DELETE", "/records", ["recXXX", "recYYY"])
 # or
 vika("DELETE", "/records", {"records": ["recXXX", "recYYY"]})
 ```
 
-⚠️ **Critical**: Vika DELETE API expects recordIds in the URL query parameter, NOT in the request body. The `vika` function handles this automatically.
-
 ### 5.2 Deduplicate (Keep Most Complete)
 
 ```python
+from collections import defaultdict
+
 records = vika("GET", "/records?maxRecords=200&pageSize=200")["data"]["records"]
 
-from collections import defaultdict
 name_map = defaultdict(list)
 for r in records:
     name = r["fields"].get("导师", "").strip()
@@ -241,12 +233,10 @@ for r in records:
 to_delete = []
 for name, recs in name_map.items():
     if len(recs) > 1:
-        # Keep the one with most filled fields
         recs.sort(key=lambda r: sum(1 for v in r["fields"].values() if v), reverse=True)
         to_delete.extend(r["recordId"] for r in recs[1:])
 
 if to_delete:
-    # ✅ CORRECT — pass list directly, `vika` function handles query parameter conversion
     vika("DELETE", "/records", to_delete)
     print(f"Deleted {len(to_delete)} duplicate records")
 ```
@@ -258,26 +248,18 @@ if to_delete:
 ```python
 import openpyxl
 
-# 1. Read Excel
 wb = openpyxl.load_workbook("select.xlsx", data_only=True)
 ws = wb["Sheet1"]
 headers = [ws.cell(1, c).value for c in range(1, ws.max_column+1)]
 
-# 2. Get existing Vika names
 existing = vika("GET", "/records?maxRecords=200&pageSize=200")["data"]["records"]
 existing_names = {r["fields"].get("导师","").strip() for r in existing}
 
-# 3. Map Excel columns -> Vika fields
 FIELD_MAP = {
-    "导师": "导师",
-    "Department": "Department",
-    "导师主页": "导师主页",
-    "博士申请信息": "博士申请信息",
-    "其他导师信息": "其他导师信息",
-    "备注": "备注",
+    "导师": "导师", "Department": "Department", "导师主页": "导师主页",
+    "博士申请信息": "博士申请信息", "其他导师信息": "其他导师信息", "备注": "备注",
 }
 
-# 4. Build new records (skip existing, skip linked/MagicLookUp fields)
 new_records = []
 seen = set()
 for row in range(2, ws.max_row+1):
@@ -296,10 +278,8 @@ for row in range(2, ws.max_row+1):
     if fields.get("导师"):
         new_records.append({"fields": fields})
 
-# 5. Batch write
 for i in range(0, len(new_records), 10):
-    batch = new_records[i:i+10]
-    vika("POST", "/records", {"records": batch, "fieldKey": "name"})
+    vika("POST", "/records", {"records": new_records[i:i+10], "fieldKey": "name"})
     time.sleep(0.3)
 
 print(f"Imported {len(new_records)} new records")
@@ -310,12 +290,10 @@ print(f"Imported {len(new_records)} new records")
 ## 7. Fill Missing Links
 
 ```python
-# Get records with missing fields
 records = vika("GET", "/records?maxRecords=200&pageSize=200")["data"]["records"]
 
 LINK_MAP = {
     "导师名": ("phd-program-url", "staff-list-url"),
-    # ...
 }
 
 updates = []
@@ -347,57 +325,24 @@ for i in range(0, len(updates), 10):
 ```python
 records = vika("GET", "/records?maxRecords=200&pageSize=200")["data"]["records"]
 
-blanks = []
-for r in records:
-    f = r["fields"]
-    has_name = f.get("导师", "").strip()
-    if not has_name:
-        blanks.append(r["recordId"])
+blanks = [r["recordId"] for r in records if not r["fields"].get("导师", "").strip()]
 
 if blanks:
     print(f"Found {len(blanks)} blank records: {blanks}")
-    # vika("DELETE", "/records", blanks)  # Uncomment to delete (pass list directly)
+    # vika("DELETE", "/records", blanks)  # Uncomment to delete
 ```
 
 ---
 
-## 9. Non-Writable Fields (Important!)
+## 9. Cross-School Link Audit
 
-These fields **cannot** be written via Fusion API — they are computed or linked:
-
-| Field Type | Examples | Why |
-|-----------|----------|-----|
-| MagicLookUp | Location, QS排名, USNEWS排名 | Computed from linked records |
-| OneWayLink | 美国地区学校, 非美国地区学校 | Link to another datasheet |
-| Formula | 等邮件几天 | Auto-calculated |
-| LastModifiedTime | 状态变更日期 | Auto-generated |
-| CreatedBy / CreatedTime | From, 选导时间 | Auto-generated |
-
----
-
-## 10. Rate Limits & Best Practices
-
-- **10 records max** per POST/PATCH/DELETE request
-- **0.3-0.5s delay** between batches
-- 175 records ≈ 15 batches ≈ 15-20 seconds
-- Use `fieldKey: "name"` for Chinese field names
-- Always `strip()` names before comparison
-- URL fields accept plain strings (API wraps them)
-
----
-
-## 11. Cross-School Link Audit (跨校链接审计)
-
-审查已有表格时，必须检查「博士申请信息」和「其他导师信息」的 URL 域名是否与导师实际所在学校一致。跨校链接错误会导致学生点开错误的申请页面。
-
-### 审计脚本
+审查已有表格时，必须检查「博士申请信息」和「其他导师信息」的 URL 域名是否与导师实际所在学校一致。
 
 ```python
 import re
 
 records = vika("GET", "/records?maxRecords=200&pageSize=200")["data"]["records"]
 
-# School domain mapping (add as needed)
 SCHOOL_DOMAINS = {
     "Nanyang Technological University": ["ntu.edu.sg"],
     "National University of Singapore": ["nus.edu.sg"],
@@ -405,7 +350,6 @@ SCHOOL_DOMAINS = {
     "Chinese University of Hong Kong": ["cuhk.edu.hk"],
     "University of Hong Kong": ["hku.hk"],
     "University of Sydney": ["sydney.edu.au"],
-    # ...
 }
 
 issues = []
@@ -413,38 +357,25 @@ for r in records:
     f = r["fields"]
     name = f.get("导师", "")
     dept = f.get("Department", "")
-    
-    # Determine expected school domain from Department field
+
     expected_domains = []
     for school_key, domains in SCHOOL_DOMAINS.items():
         if school_key.lower() in dept.lower():
             expected_domains = domains
             break
-    
     if not expected_domains:
-        continue  # Skip if school not in mapping
-    
-    # Check PhD application link
-    phd = f.get("博士申请信息", "")
-    if isinstance(phd, dict):
-        phd = phd.get("text", "")
-    if phd:
-        phd_domain = re.search(r'https?://([^/]+)', phd)
-        if phd_domain:
-            phd_domain = phd_domain.group(1)
-            if not any(d in phd_domain for d in expected_domains):
-                issues.append(f"  ⚠ {name}: 博士申请信息域名({phd_domain}) ≠ 预期({expected_domains})")
-    
-    # Check other info link
-    other = f.get("其他导师信息", "")
-    if isinstance(other, dict):
-        other = other.get("text", "")
-    if other:
-        other_domain = re.search(r'https?://([^/]+)', other)
-        if other_domain:
-            other_domain = other_domain.group(1)
-            if not any(d in other_domain for d in expected_domains):
-                issues.append(f"  ⚠ {name}: 其他导师信息域名({other_domain}) ≠ 预期({expected_domains})")
+        continue
+
+    for field_name in ["博士申请信息", "其他导师信息"]:
+        val = f.get(field_name, "")
+        if isinstance(val, dict):
+            val = val.get("text", "")
+        if val:
+            domain = re.search(r'https?://([^/]+)', val)
+            if domain:
+                domain = domain.group(1)
+                if not any(d in domain for d in expected_domains):
+                    issues.append(f"  {name}: {field_name} domain ({domain}) != expected ({expected_domains})")
 
 if issues:
     print(f"Found {len(issues)} cross-school link issues:")
@@ -454,45 +385,13 @@ else:
     print("No cross-school link issues found.")
 ```
 
-### 修复方式
-
-找到正确链接后，使用 field ID（非 fieldKey="name"）PATCH URL 字段：
-
-```python
-# Get field IDs first
-fields = vika("GET", "/fields")
-field_map = {f["name"]: f["id"] for f in fields["data"]["fields"]}
-
-updates = [
-    {"recordId": "recXXX", "fields": {
-        field_map["博士申请信息"]: "https://correct-url.edu/phd",
-        field_map["其他导师信息"]: "https://correct-url.edu/staff"
-    }}
-]
-# PATCH without fieldKey for URL fields
-req = Request(
-    f"{BASE}/datasheets/{DATASHEET}/records",
-    data=json.dumps({"records": updates}).encode(),
-    headers={"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"},
-    method='PATCH'
-)
-```
-
 ---
 
-## 12. Batch Research Area Completion (批量补全研究领域)
+## 10. Batch Research Area Completion
 
 当表格中多条记录的「导师研究领域」为空时，通过 WebFetch 逐个抓取导师主页，提取 research interests 并批量写入。
 
-### 工作流
-
-1. GET 所有记录，筛选出「导师研究领域」为空的记录
-2. 对每条记录，WebFetch 其「导师主页」URL，prompt 提取 research interests
-3. 汇总提取结果，批量 PATCH（每批 10 条，fieldKey="name"）
-4. 注意：WebFetch 同时检查是否为 Emeritus/Retired，发现则标记删除
-
 ```python
-# Step 1: Find records with empty research area
 records = vika("GET", "/records?maxRecords=200&pageSize=200&cellFormat=string")["data"]["records"]
 
 needs_research = []
@@ -510,19 +409,77 @@ for r in records:
             })
 
 print(f"Found {len(needs_research)} records needing research area")
-
-# Step 2: WebFetch each homepage (done via WebFetch tool, not in this script)
-# Step 3: Batch PATCH with extracted research areas
-# Text fields work fine with fieldKey="name"
-updates = [
-    {"recordId": "recXXX", "fields": {"导师研究领域": "Robotics, Control, Manufacturing Automation"}},
-    # ... up to 10 per batch
-]
-vika("PATCH", "/records", {"records": updates, "fieldKey": "name"})
+# Step 2: WebFetch each homepage (via WebFetch tool)
+# Step 3: Batch PATCH with extracted research areas (text fields work with fieldKey="name")
 ```
 
-### 注意事项
+---
 
-- `导师研究领域` 是文本字段，可以用 `fieldKey="name"` 正常 PATCH（不同于 URL 字段）
-- WebFetch 时同时检查 Emeritus/Retired 状态，发现则立即删除该记录
-- 使用 `cellFormat=string` 参数获取纯文本值，避免嵌套对象解析问题
+## 11. Non-Writable Fields
+
+These fields **cannot** be written via Fusion API — they are computed or linked:
+
+| Field Type | Examples | Why |
+|-----------|----------|-----|
+| MagicLookUp | Location, QS排名, USNEWS排名 | Computed from linked records |
+| OneWayLink | 学校名字, Location | Link to another datasheet |
+| Formula | 等邮件几天 | Auto-calculated |
+| LastModifiedTime | 状态变更日期 | Auto-generated |
+| CreatedBy / CreatedTime | From, 选导时间 | Auto-generated |
+
+### OneWayLink / MagicLookUp Write Workaround (verified 2026-07-03)
+
+**Problem**: Vika API rejects OneWayLink/MagicLookUp fields with "Lookup field can't be edited" when using `fieldKey=name`.
+
+**Solution**: Use **field NAMES** as keys, with a **list of record ID strings** as the value. Works with or without `fieldKey` in body.
+
+```python
+# Works — field name key + list of record ID strings
+body = {
+    "records": [
+        {"recordId": "recXXX", "fields": {"学校名字": ["recSchoolId123"]}}
+    ]
+    # fieldKey can be "name" or omitted (defaults to name mode)
+}
+
+# Fails (400) — field ID key without fieldKey="id"
+body = {
+    "records": [
+        {"recordId": "recXXX", "fields": {"fldFfXtdDSST1": ["recSchoolId123"]}}
+    ]
+}
+```
+
+**Workaround for creating records with linked fields**:
+1. POST record WITHOUT `学校名字` and `Location` fields (use `fieldKey=name` for regular fields)
+2. PATCH the record WITHOUT `fieldKey` to set `学校名字: [school_record_id]`
+3. `Location` and `QS排名` will auto-fill after school link is set
+
+**Note**: This only works for PATCH, NOT for POST.
+
+---
+
+## 12. Known API Issues
+
+### DELETE Format (Critical)
+
+Vika DELETE API uses query parameter, NOT request body. The `vika()` function handles this automatically.
+
+### GET Cache Staleness
+
+After DELETE or PATCH, subsequent GET requests may return stale data from an API cache. The Vika UI typically reflects changes faster than the API. Always verify in the UI after making changes.
+
+### URL Field PATCH with fieldKey="name" Returns 200 but Silently Fails
+
+See section 4.2 above. URL-type fields require field IDs without `fieldKey` parameter.
+
+---
+
+## 13. Rate Limits & Best Practices
+
+- **10 records max** per POST/PATCH/DELETE request
+- **0.3-0.5s delay** between batches
+- 175 records = 15 batches = 15-20 seconds total
+- Use `fieldKey: "name"` for Chinese field names (except for URL field PATCH)
+- Always `strip()` names before comparison
+- URL fields accept plain strings (API wraps them)

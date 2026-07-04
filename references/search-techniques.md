@@ -271,7 +271,7 @@ When ALL L1-L3 methods fail — WAF blocks curl, browser, and search engines; DD
 When WebFetch/curl return 403 (Cloudflare, Incapsula, etc.) for a professor's profile page, use Tavily extract to pull content via server-side fetch:
 
 ```bash
-TAVILY_API_KEY="$TAVILY_API_KEY" /Users/chengxinzhi/.workbuddy/binaries/python/envs/default/bin/python3 /Users/chengxinzhi/.workbuddy/skills/tavily-search-pro/lib/tavily_search.py extract "https://scholars.cityu.edu.hk/en/persons/dani-madrid-morales" --format markdown
+TAVILY_API_KEY="$TAVILY_API_KEY" "$HOME/.workbuddy/binaries/python/envs/default/bin/python3" "$HOME/.workbuddy/skills/tavily-search-pro/lib/tavily_search.py" extract "https://scholars.cityu.edu.hk/en/persons/dani-madrid-morales" --format markdown
 ```
 
 **When to use**:
@@ -290,7 +290,7 @@ TAVILY_API_KEY="$TAVILY_API_KEY" /Users/chengxinzhi/.workbuddy/binaries/python/e
 When DDG HTML search returns empty or Google encrypts URLs, use Tavily search for clean, unencrypted results:
 
 ```bash
-TAVILY_API_KEY="$TAVILY_API_KEY" /Users/chengxinzhi/.workbuddy/binaries/python/envs/default/bin/python3 /Users/chengxinzhi/.workbuddy/skills/tavily-search-pro/lib/tavily_search.py search "John Smith NUS professor psychology" --include-domains nus.edu.sg
+TAVILY_API_KEY="$TAVILY_API_KEY" "$HOME/.workbuddy/binaries/python/envs/default/bin/python3" "$HOME/.workbuddy/skills/tavily-search-pro/lib/tavily_search.py" search "John Smith NUS professor psychology" --include-domains nus.edu.sg
 ```
 
 **Advantages over DDG/Google**:
@@ -310,7 +310,7 @@ TAVILY_API_KEY="$TAVILY_API_KEY" /Users/chengxinzhi/.workbuddy/binaries/python/e
 When you can't access a department's faculty listing page directly, use Tavily crawl to discover all professor profile URLs:
 
 ```bash
-TAVILY_API_KEY="$TAVILY_API_KEY" /Users/chengxinzhi/.workbuddy/binaries/python/envs/default/bin/python3 /Users/chengxinzhi/.workbuddy/skills/tavily-search-pro/lib/tavily_search.py crawl "https://www.cityu.edu.hk/com/" --instructions "Find all faculty and professor profile pages" --limit 20
+TAVILY_API_KEY="$TAVILY_API_KEY" "$HOME/.workbuddy/binaries/python/envs/default/bin/python3" "$HOME/.workbuddy/skills/tavily-search-pro/lib/tavily_search.py" crawl "https://www.cityu.edu.hk/com/" --instructions "Find all faculty and professor profile pages" --limit 20
 ```
 
 **When to use**:
@@ -323,7 +323,7 @@ TAVILY_API_KEY="$TAVILY_API_KEY" /Users/chengxinzhi/.workbuddy/binaries/python/e
 When you need to understand a university site's structure to find faculty page patterns:
 
 ```bash
-TAVILY_API_KEY="$TAVILY_API_KEY" /Users/chengxinzhi/.workbuddy/binaries/python/envs/default/bin/python3 /Users/chengxinzhi/.workbuddy/skills/tavily-search-pro/lib/tavily_search.py map "https://www.otago.ac.nz/" --max-depth 2 --limit 100
+TAVILY_API_KEY="$TAVILY_API_KEY" "$HOME/.workbuddy/binaries/python/envs/default/bin/python3" "$HOME/.workbuddy/skills/tavily-search-pro/lib/tavily_search.py" map "https://www.otago.ac.nz/" --max-depth 2 --limit 100
 ```
 
 **When to use**:
@@ -336,7 +336,7 @@ TAVILY_API_KEY="$TAVILY_API_KEY" /Users/chengxinzhi/.workbuddy/binaries/python/e
 For comprehensive research on a specific department's PhD supervision landscape:
 
 ```bash
-TAVILY_API_KEY="$TAVILY_API_KEY" /Users/chengxinzhi/.workbuddy/binaries/python/envs/default/bin/python3 /Users/chengxinzhi/.workbuddy/skills/tavily-search-pro/lib/tavily_search.py research "PhD supervisors in consumer psychology at NUS Business School" --model pro
+TAVILY_API_KEY="$TAVILY_API_KEY" "$HOME/.workbuddy/binaries/python/envs/default/bin/python3" "$HOME/.workbuddy/skills/tavily-search-pro/lib/tavily_search.py" research "PhD supervisors in consumer psychology at NUS Business School" --model pro
 ```
 
 **When to use**:
