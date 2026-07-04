@@ -1439,3 +1439,9 @@ When all other access methods (curl, browser, search engines) are blocked by WAF
 
 **Cloudflare WAF**: All findanexpert URLs return "Pardon Our Interruption" via curl (6183 bytes). They work correctly in browser. Same situation as UNSW staff pages.
 
+
+---
+## 测试同步技能流程（2026-07-04)
+- 这是一条测试改动，用于验证「同步技能」一键提交流程
+- 如果看到这条记录，说明流程跑通了 ✅
+
