@@ -65,13 +65,13 @@ Exclude from the main table unless strong contrary evidence exists:
 
 ## Fit Judgement
 
-Fit can be strong even when keywords are indirect, if the supervisor's research methods, objects, or field can support the student's project. Use notes like:
+Fit can be strong even when keywords are indirect, if the supervisor's research methods, objects, or field can support the student's project. Use these identifiers at the end of the three-part remark:
 
-- `高度匹配`: directly matches the student's preferred research object and method.
-- `相关`: adjacent field, likely useful but not exact.
-- `偏重`: has one useful component but leans toward a risk area (e.g., `方法偏重` for a supervisor strong in methods but different application domain; `应用偏重` for the right application but different methodology).
-- `需确认带博`: profile is promising but eligibility is unclear.
-- `教学岗风险`, `研究岗风险`, `更新偏旧`, etc. for concise risks.
+- `建议多看看呢～`: directly matches the student's preferred research object and method.
+- `比较匹配～`: adjacent field, likely useful but not exact.
+- `可以备选一下～`: has one useful component but leans toward a risk area.
+- `需确认带博`: profile is promising but eligibility is unclear (used as second segment, not as the ending identifier).
+- `教学岗风险`, `研究岗风险`, `更新偏旧`, etc. for concise risks (used as second segment, not as the ending identifier).
 
 Do not overfit by title alone. Check publications, projects, current research, supervised students, and program requirements where possible.
 
