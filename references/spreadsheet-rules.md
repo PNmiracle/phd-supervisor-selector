@@ -100,18 +100,18 @@ If a profile has no public email but has a contact button, message form, or offi
 
 Write `备注` from profile content, not generic claims. Use short Chinese phrases:
 
-`职称；研究关键词；匹配/风险。`
+`职称；研究关键词（可带主页原文出处）；匹配度标识`
 
-The first part should usually be title or eligibility status; the second part should be concrete research evidence; the third part should be a fit/risk judgement. Keep it concise enough to read in a spreadsheet cell.
+The first part should usually be title or eligibility status; the second part should be concrete research evidence (optionally with original quotes from the supervisor's homepage); the third part should be one of the three match identifiers. Keep it concise enough to read in a spreadsheet cell.
 
 Allowed examples:
 
-- `副教授；可持续时尚供应链、产业协作、循环经济；高度匹配。`
-- `教授；文物材料、科技考古、保护研究；材料技术偏重。`
-- `研究助理教授；遗产研究、澳门史、离散社群；需确认带博。`
-- `讲师；空间叙事、城市遗产、视觉文化；英国体系下可考虑，需确认带博。`
-- `教授；环境风险、政策评估、气候金融；方向相关，可让学生判断兴趣。`
-- `Reader；胃肠癌政策评估、健康经济学；有监督经验但名额需确认。`
+- `副教授；可持续供应链、产业协作、循环经济；比较匹配～`
+- `教授；文物材料、科技考古、保护研究；可以备选一下～`
+- `研究助理教授；遗产研究、澳门史、离散社群；需确认带博；可以备选一下～`
+- `讲师；空间叙事、城市遗产、视觉文化；英国体系下可考虑；比较匹配～`
+- `教授；环境风险、政策评估、气候金融；"research focuses on climate finance and policy evaluation"；建议多看看呢～`
+- `Reader；胃肠癌政策评估、健康经济学；有监督经验但名额需确认；比较匹配～`
 
 Avoid:
 
