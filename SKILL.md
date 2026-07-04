@@ -336,9 +336,9 @@ python3 scripts/audit.py [DATASHEET_ID] [VIKA_TOKEN]
 
 ---
 
-## 协作流程（"同步技能" / "结束学生"）
+## 协作流程（"开始学生" / "结束学生"）
 
-当用户说**"同步技能"**（或"提交更新"、"同步并提交"等）时，自动执行 pull -> branch -> commit -> push -> PR 全流程。当用户说**"结束学生"**时，先提取本轮搜索经验更新策略库，再自动执行同步流程。
+当用户说**"开始学生"**（或"提交更新"、"同步并提交"等）时，自动执行 pull -> branch -> commit -> push -> PR 全流程。当用户说**"结束学生"**时，先提取本轮搜索经验更新策略库，再自动执行同步流程。
 
 **完整执行步骤见 `references/collaboration-workflow.md`。** 触发后按该文档的 11 步流程执行，无需用户懂 git。
 
@@ -352,4 +352,4 @@ python3 scripts/audit.py [DATASHEET_ID] [VIKA_TOKEN]
 - 访问学校前，检查 `references/school-strategies.md`
 - SPA/API 发现技巧，见 `references/search-techniques.md`
 - Vika 完整 CRUD 操作 + API 代码模板，见 `references/vika-guide.md`
-- 协作流程（同步技能/结束学生），见 `references/collaboration-workflow.md`
+- 协作流程（开始学生/结束学生），见 `references/collaboration-workflow.md`

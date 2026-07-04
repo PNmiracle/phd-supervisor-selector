@@ -101,7 +101,7 @@ Phase 4 — 持续维护
 
 | 场景 | 对 AI 说 |
 |------|-----------|
-| 每次开始搜学生前 | **"同步技能"** — 拉最新版，保证用的是最新策略 |
+| 每次开始搜学生前 | **"开始学生"** — 拉最新版，保证用的是最新策略 |
 | 搜完一个学生后 | **"结束学生"** — 提取经验存回去，让下次更准 |
 
 协作者不需要懂代码、不需要懂 git，全程用自然语言跟 AI 聊。首次设置只需配 git 身份 + 克隆仓库，详见协作者指南。
@@ -122,7 +122,7 @@ references/
   search-techniques.md            ← 搜索技术（SPA/API/浏览器/Tavily L4）
   school-strategies.md            ← 学校策略库（60所，L0-L4访问层+URL模式）
   vika-guide.md                   ← Vika API 代码模板 + 完整操作指南
-  collaboration-workflow.md       ← 协作流程（同步技能/结束学生 11步）
+  collaboration-workflow.md       ← 协作流程（开始学生/结束学生 11步）
 scripts/
   audit.py                        ← 写入后审计脚本
 ```
