@@ -351,77 +351,167 @@ python3 scripts/audit.py [DATASHEET_ID] [VIKA_TOKEN]
 - `"帮我把改动推上去并开 PR"`
 - `"同步并提交"`
 
-### 执行流程（按顺序自动完成）
+### 执行流程（AI 按顺序自动完成）
+
+**核心原则**：先保证本地干净，再拉最新代码，最后提交推送。全程不需要用户懂 git。
+
+---
+
+**第①步：检查 git 身份（避免提交者邮箱错误）**
 
 ```bash
 cd ~/.workbuddy/skills/phd-supervisor-selector
+git config user.name
+git config user.email
+```
 
-# ① 检查 git 身份（避免提交者邮箱错误）
-USER_NAME=$(git config user.name)
-USER_EMAIL=$(git config user.email)
-if [ -z "$USER_NAME" ] || [ -z "$USER_EMAIL" ] || echo "$USER_EMAIL" | grep -q "\.local$"; then
-  echo "⚠️ git 身份未配置，commit 不会被 GitHub 认领"
-  echo "请对 AI 说：帮我配置 git，用户名填 XXX，邮箱填 XXX"
-  # 如果已设置但不对，用正确的邮箱重新 commit
-fi
+- 如果输出为空，或邮箱以 `.local` 结尾（如 `<[email protected]>`）：
+  - **暂停流程**，告诉用户：
+    > ⚠️ git 身份未正确配置，commit 不会被 GitHub 认领。
+    > 请对 AI 说："帮我配置 git，用户名填 `你的GitHub用户名`，邮箱填 `你的GitHub注册邮箱`"
+  - 等用户配置好后，再重新执行第①步
+- 如果已正确配置，继续第②步
 
-# ② 展示改动文件，让用户确认
+---
+
+**第②步：展示改动文件，让用户确认**
+
+```bash
 git status --short
-# ← 暂停：展示改动文件列表，问用户"这些文件都要提交吗？"
-#    如果用户说"只提交XX文件"，记录文件名，第⑦步只用 git add XX
-#    如果用户确认全部提交，第⑦步用 git add -A
+```
 
-# ③ 把当前改动 stash 起来（防止 pull 时有未暂存改动导致报错）
+- 把改动文件列表展示给用户看
+- **问用户**："这些文件都要提交吗？"
+- 如果用户说"只提交 XX 文件"：
+  - 记录文件名，第⑧步只用 `git add XX`（不用 `git add -A`）
+- 如果用户确认全部提交：
+  - 第⑧步用 `git add -A`
+
+---
+
+**第③步：把当前改动 stash 起来（防止 pull 时报错）**
+
+```bash
 git stash push -m "临时保存：同步技能前"
+```
 
-# ④ 确保在 main 分支，拉取最新代码
+- 这样即使有未暂存改动，`git pull --rebase` 也不会报错
+- 如果 `git stash` 失败（不太可能），暂停并告诉用户
+
+---
+
+**第④步：确保在 main 分支，拉取最新代码**
+
+```bash
 git checkout main
 git pull --rebase origin main
-# ← 如果 rebase 冲突：暂停，展示冲突文件，让用户决定保留哪个版本
-#    解决后：git add <文件> && git rebase --continue，然后回到第⑤步
+```
 
-# ⑤ 检查是否有未合并的 PR，提醒用户（可选）
-OPEN_PRS=$(gh pr list --state open --json number,title,headRefName 2>/dev/null)
-# ← 如果有其他未合并的 PR，提示：
-#    "还有未合并的 PR#XX（xxx），你可以等它合并后再开新的，也可以继续"
-#    用户说"继续"才继续，说"先等一下"则暂停
+- 如果 `git pull --rebase` 遇到冲突：
+  - **暂停流程**，告诉用户哪个文件冲突了
+  - 展示冲突内容（`<<<<<<<` 标记的部分）
+  - 让用户决定保留哪个版本，或两边都在
+  - 解决后执行 `git add <文件>` → `git rebase --continue`
+  - 然后继续第⑤步
 
-# ⑥ 开新分支（自动命名：feat/日期-简述）
+---
+
+**第⑤步：检查是否有未合并的 PR（可选提醒）**
+
+```bash
+gh pr list --state open --json number,title,headRefName
+```
+
+- 如果有其他未合并的 PR：
+  - 提示用户：
+    > 还有未合并的 PR#XX（xxx），你可以等它合并后再开新的，也可以继续
+  - 用户说"继续"才继续，说"先等一下"则暂停
+- 如果没有未合并的 PR，直接继续第⑥步
+
+---
+
+**第⑥步：开新分支（自动命名）**
+
+```bash
 DATE=$(date +%Y-%m-%d)
-# 如果当天已有同名分支，加序号：feat/2026-07-04-技能更新-2
 BRANCH="feat/${DATE}-技能更新"
+
+# 如果当天已有同名分支，加序号：feat/2026-07-04-技能更新-2
 if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH"; then
   N=2
   while git show-ref --verify --quiet "refs/remotes/origin/${BRANCH}-${N}"; do N=$((N+1)); done
   BRANCH="${BRANCH}-${N}"
 fi
+
 git checkout -b "$BRANCH"
+```
 
-# ⑦ 应用 stash（把第③步保存的改动拿回来）
+- 分支名格式：`feat/YYYY-MM-DD-技能更新`（或加 `-2`、`-3` 后缀）
+- 这样同一天开多个 PR 也不会冲突
+
+---
+
+**第⑦步：应用 stash（把第③步保存的改动拿回来）**
+
+```bash
 git stash pop
-# ← 如果 pop 冲突：暂停，展示冲突内容，让用户决定
+```
 
-# ⑧ 提交（根据第②步的用户选择，决定用 git add -A 还是 git add 指定文件）
-git add -A   # 或 git add <指定文件>
+- 如果 `git stash pop` 冲突：
+  - **暂停流程**，展示冲突内容，让用户决定
+  - 解决后执行 `git add <文件>`，然后继续第⑧步
+
+---
+
+**第⑧步：提交（根据第②步的用户选择）**
+
+```bash
+# 如果用户确认全部提交：
+git add -A
+
+# 如果用户说"只提交 XX 文件"：
+# git add XX
+
+# 自动生成 commit 消息
 CHANGED=$(git diff --cached --name-only | tr '\n' '、' | sed 's/、$//')
-COMMIT_MSG="feat(技能更新): ${DATE} 更新 ${CHANGED}"
+COMMIT_MSG="feat(技能更新): $(date +%Y-%m-%d) 更新 ${CHANGED}"
+
 git commit -m "$COMMIT_MSG"
+```
 
-# ⑨ 推送到 GitHub
+- commit 消息会自动包含改了哪些文件
+- 示例：`feat(技能更新): 2026-07-04 更新 references/school-strategies.md`
+
+---
+
+**第⑨步：推送到 GitHub**
+
+```bash
 git push -u origin "$BRANCH"
+```
 
-# ⑩ 自动开 PR（gh CLI）
+- 如果 `git push` 失败（如网络问题），提示用户重试
+
+---
+
+**第⑩步：自动开 PR（gh CLI）**
+
+```bash
 gh pr create \
   --title "$COMMIT_MSG" \
   --body "本次更新：${CHANGED}" \
   --base main \
   --head "$BRANCH"
-
-# ⑪ PR 创建成功后，输出链接并提示
-# "✅ PR 已创建：https://github.com/.../pull/XX"
-# "等待仓库管理员合并～"
-# "合并后我会自动同步最新代码，下次直接说'同步技能'就行"
 ```
+
+---
+
+**第⑪步：PR 创建成功后，输出链接并提示**
+
+告诉用户：
+> ✅ PR 已创建：`https://github.com/.../pull/XX`
+> 等待仓库管理员合并～
+> 合并后我会自动同步最新代码，下次直接说"同步技能"就行
 
 ### commit 消息自动生成规则
 
