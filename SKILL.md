@@ -339,6 +339,74 @@ python3 scripts/audit.py [DATASHEET_ID] [VIKA_TOKEN]
 
 ---
 
+## 一键提交（协作简化流程）
+
+当用户说**"同步技能"**或**"提交更新"**或类似表达时，自动执行完整提交流程，无需用户手动操作 git。
+
+### 触发语
+
+以下任何一句都会触发：
+- `"同步技能"`
+- `"提交更新"`
+- `"帮我把改动推上去并开 PR"`
+- `"同步并提交"`
+
+### 执行流程（按顺序自动完成）
+
+```bash
+cd ~/.workbuddy/skills/phd-supervisor-selector
+
+# ① 确保当前在 main 且干净
+git checkout main
+git pull --rebase origin main
+
+# ② 开新分支（自动命名：feat/日期-简述）
+DATE=$(date +%Y-%m-%d)
+BRANCH="feat/${DATE}-技能更新"
+git checkout -b "$BRANCH"
+
+# ③ 把所有改动加进来
+git add -A
+
+# ④ 自动生成 commit 消息（根据 git status 看改了哪些文件）
+CHANGED=$(git diff --cached --name-only | tr '\n' '、' | sed 's/、$//')
+COMMIT_MSG="feat(技能更新): ${DATE} 更新 ${CHANGED}"
+git commit -m "$COMMIT_MSG"
+
+# ⑤ 推送到 GitHub
+git push -u origin "$BRANCH"
+
+# ⑥ 自动开 PR（gh CLI）
+gh pr create \
+  --title "$COMMIT_MSG" \
+  --body "本次更新：${CHANGED}" \
+  --base main \
+  --head "$BRANCH"
+```
+
+### commit 消息自动生成规则
+
+| 情况 | 生成的消息示例 |
+|------|----------------|
+| 改了 `school-strategies.md` | `feat(技能更新): 2026-07-04 更新 references/school-strategies.md` |
+| 改了多个文件 | `feat(技能更新): 2026-07-04 更新 references/school-strategies.md、SKILL.md` |
+| 新增文件 | 同上，文件路径会自动出现在消息里 |
+
+### PR 创建后
+
+- 自动输出 PR 链接，告诉用户："PR 已创建，等待仓库管理员合并"
+- 管理员（你）收到通知后，review → Merge
+- 合并后，用户的下一次函数触发会先 `git checkout main && git pull`，自动同步最新代码
+
+### 冲突处理
+
+如果 `git pull --rebase` 时冲突：
+1. 暂停流程，告诉用户哪个文件冲突了
+2. 让用户决定保留哪个版本，或两边都在
+3. 解决后继续 rebase → push → 开 PR
+
+---
+
 ## 知识沉淀（"结束学生"命令）
 
 当用户说"**结束学生**"或类似表达时，执行知识提取 + 同步工作流：
