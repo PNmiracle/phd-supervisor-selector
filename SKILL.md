@@ -356,45 +356,68 @@ python3 scripts/audit.py [DATASHEET_ID] [VIKA_TOKEN]
 ```bash
 cd ~/.workbuddy/skills/phd-supervisor-selector
 
-# ① 检查当前状态，展示改动文件让用户确认
+# ① 检查 git 身份（避免提交者邮箱错误）
+USER_NAME=$(git config user.name)
+USER_EMAIL=$(git config user.email)
+if [ -z "$USER_NAME" ] || [ -z "$USER_EMAIL" ] || echo "$USER_EMAIL" | grep -q "\.local$"; then
+  echo "⚠️ git 身份未配置，commit 不会被 GitHub 认领"
+  echo "请对 AI 说：帮我配置 git，用户名填 XXX，邮箱填 XXX"
+  # 如果已设置但不对，用正确的邮箱重新 commit
+fi
+
+# ② 展示改动文件，让用户确认
 git status --short
 # ← 暂停：展示改动文件列表，问用户"这些文件都要提交吗？"
-#    如果用户说"只提交XX文件"，则 git add XX（不用 git add -A）
-#    如果用户确认全部提交，则 git add -A
+#    如果用户说"只提交XX文件"，记录文件名，第⑦步只用 git add XX
+#    如果用户确认全部提交，第⑦步用 git add -A
 
-# ② 确保当前在 main 且拉取最新代码
+# ③ 把当前改动 stash 起来（防止 pull 时有未暂存改动导致报错）
+git stash push -m "临时保存：同步技能前"
+
+# ④ 确保在 main 分支，拉取最新代码
 git checkout main
 git pull --rebase origin main
-# ← 如果冲突：暂停，展示冲突文件内容（带 <<<<<<< 标记的），
-#    让用户决定保留哪个版本，解决后 git add + git rebase --continue
+# ← 如果 rebase 冲突：暂停，展示冲突文件，让用户决定保留哪个版本
+#    解决后：git add <文件> && git rebase --continue，然后回到第⑤步
 
-# ③ 检查是否有未合并的 PR，提醒用户
+# ⑤ 检查是否有未合并的 PR，提醒用户（可选）
 OPEN_PRS=$(gh pr list --state open --json number,title,headRefName 2>/dev/null)
-# ← 如果有其他未合并的 PR，提示用户：
-#    "还有未合并的 PR#XX（xxx），要不要等它合并后再开新的？"
-#    用户说"继续"才继续，说"先不管"也继续
+# ← 如果有其他未合并的 PR，提示：
+#    "还有未合并的 PR#XX（xxx），你可以等它合并后再开新的，也可以继续"
+#    用户说"继续"才继续，说"先等一下"则暂停
 
-# ④ 开新分支（自动命名：feat/日期-简述）
+# ⑥ 开新分支（自动命名：feat/日期-简述）
 DATE=$(date +%Y-%m-%d)
+# 如果当天已有同名分支，加序号：feat/2026-07-04-技能更新-2
 BRANCH="feat/${DATE}-技能更新"
+if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH"; then
+  N=2
+  while git show-ref --verify --quiet "refs/remotes/origin/${BRANCH}-${N}"; do N=$((N+1)); done
+  BRANCH="${BRANCH}-${N}"
+fi
 git checkout -b "$BRANCH"
 
-# ⑤ 提交（已经在第①步 add 过了）
+# ⑦ 应用 stash（把第③步保存的改动拿回来）
+git stash pop
+# ← 如果 pop 冲突：暂停，展示冲突内容，让用户决定
+
+# ⑧ 提交（根据第②步的用户选择，决定用 git add -A 还是 git add 指定文件）
+git add -A   # 或 git add <指定文件>
 CHANGED=$(git diff --cached --name-only | tr '\n' '、' | sed 's/、$//')
 COMMIT_MSG="feat(技能更新): ${DATE} 更新 ${CHANGED}"
 git commit -m "$COMMIT_MSG"
 
-# ⑥ 推送到 GitHub
+# ⑨ 推送到 GitHub
 git push -u origin "$BRANCH"
 
-# ⑦ 自动开 PR（gh CLI）
+# ⑩ 自动开 PR（gh CLI）
 gh pr create \
   --title "$COMMIT_MSG" \
   --body "本次更新：${CHANGED}" \
   --base main \
   --head "$BRANCH"
 
-# ⑧ PR 创建成功后，输出链接并提示
+# ⑪ PR 创建成功后，输出链接并提示
 # "✅ PR 已创建：https://github.com/.../pull/XX"
 # "等待仓库管理员合并～"
 # "合并后我会自动同步最新代码，下次直接说'同步技能'就行"
