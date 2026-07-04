@@ -1,6 +1,6 @@
 # PhD Supervisor Selector · 博士选导助手
 
-让 AI 自动帮你搜索、筛选、验证博士导师，支持 **Vika 表直接操作** 和 **Excel 表格** 两种模式。
+让 AI 自动帮你搜索、筛选、验证博士导师，主力支持 **Vika 表直接操作**，Excel 作为可选回退模式。
 
 ---
 
@@ -31,9 +31,9 @@ echo 'export VIKA_TOKEN=你的token' >> ~/.zshrc && source ~/.zshrc
 
 > 就是把你的 token 存到 `~/.zshrc`（Mac 每次开机自动加载的环境变量文件），之后所有 Chat 都自动能用。不需要装任何东西，不需要每开一个 Chat 就重复设。
 
-### 🅱️ 路径 B：Excel 模式
+### 🅱️ 路径 B：Excel 模式（可选回退）
 
-> 拖入 Excel，AI 搜索学校官网生成导师表。
+> 没有 Vika 表时，拖入 Excel，AI 搜索学校官网生成导师表。
 
 | 步骤 | 你说的 |
 |------|--------|
@@ -175,8 +175,10 @@ SKILL.md                          ← AI 入口 & 全部规则
 references/
   selection-rules.md              ← 导师筛选（职称/地区/匹配度）
   spreadsheet-rules.md            ← 表格格式 & 条件列逻辑
+  search-orchestrator.md          ← 搜索编排（优先级/状态追踪/子Agent）
   search-techniques.md            ← 搜索技术（SPA/API/浏览器/子Agent）
-  vika-operations-guide.md       ← Vika 表完整操作指南（增删改查/导入/去重/翻译）
-  vika-api-patterns.md           ← Vika API 可复用代码模板
+  school-strategies.md            ← 学校策略库（架构/访问层/URL模式）
+  vika-guide.md                   ← Vika API 代码模板 + 完整操作指南
+  collaboration-workflow.md       ← 协作流程（同步技能/结束学生）
 README.md                          ← 本文件
 ```

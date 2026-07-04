@@ -9,7 +9,7 @@ Before searching any school, check for a state file:
 ```bash
 # Path: {SKILL_DIR}/search-state/{student_name}.md
 # {SKILL_DIR} = the directory containing this skill's SKILL.md file.
-# For most agents: ~/.workbuddy/skills/phd-supervisor-selector/ or ~/.codex/skills/phd-supervisor-selector/
+# For most agents: ~/.workbuddy/skills/phd-supervisor-selector/
 cat "{SKILL_DIR}/search-state/{student_name}.md" 2>/dev/null
 ```
 
@@ -68,17 +68,19 @@ Before diving into individual schools, spend 2 minutes sorting the target school
 
 ### Priority Tiers
 
-| Tier | Criteria | Examples |
-|------|----------|----------|
-| **P0 — Gold Mines** | Known strong art/design schools with large fashion/textile departments | UAL, RCA, University of Leeds, Southampton, NTU (UK) |
-| **P1 — Likely Hits** | Schools with dedicated fashion/design/textile departments | Kingston, Heriot-Watt, De Montfort, RMIT, UTS |
-| **P2 — Possible** | Schools with related depts (art history, cultural studies, anthropology) but no dedicated fashion program | Various |
-| **P3 — Long Shots** | Schools where match requires creative interpretation of "design" | Engineering-heavy schools, business schools |
+分层逻辑是**目标院系的规模和匹配概率**，不是学校排名。同一个学校对不同学生可能在不同层。
+
+| Tier | Criteria | How to identify |
+|------|----------|----------------|
+| **P0 — Gold Mines** | 目标院系大（30+ 教师）、研究方向与学生高度重叠 | 院系有独立博士项目 + 多位教师做学生方向 |
+| **P1 — Likely Hits** | 目标院系中等规模（10-30 教师），有部分匹配教师 | 院系存在且有博士项目，部分教师方向相关 |
+| **P2 — Possible** | 院系存在但规模小或方向交叉为主 | 仅 2-5 位教师与学生方向沾边 |
+| **P3 — Long Shots** | 无独立目标院系，需跨院系寻找 | 学生方向需要创造性匹配（如工业工程→机械工程自动化方向） |
 
 ### Prioritization Heuristics
 
-1. **Department size matters**: A school with a 50-person fashion faculty is worth 10x more effort than one with 3 loosely related staff.
-2. **Advisor experience bias**: If the student's previous successful matches came from UK art schools, prioritize similar schools.
+1. **Department size matters**: A school with a 50-person target faculty is worth 10x more effort than one with 3 loosely related staff.
+2. **Advisor experience bias**: If the student's previous successful matches came from a certain type of school (e.g., UK research-intensive, AU Group of Eight), prioritize similar schools.
 3. **Cache advantage**: Schools with known working strategies (from state file) go first — they'll be fastest.
 4. **User urgency**: If user says "先搜英国", don't start with Australia.
 
@@ -88,10 +90,10 @@ Before searching, output a quick priority matrix:
 
 ```
 Search Priority (预计 20 所):
-P0: UAL (5 colleges), RCA, Leeds, Southampton — 先攻
-P1: Kingston, Heriot-Watt, De Montfort, NTU — 第二波
-P2: Edinburgh, Glasgow, Brighton — 第三波
-P3: Others — 最后扫尾
+P0: 目标院系最大的 4-5 所 — 先攻
+P1: 院系中等、部分匹配的 5-6 所 — 第二波
+P2: 院系小或方向交叉的 5-6 所 — 第三波
+P3: 需跨院系寻找的 — 最后扫尾
 ```
 
 Then search P0 first, report results, advance to P1.
@@ -111,7 +113,7 @@ Do NOT deep-search every school in one go. Use a two-pass approach:
 - Use: API → filter → verify personal pages → fill table
 - Parallelize: 3-5 schools at a time via sub-agents
 
-This prevents wasting 20 minutes deep-searching a school that turns out to have no fashion department.
+This prevents wasting 20 minutes deep-searching a school that turns out to have no relevant department.
 
 ## 4. Standardized Sub-Agent Dispatch
 

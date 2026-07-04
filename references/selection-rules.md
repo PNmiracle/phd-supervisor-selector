@@ -69,9 +69,9 @@ Fit can be strong even when keywords are indirect, if the supervisor's research 
 
 - `高度匹配`: directly matches the student's preferred research object and method.
 - `相关`: adjacent field, likely useful but not exact.
-- `偏重`: has one useful component but leans toward a risk area.
+- `偏重`: has one useful component but leans toward a risk area (e.g., `方法偏重` for a supervisor strong in methods but different application domain; `应用偏重` for the right application but different methodology).
 - `需确认带博`: profile is promising but eligibility is unclear.
-- `教学岗风险`, `材料技术偏重`, `空间遗产偏重`, etc. for concise risks.
+- `教学岗风险`, `研究岗风险`, `更新偏旧`, etc. for concise risks.
 
 Do not overfit by title alone. Check publications, projects, current research, supervised students, and program requirements where possible.
 
@@ -94,24 +94,24 @@ When writing a positive note, include the reason, not just a verdict. When the f
 
 1. **明确学生的核心工作方向**：从备注、对话上下文、学生背景中提取。注意区分"学生感兴趣的多个方向"和"学生当前实际在做的主要方向"。
 2. **逐条分类现有导师**：按方向归为三类：
-   - **A 类 — 强匹配**：直接属于学生当前主要工作方向的院系/研究领域（如学生在做工业工程/系统工程，导师在 ISE 系且研究智能制造/系统工程）
-   - **B 类 — 有交叉**：研究方向与学生工作方向有方法学或应用层面的交叉（如机器人技术可用于制造自动化）
-   - **C 类 — 偏离**：研究方向与学生当前工作方向基本无关（如纯飞行器控制、纯 SLAM 视觉，学生在做工业工程）
+   - **A 类 — 强匹配**：直接属于学生当前主要工作方向的院系/研究领域
+   - **B 类 — 有交叉**：研究方向与学生工作方向有方法学或应用层面的交叉
+   - **C 类 — 偏离**：研究方向与学生当前工作方向基本无关
 3. **统计分布**：如果 C 类占比超过 40%，或 A 类占比低于 30%，向用户报告方向失衡问题
 4. **提出方案**：建议删除 C 类，补充 A 类方向的新导师，使 A 类占比达到 50% 以上
 
 ### 注意事项
 
 - 学生的"兴趣方向"和"实际工作方向"可能不同。以**实际工作方向**为主轴判断匹配度
-- 同一个学生可能有多个方向（如软体机器人 + 工业工程），需要确认哪个是当前主要工作
-- 不要只看导师所在系名，要看具体研究内容（如在 ISE 系但做纯运筹优化的，可能不如在 MAE 系做制造自动化的匹配）
+- 同一个学生可能有多个方向，需要确认哪个是当前主要工作
+- 不要只看导师所在系名，要看具体研究内容（同系不同方向的导师匹配度可能差很大）
 
 ## School-Level Screening
 
 If a school is in the user's list but no suitable person is found, record it in a screening sheet with a specific reason. This is mandatory for user-specified school scopes: every searched school with no suitable supervisor must be logged in `学校初筛` or `排除或待确认` with the school name, search status, and concrete reason.
 
 - No relevant department or PhD route found.
-- Relevant department exists but all profiles are practice/design/technical/business-heavy.
+- Relevant department exists but all profiles are practice/teaching/technical-heavy rather than research-active.
 - Staff page is dynamic or blocked and no individual page can be verified.
 - The PhD route lacks funding or does not admit research students.
 - No supervisor list, but other staff links may deserve a future manual pass.
