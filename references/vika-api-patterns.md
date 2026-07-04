@@ -222,29 +222,48 @@ req = Request(url, data=json.dumps({"records": updates}).encode(), ...)
 
 **Note**: This ONLY affects PATCH operations on URL-type fields. Text/SingleSelect/Checkbox fields still work fine with `fieldKey="name"`.
 
-## Critical Discovery: OneWayLink/MagicLookUp Write Workaround (2026-06-30)
+## Critical Discovery: OneWayLink/MagicLookUp Write Workaround (updated 2026-07-03)
 
-**Problem**: Vika Fusion API rejects `OneWayLink` and `MagicLookUp` fields with "Lookup field can't be edited" when using `fieldKey=name` parameter.
+**Problem**: Vika Fusion API rejects `OneWayLink` and `MagicLookUp` fields with "Lookup field can't be edited" when using `fieldKey=name` parameter in the request body.
 
-**Root Cause**: When `fieldKey=name` is present in the URL query string, the API treats ALL field values as plain text and rejects references to linked record IDs. This affects both POST (create) and PATCH (update).
+**Root Cause**: When `fieldKey=name` is present in the request body, the API treats linked field values as plain text and may reject record ID references for certain field types.
 
-**Solution**: Remove `fieldKey=name` from the URL when PATCHing linked fields. Use the default field key mode (which uses field IDs internally).
+**Solution (verified 2026-07-03)**: Use **field NAMES** (not field IDs) as keys, with a **list of record ID strings** as the value. Do NOT include `fieldKey` in the request body.
 
 ```python
-# ❌ CORRECT - PATCH with fieldKey=name
-url = f'{base}/datasheets/{ds}/records?fieldKey=name'
-# This fails for OneWayLink fields
-
-# ✅ CORRECT - PATCH without fieldKey
+# ✅ CORRECT — field name key + list of record ID strings + no fieldKey in body
 url = f'{base}/datasheets/{ds}/records'
-# No fieldKey parameter - this allows setting OneWayLink/MagicLookUp fields
+body = {
+    "records": [
+        {"recordId": "recXXX", "fields": {"学校名字": ["recSchoolId123"]}}
+    ]
+    # NO "fieldKey" key here
+}
+# This works for OneWayLink fields
 
-# POST (create) still cannot set these fields regardless of fieldKey mode
+# ✅ ALSO WORKS — field name key + list of record IDs + fieldKey="name"
+body = {
+    "records": [...],
+    "fieldKey": "name"  # explicitly using name mode also works
+}
+
+# ❌ FAILS (400) — field ID key + no fieldKey in body
+body = {
+    "records": [
+        {"recordId": "recXXX", "fields": {"fldFfXtdDSST1": ["recSchoolId123"]}}
+    ]
+    # Returns "The format of the fields parameter value is wrong"
+}
+
+# ❌ FAILS (500) — field name key + list of objects {"recordId": "..."} 
+# Returns "SERVER_ERROR ({value})"
 ```
 
+**Key insight**: When `fieldKey` is omitted from the request body, the API defaults to field NAME mode (not field ID mode as previously documented). Field IDs only work when `fieldKey="id"` is explicitly set.
+
 **Workaround for creating records with linked fields**:
-1. POST record WITHOUT `非美国地区学校` and `Location` fields (use `fieldKey=name` for regular fields)
-2. PATCH the record WITHOUT `fieldKey=name` to set `非美国地区学校: [school_record_id]`
+1. POST record WITHOUT `学校名字` and `Location` fields (use `fieldKey=name` for regular fields)
+2. PATCH the record WITHOUT `fieldKey` to set `学校名字: [school_record_id]` (using field name as key)
 3. `Location` and `QS排名` will auto-fill after school link is set
 
 **Note**: This only works for PATCH, NOT for POST. Records must be created first, then school link patched in a separate call.

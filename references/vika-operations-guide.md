@@ -383,3 +383,146 @@ These fields **cannot** be written via Fusion API — they are computed or linke
 - Use `fieldKey: "name"` for Chinese field names
 - Always `strip()` names before comparison
 - URL fields accept plain strings (API wraps them)
+
+---
+
+## 11. Cross-School Link Audit (跨校链接审计)
+
+审查已有表格时，必须检查「博士申请信息」和「其他导师信息」的 URL 域名是否与导师实际所在学校一致。跨校链接错误会导致学生点开错误的申请页面。
+
+### 审计脚本
+
+```python
+import re
+
+records = vika("GET", "/records?maxRecords=200&pageSize=200")["data"]["records"]
+
+# School domain mapping (add as needed)
+SCHOOL_DOMAINS = {
+    "Nanyang Technological University": ["ntu.edu.sg"],
+    "National University of Singapore": ["nus.edu.sg"],
+    "Hong Kong Polytechnic University": ["polyu.edu.hk"],
+    "Chinese University of Hong Kong": ["cuhk.edu.hk"],
+    "University of Hong Kong": ["hku.hk"],
+    "University of Sydney": ["sydney.edu.au"],
+    # ...
+}
+
+issues = []
+for r in records:
+    f = r["fields"]
+    name = f.get("导师", "")
+    dept = f.get("Department", "")
+    
+    # Determine expected school domain from Department field
+    expected_domains = []
+    for school_key, domains in SCHOOL_DOMAINS.items():
+        if school_key.lower() in dept.lower():
+            expected_domains = domains
+            break
+    
+    if not expected_domains:
+        continue  # Skip if school not in mapping
+    
+    # Check PhD application link
+    phd = f.get("博士申请信息", "")
+    if isinstance(phd, dict):
+        phd = phd.get("text", "")
+    if phd:
+        phd_domain = re.search(r'https?://([^/]+)', phd)
+        if phd_domain:
+            phd_domain = phd_domain.group(1)
+            if not any(d in phd_domain for d in expected_domains):
+                issues.append(f"  ⚠ {name}: 博士申请信息域名({phd_domain}) ≠ 预期({expected_domains})")
+    
+    # Check other info link
+    other = f.get("其他导师信息", "")
+    if isinstance(other, dict):
+        other = other.get("text", "")
+    if other:
+        other_domain = re.search(r'https?://([^/]+)', other)
+        if other_domain:
+            other_domain = other_domain.group(1)
+            if not any(d in other_domain for d in expected_domains):
+                issues.append(f"  ⚠ {name}: 其他导师信息域名({other_domain}) ≠ 预期({expected_domains})")
+
+if issues:
+    print(f"Found {len(issues)} cross-school link issues:")
+    for issue in issues:
+        print(issue)
+else:
+    print("No cross-school link issues found.")
+```
+
+### 修复方式
+
+找到正确链接后，使用 field ID（非 fieldKey="name"）PATCH URL 字段：
+
+```python
+# Get field IDs first
+fields = vika("GET", "/fields")
+field_map = {f["name"]: f["id"] for f in fields["data"]["fields"]}
+
+updates = [
+    {"recordId": "recXXX", "fields": {
+        field_map["博士申请信息"]: "https://correct-url.edu/phd",
+        field_map["其他导师信息"]: "https://correct-url.edu/staff"
+    }}
+]
+# PATCH without fieldKey for URL fields
+req = Request(
+    f"{BASE}/datasheets/{DATASHEET}/records",
+    data=json.dumps({"records": updates}).encode(),
+    headers={"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"},
+    method='PATCH'
+)
+```
+
+---
+
+## 12. Batch Research Area Completion (批量补全研究领域)
+
+当表格中多条记录的「导师研究领域」为空时，通过 WebFetch 逐个抓取导师主页，提取 research interests 并批量写入。
+
+### 工作流
+
+1. GET 所有记录，筛选出「导师研究领域」为空的记录
+2. 对每条记录，WebFetch 其「导师主页」URL，prompt 提取 research interests
+3. 汇总提取结果，批量 PATCH（每批 10 条，fieldKey="name"）
+4. 注意：WebFetch 同时检查是否为 Emeritus/Retired，发现则标记删除
+
+```python
+# Step 1: Find records with empty research area
+records = vika("GET", "/records?maxRecords=200&pageSize=200&cellFormat=string")["data"]["records"]
+
+needs_research = []
+for r in records:
+    f = r["fields"]
+    if not f.get("导师研究领域", ""):
+        homepage = f.get("导师主页", "")
+        if isinstance(homepage, dict):
+            homepage = homepage.get("text", "")
+        if homepage:
+            needs_research.append({
+                "recordId": r["recordId"],
+                "导师": f.get("导师", ""),
+                "导师主页": homepage
+            })
+
+print(f"Found {len(needs_research)} records needing research area")
+
+# Step 2: WebFetch each homepage (done via WebFetch tool, not in this script)
+# Step 3: Batch PATCH with extracted research areas
+# Text fields work fine with fieldKey="name"
+updates = [
+    {"recordId": "recXXX", "fields": {"导师研究领域": "Robotics, Control, Manufacturing Automation"}},
+    # ... up to 10 per batch
+]
+vika("PATCH", "/records", {"records": updates, "fieldKey": "name"})
+```
+
+### 注意事项
+
+- `导师研究领域` 是文本字段，可以用 `fieldKey="name"` 正常 PATCH（不同于 URL 字段）
+- WebFetch 时同时检查 Emeritus/Retired 状态，发现则立即删除该记录
+- 使用 `cellFormat=string` 参数获取纯文本值，避免嵌套对象解析问题
