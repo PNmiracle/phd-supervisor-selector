@@ -69,6 +69,60 @@ Phase 4 ── 持续维护
 
 ---
 
+## 多人协作 · 共同维护 Skill
+
+> 📖 **协作者（小白）**：请先读 [`协作者指南.md`](协作者指南.md)  
+> 📖 **管理员**：请先读 [`管理员指南.md`](管理员指南.md)
+
+### 协作模式说明
+
+| 角色 | 能做什么 | 不能做什么 |
+|------|-----------|--------------|
+| **管理员（你）** | 直接 push main、合并 PR、改 SKILL.md 核心规则 | — |
+| **协作者（同事）** | 开分支、提交、开 PR | 不能直接 push main |
+
+### 一键提交（协作者专用）
+
+协作者改完文件后，**对 AI 说一句话：**
+
+> **"同步技能"**
+
+AI 会自动完成：拉最新代码 → 开新分支 → 提交 → 推送 → 开 PR。
+
+协作者不需要懂任何 git 命令。
+
+### 管理员合并 PR
+
+收到 PR 通知后：
+
+1. 打开 `https://github.com/PNmiracle/phd-supervisor-selector/pulls`
+2. 点进 PR → 点 **"Files changed"** 看改动
+3. 没问题就点 **"Merge pull request"** → **"Confirm merge"**
+
+### 协作者首次设置（只需一次）
+
+**对 AI 说：**
+> "帮我把 `PNmiracle/phd-supervisor-selector` 克隆到 `~/.workbuddy/skills/` 目录下"
+
+---
+
+## 协作者常见问题
+
+### Q：我改完文件，忘了说"同步技能"就关了 AI，怎么办？
+
+**没关系**，下次打开 AI，直接说"同步技能"就行。你的改动还保存在本地文件里。
+
+### Q：PR 创建后，管理员一直没合并，我能再改别的文件吗？
+
+**可以。** 说"同步技能"会开一个新的 PR，不影响之前的 PR。
+
+### Q：我想看我之前提交过哪些 PR？
+
+**对 AI 说：**
+> "帮我看看我开过哪些 PR"
+
+---
+
 ## 能力一览
 
 | 能力 | Vika 模式 | Excel 模式 |
@@ -102,52 +156,8 @@ Phase 4 ── 持续维护
 | 类型 | 示例 |
 |------|------|
 | 正常 | `教授；城市大数据、GeoAI；在招博士。` |
-| 反爬无法验证 | `⚠️Leeds页面JS动态加载，curl+浏览器均无法自动验证。需手动打开确认。` |
+| 反爬无法验证 | `⚠️ Leads页面JS动态加载，curl+浏览器均无法自动验证。需手动打开确认。` |
 | 仅有个人页 | `仅有个人主页，无官方院系页面。` |
-
----
-
-## 多人协作 · 共同维护 Skill
-
-如果你和另一位老师一起使用这个 Skill，通过在 GitHub 共享同一仓库来保持 Skill 同步：
-
-### 协作方（第二位老师）设置
-
-**前提：** 仓库拥有者已把你添加为 GitHub 仓库 `PNmiracle/phd-supervisor-selector` 的 Collaborator（Settings → Collaborators）。
-
-```bash
-# 如果之前没有安装过这个 skill
-git clone git@github.com:PNmiracle/phd-supervisor-selector.git ~/.workbuddy/skills/phd-supervisor-selector/
-
-# 如果之前通过 WorkBuddy 安装过，只需切换到 git 版本
-cd ~/.workbuddy/skills/phd-supervisor-selector
-git init
-git remote add origin git@github.com:PNmiracle/phd-supervisor-selector.git
-git fetch origin
-git reset --hard origin/main
-```
-
-### 日常同步工作流
-
-每次你或另一位老师说 **"结束学生"** 时，AI 会自动：
-1. 从这次搜索中提取可沉淀的知识
-2. 更新 `SKILL.md` 和 `references/*.md`
-3. **先 `git pull --rebase` 拉取对方更新**
-4. **再 `git push` 推送你的更新**
-5. 如有冲突，AI 会智能合并后重试
-
-### 手动同步（如果需要）
-
-```bash
-cd ~/.workbuddy/skills/phd-supervisor-selector
-git pull --rebase origin main
-```
-
-### 协作规则
-
-- **"结束学生"** 之前，AI 会自动 pull 最新版本，避免覆盖对方的改动
-- 如果 git pull 发现冲突，AI 会优先保留双方的增量改动，不做破坏性覆盖
-- 推荐每次搜索前先说一次 `git pull` 风格的同步提示给 AI
 
 ---
 
@@ -155,11 +165,13 @@ git pull --rebase origin main
 
 ```
 SKILL.md                          ← AI 入口 & 全部规则
+协作者指南.md                    ← 协作者（小白）操作指南
+管理员指南.md                    ← 管理员操作规范
 references/
-  selection-rules.md               ← 导师筛选（职称/地区/匹配度）
-  spreadsheet-rules.md             ← 表格格式 & 条件列逻辑
-  search-techniques.md             ← 搜索技术（SPA/API/浏览器/子Agent）
-  vika-operations-guide.md         ← Vika 表完整操作指南（增删改查/导入/去重/翻译）
-  vika-api-patterns.md             ← Vika API 可复用代码模板
+  selection-rules.md              ← 导师筛选（职称/地区/匹配度）
+  spreadsheet-rules.md            ← 表格格式 & 条件列逻辑
+  search-techniques.md            ← 搜索技术（SPA/API/浏览器/子Agent）
+  vika-operations-guide.md       ← Vika 表完整操作指南（增删改查/导入/去重/翻译）
+  vika-api-patterns.md           ← Vika API 可复用代码模板
 README.md                          ← 本文件
 ```
