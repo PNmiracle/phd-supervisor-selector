@@ -126,8 +126,8 @@ result = vika("GET", "/records?maxRecords=200&pageSize=200&cellFormat=string")
 
 ```python
 new_records = [
-    {"fields": {"导师": "张三", "Department": "心理学院(XX大学)", "备注": "教授；决策研究"}},
-    {"fields": {"导师": "李四", "Department": "商学院(YY大学)", "备注": "副教授；消费者行为"}},
+    {"fields": {"导师": "张三", "Department": "心理学院(XX大学)", "备注": "教授；决策研究；比较匹配～", "待确认导师": "新加待check"}},
+    {"fields": {"导师": "李四", "Department": "商学院(YY大学)", "备注": "副教授；消费者行为；比较匹配～", "待确认导师": "新加待check"}},
 ]
 result = vika("POST", "/records", {"records": new_records, "fieldKey": "name"})
 print(f"Created {len(result['data']['records'])} records")
@@ -483,3 +483,36 @@ See section 4.2 above. URL-type fields require field IDs without `fieldKey` para
 - Use `fieldKey: "name"` for Chinese field names (except for URL field PATCH)
 - Always `strip()` names before comparison
 - URL fields accept plain strings (API wraps them)
+
+---
+
+## 14. 待确认导师自查流程
+
+当用户说"检查新加导师"时，获取所有 `待确认导师` = `新加待check` 的记录进行自查：
+
+```python
+from urllib.parse import quote
+
+# 获取所有待确认导师=新加待check 的记录
+filter_expr = quote('{待确认导师}="新加待check"')
+result = vika("GET", f"/records?filterByFormula={filter_expr}&maxRecords=200&cellFormat=string")
+pending = result["data"]["records"]
+
+print(f"待检查记录: {len(pending)} 条")
+for r in pending:
+    f = r["fields"]
+    print(f"  [{r['recordId']}] {f.get('导师','?')} | {f.get('备注','?')[:60]}")
+```
+
+自查项目（逐条执行，不自动放行）：
+1. 导师主页 URL 可访问且为个人页面
+2. 姓名/职称/院系与主页一致
+3. 研究方向匹配度合理
+4. 备注格式三段式
+5. 备注无禁止内容
+6. 博士申请信息 & 其他导师信息 URL 有效
+7. 无遗漏风险标注
+8. 非 Emeritus/退休/Visiting
+9. 无重复（与选导意向非空记录比对）
+
+检查完毕输出通过/修正/建议删除三类清单。**不自动清空 `待确认导师`**，提醒用户人工抽检后手动清空。

@@ -22,6 +22,7 @@ When starting work, decide the column structure:
 - `博士申请信息`: official PhD/research degree/program application page.
 - `其他导师信息`: same department/school staff list or official supervisor list.
 - `备注`: short Chinese note based on profile content.
+- `待确认导师`: quality gate column. AI sets to `新加待check` when creating new records; cleared manually after human review. Records with `新加待check` are invisible to students.
 
 ### Main Columns (Template Format)
 
