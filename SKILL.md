@@ -280,6 +280,17 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 ### 禁止在备注中写入方向偏向
 不要写 "方向偏X"、"没有非常符合的老师" 等主观评价。
 
+### 禁止猜测 URL
+
+**永远不要通过命名规则构造 URL。** 大学网站经常重组，URL 路径会变。必须通过以下方式获取 URL：
+1. WebSearch 搜索 `"[Name] [University] professor"` 找个人页面
+2. WebSearch 搜索 `"[University] [Department] faculty staff listing"` 找系列表页
+3. **WebFetch 逐条验证**——200 状态码不代表内容正确（可能是 SPA 壳或 404 软页面）
+
+**「其他导师信息」字段的特殊规则**：这些是系级教职员列表页 URL。每次会话开始、或用户说"检查链接"时，必须对每个 Department 的列表页 URL 逐一 WebFetch 验证。不要依赖 `references/school-strategies.md` 中记录的 URL——它们可能在你上次访问后已经变了。
+
+**教训（2026-07-07）**：12 个「其他导师信息」链接中 4 个已失效（NUS × 2, NTU × 1, CityU × 1），都是因为大学重组了网站结构。
+
 ### 排除退休/名誉教授
 不添加 Emeritus、退休、约 70 岁以上、或不在当前教职员目录中的导师。
 
