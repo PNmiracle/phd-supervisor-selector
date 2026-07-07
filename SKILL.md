@@ -46,9 +46,10 @@ Requires `TAVILY_API_KEY` environment variable. If installed, search automatical
 
 当用户上传 `.xlsx` 文件而非 Vika 链接时，使用 Excel 模式。详见 `references/spreadsheet-rules.md`（列格式选择、列偏移检测、备注规则、质量检查）。
 
-**默认输出列**：`导师`, `Location`, `学校名字`, `QS排名`, `美国USNEWS排名`, `Department`, `导师主页`, `博士申请信息`, `其他导师信息`, `备注`
+**默认输出列**：`导师`, `Location`, `学校名字`, `QS排名`, `美国USNEWS排名`, `Department`, `导师主页`, `导师联系方式`, `博士申请信息`, `其他导师信息`, `备注`
 
 - `美国USNEWS排名`：仅当列表中有美国学校时包含此列
+- `导师联系方式`：**国内学校必填**（导师 email），海外学校选填
 
 ---
 
@@ -134,7 +135,9 @@ locked = [r for r in all_records if r["fields"].get("选导意向（点击选择
 4. **SPA/动态站点**：先查 `references/search-techniques.md` L0-SPA 策略（找替代来源而非死磕 SPA 壳）；若无替代来源再探测 JS bundle 中的 API 端点
 5. 按内容验证每个导师主页
 6. 使用 `references/selection-rules.md` 判断指导资格
+   - **国内学校**：走「国内学校选导规则」子章节（招生目录优先 → A/B/C 分类 → 邮箱必填 → 主页要求）
 7. 使用 `references/spreadsheet-rules.md` 填写表格
+   - **国内学校**：额外遵守「国内学校表格规则」子章节（导师联系方式必填、主页来源要求、备注链接格式）
 8. 没找到合适导师的学校记录排除原因
 
 ---
@@ -142,6 +145,7 @@ locked = [r for r in all_records if r["fields"].get("选导意向（点击选择
 ## 搜索标准
 
 - **搜索引擎为主要策略**查找个人导师资料。搜 `"[导师名] [大学] professor"` 获取真实 URL——不要猜测 URL
+  - **国内学校**：使用百度搜索而非 Google。搜索 `"[导师名] [学校名] 教授"` 或 `"[导师名] [学校名] 博士导师"`
 - 优先官方大学页面而非个人网站
 - **禁止 URL 猜测**：不要通过命名规则构造 URL（失败率约 90%）
 - **SPA/JS 渲染页面**：不接受 200 空壳。**优先尝试 L0-SPA 策略**（找替代来源：个人网站、ResearchGate、研究中心页面），不要死磕 SPA 壳。详见 `references/search-techniques.md` L0-SPA 节和 `references/school-strategies.md` 各学校策略
@@ -212,6 +216,24 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 - `助理教授；消费者决策、道德决策、自我概念清晰度；MIT PhD，可以关注一下；建议多看看呢～`
 - `副教授；做数字消费者行为和 AI 在营销里的应用，品牌传播和媒介技术都能搭上；"research focuses on digital consumer behavior and AI in marketing"；建议多看看呢～`
 - `教授；做文化遗产和建筑史，可以往遗产保护方向靠；建筑遗产方面偏重一些；可以备选一下～`
+
+### 🧹 AI 生成内容清理（写备注后强制执行）
+
+**每次写完或批量修改备注后，必须执行以下清理操作：**
+
+1. **移除所有 ⚠️ 及之后的内容**：备注中任何 `⚠️` 字符及其在同一语义段落后的内容都要删除。`⚠️` 会让学生感到不安，且看起来"太像 AI 写的"。
+
+2. **移除所有 Emoji**：备注中不得出现任何 emoji 字符。使用以下 Unicode 范围过滤：
+   - 表情符号（U+1F300–U+1F9FF）
+   - 杂项符号（U+2600–U+27BF）
+   - 装饰符号（U+2702–U+27B0）
+   - 补充符号（U+1F900–U+1F9FF）
+   - Dingbats（U+2700–U+27BF）
+   - 交通/地图符号（U+1F680–U+1F6FF）
+
+3. **清理后检查**：备注应只保留纯文字 + 中文标点，干净、自然、像人说的话。
+
+**处理方式：** 可以在 Python 中用 Unicode 码点范围过滤，或逐字符检查 `unicodedata.category()`。
 
 ### 当学校匹配导师极少时（1-2位）
 
@@ -304,6 +326,14 @@ QS排名、Location、美国USNEWS排名等字段通过 API 只读。
 ### 新增记录去重
 写入新记录前，检查是否已经存在于已有选导意向的记录中。
 
+### 国内学校搜索（不使用 Google）
+国内（中国大陆）学校的导师搜索**不使用 Google**，改用百度搜索：
+- `[导师名] [学校名] 教授`
+- `[导师名] [学校名] 博士导师`
+- 辅助来源：百度学者、百度百科、知网、万方
+
+所有国内学校导师必须遵守 `references/selection-rules.md` 中的「国内学校选导规则」。
+
 ---
 
 ## 飞行前检查清单（添加导师前强制执行）
@@ -345,6 +375,7 @@ python3 scripts/audit.py [DATASHEET_ID] [VIKA_TOKEN]
 2. 备注格式（缺少；分隔符、缺少句号）
 3. 备注中是否有垃圾内容
 4. 缺少必填字段（导师主页、博士申请信息、其他导师信息）
+5. **国内学校**：检查 `导师联系方式` 是否为空，是否为有效 email 格式
 
 ---
 
@@ -359,7 +390,9 @@ python3 scripts/audit.py [DATASHEET_ID] [VIKA_TOKEN]
 ## 参考文献
 
 - 决定候选人能否进入主表前，阅读 `references/selection-rules.md`
+  - **国内学校**：重点阅读文档末尾的「国内学校选导规则」（招生目录优先、A/B/C 分类、邮箱必填）
 - 创建/编辑/验证表格前，阅读 `references/spreadsheet-rules.md`
+  - **国内学校**：重点阅读文档末尾的「国内学校表格规则」（导师联系方式列、主页来源、备注链接格式）
 - 开始搜索前，阅读 `references/search-orchestrator.md`
 - 访问学校前，检查 `references/school-strategies.md`
 - SPA/API 发现技巧，见 `references/search-techniques.md`
