@@ -157,7 +157,7 @@ vika("PATCH", "/records", {"records": updates, "fieldKey": "name"})
 
 ### 4.2 URL Fields (CRITICAL — fieldKey="name" 静默失败)
 
-URL-type fields (导师主页, 博士申请信息, 其他导师信息) do NOT work with `fieldKey="name"`. API returns 200 but silently fails. **Must use field IDs without fieldKey parameter.**
+URL-type fields (导师主页, 博士申请信息, 其他导师信息) do NOT work with `fieldKey="name"`. API returns 200 but silently fails. **Must use field IDs with `fieldKey="id"`.**
 
 ```python
 # 先获取 field IDs
@@ -171,17 +171,17 @@ updates = [
         field_map["博士申请信息"]: "https://gradschool.university.edu/phd"
     }}
 ]
-# 直接 PATCH，不加 fieldKey
+# PATCH with fieldKey="id" (CRITICAL: must include fieldKey="id")
 req = Request(
     f"{BASE}/datasheets/{DATASHEET}/records",
-    data=json.dumps({"records": updates}).encode(),
+    data=json.dumps({"records": updates, "fieldKey": "id"}).encode(),
     headers={"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"},
     method='PATCH'
 )
 urlopen(req)
 ```
 
-**Note**: This ONLY affects PATCH on URL-type fields. Text/SingleSelect/Checkbox fields work fine with `fieldKey="name"`.
+**Note**: This ONLY affects PATCH on URL-type fields. Text/SingleSelect/Checkbox fields work fine with `fieldKey="name"`. Using field IDs without `fieldKey="id"` returns 400 error.
 
 ### 4.3 Bulk Department Translation
 

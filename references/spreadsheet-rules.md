@@ -19,6 +19,7 @@ When starting work, decide the column structure:
 - `美国USNEWS排名`: **only include this column when at least one US school is in the list.** Omit entirely for all-non-US lists.
 - `Department`: department/school/center that owns the profile.
 - `导师主页`: official profile page, team page, or official staff entry that visibly matches the person.
+- `导师联系方式`: supervisor contact email. **Mandatory for domestic (China mainland) schools.** Fill with the supervisor's email address. For non-domestic schools, fill when available but not required.
 - `博士申请信息`: official PhD/research degree/program application page.
 - `其他导师信息`: same department/school staff list or official supervisor list.
 - `备注`: short Chinese note based on profile content.
@@ -178,3 +179,34 @@ Before final delivery:
 - If a candidate is likely unsuitable only because of title or supervision uncertainty, keep them out of the main table unless the user asked for borderline options.
 - **When filling a template with mixed US/non-US schools**: sort rows so US schools are grouped together, non-US schools grouped together. This makes the empty cells less visually jarring.
 - **When all schools are non-US in a template**: the `美国学校` and `美国学校的Usnews排名` columns remain in the header but all rows have them empty. This is correct behavior.
+
+## 国内学校表格规则 (Domestic China School Column Rules)
+
+国内（中国大陆）学校的导师记录在填写表格时，需额外遵守以下规则：
+
+### 导师联系方式（必填）
+
+`导师联系方式` 列为国内学校导师必填项。必须填入导师的 email 地址。
+
+获取优先顺序：
+1. 导师个人主页（标题栏/联系信息/页面底部）
+2. 院系师资列表页
+3. 百度学者、ResearchGate、学术论文通讯作者邮箱等其他来源
+
+若通过非主页来源获取邮箱，须在备注中标注来源（如"邮箱来自百度学者"）。
+
+### 导师主页（国内来源要求）
+
+`导师主页` 必须使用 `.edu.cn` 域名的官方导师个人页面 URL。
+
+若主页信息过少（仅有姓名+职称，无方向/论文/项目），：
+- URL 仍填入 `导师主页` 列
+- 备注中补充百度学者、百度百科、外部文章等链接
+
+### 备注补充链接格式
+
+备注中补充的外部链接需使用完整 URL，放在备注末尾，用分号与前文分隔：
+
+```
+教授；自然语言处理、知识图谱；百度学者 https://xueshu.baidu.com/...；可往NLP方向靠。
+```
