@@ -357,14 +357,31 @@ Format: Architecture + Layer + Access method + Endpoints + Failures
 - **Last verified**: 2026-06-26
 
 #### Chinese University of Hong Kong (CUHK)
-- **Architecture**: Static HTML (psych) + JS-rendered (business)
-- **Layer**: L1
-- **Access**: psy.cuhk.edu.hk via browser; bschool.cuhk.edu.hk staff page is JS-rendered
-- **Key endpoint**: https://www.psy.cuhk.edu.hk/en/people/faculty.html
-- **Individual profile pattern (Psych)**: `psy.cuhk.edu.hk/en/people/faculty-members/{slug}.html`
-- **CUHK MAE Individual Profile URLs**: Individual profile path is `/peoples/` NOT `/people/` (listing page uses /people/academic-staff/ but individual profiles use /peoples/{name-slug}/). Slug format: surname-first (e.g. lau-darwin-tat-ming, liao-wei-hsin). Bing search "[Name] CUHK MAE" to discover exact slug.
-- **Failed**: CUHK Psych page partially inaccessible; supplemented via Bing search
-- **Last verified**: 2026-06-30
+**CRITICAL — Must follow this workflow for ALL CUHK departments:**
+
+1. **Always start from the staff listing page** (all are server-rendered static HTML, L1)
+2. **Extract every name + profile URL from the listing page** — do NOT construct URLs from memory or search snippets
+3. **Verify each person is still in the current listing** before writing to Vika
+
+| Department | Staff Listing URL | Individual Profile Pattern | Slug Format |
+|-----------|-------------------|---------------------------|-------------|
+| Psychology | `psy.cuhk.edu.hk/en/people/faculty.html` | `faculty-members/{slug}.html` | Firstname-lastname (e.g. `qian-wang`, `helene-fung`). Note: NO `prof-` prefix |
+| Social Work | `web.swk.cuhk.edu.hk/en-gb/people/full-time-teaching-staff` | `full-time-teaching-staff/{id}-prof-{slug}` | Numeric ID prefix (e.g. `144-prof-ngai-sek-yum-steven`) |
+| Educational Psychology | `fed.cuhk.edu.hk/eps/en/people/academic-staff/` | `eps/en/peoples/{slug}/` | `prof-{firstname}-{lastname}` (e.g. `prof-hawk-skyler`, `prof-chui-tsz-yeung-harold`) |
+| MAE (Engineering) | Uses `/peoples/` NOT `/people/` for individual profiles | `peoples/{slug}/` | Surname-first (e.g. `lau-darwin-tat-ming`) |
+
+**Common pitfalls (learned 2026-07):**
+- Psych dept changed slug format — removed `prof-` prefix from URLs (e.g. `prof-wang-qian` → `qian-wang`)
+- SWK dept completely rebuilt their site — old `/en/people/teaching-staff/` → new `/en-gb/people/full-time-teaching-staff/{ID}-{slug}`
+- Education dept moved from `/en/people/` → `/eps/en/peoples/`
+- Several professors listed on old sites had moved to other institutions (HKU, etc.) — always cross-check against current listing page
+- **Do NOT trust search engine snippets alone** — always open the listing page to confirm the person is still there
+
+- **Architecture**: Static HTML (all 3 departments above) + JS-rendered (business school)
+- **Layer**: L1 (Psych, SWK, Edu Psych) / L2-L3 (Business)
+- **Failed**: Psych/SWK/Edu pages occasionally change URL patterns without redirect; always verify via listing page
+- **Last verified**: 2026-07-07
+- 
 
 #### HKUST
 - **Architecture**: Static HTML
