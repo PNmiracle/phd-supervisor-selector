@@ -396,6 +396,13 @@ Format: Architecture + Layer + Access method + Endpoints + Failures
 #### City University of Hong Kong (CityU)
 - **Architecture**: Incapsula WAF (main domain) + Cloudflare WAF (scholars subdomain) + various subdomain architectures
 - **Layer**: L3→L4 (Fully blocked from curl; search engine fallback required)
+- **Primary workflow — Scholars Portal (ALL departments, mandatory)**:
+  1. Go to **https://scholars.cityu.edu.hk/en/persons/** — CityU's unified faculty portal (Pure Portal)
+  2. Search for the supervisor by name in the search bar
+  3. Open the individual profile page from the search results
+  4. Copy the profile URL — format: `scholars.cityu.edu.hk/en/persons/{name}({uuid})`
+  5. Fill the URL into Vika's `导师主页` column
+  6. **Post-write verification (mandatory)**: After writing the URL to Vika, immediately re-fetch the URL via WebFetch to confirm it is NOT 404. Delete the record if 404 is returned.
 - **Subdomain probe results** (2026-07-01):
   - www.cityu.edu.hk/*: Incapsula WAF (212-951 bytes)
   - www6.cityu.edu.hk: Incapsula
@@ -404,26 +411,28 @@ Format: Architecture + Layer + Access method + Endpoints + Failures
   - moodle.cityu.edu.hk: SSL EOF
   - canvas.cityu.edu.hk: OK 40KB (Canvas LMS, not faculty data)
   - sgs.cityu.edu.hk: SSL EOF
-  - scholars.cityu.edu.hk: 404 (was previously accessible as Pure Portal variant)
+  - scholars.cityu.edu.hk: Core portal — use browser/WebFetch for individual profile pages
   - lbms03.cityu.edu.hk: 122 bytes
+- **404 re-verification rule (mandatory for all CityU records)**:
+  - After writing ANY CityU supervisor URL to Vika, re-fetch it via WebFetch within 5 minutes
+  - If 404 is returned, delete the record from Vika immediately
+  - Reason: CityU scholar profile URLs can become stale when faculty move or retire
 - **COM Department (Media and Communication)**:
-  - All subdomains blocked: scholars.cityu.edu.hk (Cloudflare), www.cityu.edu.hk (Incapsula), com.cityu.edu.hk (73 bytes)
-  - Accessible: canvas.cityu.edu.hk (Canvas LMS, no faculty data)
-  - Best method: DDG/Bing search `"{Name}" "City University of Hong Kong" professor` → extract scholars.cityu.edu.hk UUID from search results
-  - Profile URL format: scholars.cityu.edu.hk/en/persons/{name}({uuid}) OR www.cityu.edu.hk/com/people/dr-{name-slug}
+  - Primary: scholars.cityu.edu.hk portal (see workflow above)
+  - Fallback: DDG/Bing search `"{Name}" "City University of Hong Kong" professor` → extract URL from search results
   - CB (Business) pages: https://www.cb.cityu.edu.hk/staff/ accessible directly
-  - SS (Social Sciences) pages: blocked by WAF → use scholars.cityu.edu.hk or Google cached results
+  - SS (Social Sciences) pages: blocked by WAF → use scholars.cityu.edu.hk
   - PhD links: https://www.cb.cityu.edu.hk/pg/ (business), https://www.cityu.edu.hk/pg/programme/ (SS)
 - **ORCID Discovery Method** (when all search engines fail):
-  1. `curl "https://pub.orcid.org/v3.0/search/?q=affiliation-org-name:%22City+University+of+Hong+Kong%22+AND+keyword:communication"` → get ORCID IDs
-  2. `curl "https://pub.orcid.org/v3.0/{orcid}/person"` → get researcher names
-  3. Use external knowledge to match ORCID names to COM department
-  4. Write to Vika with ⚠️ marker since profile pages unverifiable
-  - Found via ORCID: Tai-Quan Peng, Dani Madrid-Morales, Hai Liang (COM dept)
+  1. `curl "https://pub.orcid.org/v3.0/search/?q=affiliation-org-name:%22City+University+of+Hong+Kong%22"` → get ORCID IDs
+  2. `curl "https://pub.orcid.org/v3.0/{orcid}/person"` → get researcher names and details
+  3. Cross-reference found names with target department
+  4. Search found names on scholars.cityu.edu.hk for profile verification
+  5. If profile found, write to Vika; if not, mark with note in 备注
+  - Previously found via ORCID: Tai-Quan Peng, Dani Madrid-Morales, Hai Liang (COM dept)
 - **Individual staff profiles**: www.cityu.edu.hk/stfprofile/{slug}.htm (static HTML, not SPA) — e.g. cssamk for Sam Kwong (NOT sam-kwong). Discovered via DDG HTML search.
-- **Failed**: 12 subdomains probed, 0 return faculty data; all curl/browser approaches; all Incapsula; scholars blocked (403); ssweb.cityu.edu.hk blocked by Incapsula
-- **⚠️ Manual access needed**: https://www.cityu.edu.hk/com/
-- **Last verified**: 2026-07-01
+- **Failed**: 12 subdomains probed, 0 return faculty data; all curl/browser approaches; all Incapsula; ssweb.cityu.edu.hk blocked by Incapsula
+- **Last verified**: 2026-07-07
 
 #### Hong Kong Polytechnic University (PolyU)
 - **Architecture**: JS-rendered
@@ -822,7 +831,7 @@ BAD_PATTERNS = [
 | SMU (new) | `faculty.smu.edu.sg/profile/{name}` |
 | HKU Psych | `psychology.hku.hk/people/{slug}/` |
 | HKU Business | `hkubs.hku.hk/people/{slug}/` |
-| CityU | `cb.cityu.edu.hk/people-and-research/people/people-details?eid={id}` |
+| CityU | `scholars.cityu.edu.hk/en/persons/{name}({uuid})` — use Scholars Portal search first |
 | UCL (new) | `profiles.ucl.ac.uk/{id}-{slug}` |
 | UNSW | `unsw.edu.au/staff/{slug}` |
 | LiU | `liu.se/en/employee/{employeeId}` (IDs like danva85) |
