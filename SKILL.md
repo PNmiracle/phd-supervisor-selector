@@ -130,6 +130,7 @@ locked = [r for r in all_records if r["fields"].get("选导意向（点击选择
 ## 搜索工作流（Vika 和 Excel 通用）
 
 1. 解析学生背景、研究方向、硬排除条件、目标地区/学校、排名限制
+   - **排名筛选强制规则**：当用户要求按排名（QS/USNEWS等）筛选学校时，必须先读取学校主表（`https://vika.cn/share/shrG4rw9LfPkJzU7apLcK`）获取各校排名数据，再根据排名限制筛选目标学校。严禁凭记忆或猜测排名。详见「关键规则 → 排名筛选必须参考学校主表」。
 2. **检测表格格式**（见 `references/spreadsheet-rules.md`）：Vika 模式从 URL 解析 datasheetId；Excel 模式若用户提供模板则沿用其列结构
 3. 优先搜索官方大学来源
 4. **SPA/动态站点**：先查 `references/search-techniques.md` L0-SPA 策略（找替代来源而非死磕 SPA 壳）；若无替代来源再探测 JS bundle 中的 API 端点
@@ -342,6 +343,25 @@ QS排名、Location、美国USNEWS排名等字段通过 API 只读。
 - 辅助来源：百度学者、百度百科、知网、万方
 
 所有国内学校导师必须遵守 `references/selection-rules.md` 中的「国内学校选导规则」。
+
+### 排名筛选必须参考学校主表
+
+当用户说"按 QS 前 100 筛选"、"USNEWS 前 50"、"排名 XX 以内"等任何涉及排名限制的筛选条件时，**必须先读取学校主表获取准确排名数据，再筛选学校**。
+
+**学校主表地址**：`https://vika.cn/share/shrG4rw9LfPkJzU7apLcK`
+
+**操作流程**：
+1. 解析学校主表的 share ID（`shrG4rw9LfPkJzU7apLcK`），通过 Vika API 获取表格数据
+2. 读取各学校的 QS 排名、USNEWS 排名等字段
+3. 根据用户指定的排名限制过滤学校列表
+4. 仅对筛选后的学校进行导师搜索
+
+**严禁行为**：
+- 凭记忆或常识判断学校排名（如"XX大学大概在QS 50左右"）
+- 跳过学校主表直接用搜索引擎估算排名
+- 用去年的排名数据代替当前主表中的数据
+
+**原因**：学校排名每年变动，学校主表是唯一可信的排名数据源。任何基于记忆的排名判断都可能因数据过时而误导筛选结果。
 
 ---
 
