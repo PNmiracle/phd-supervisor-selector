@@ -288,7 +288,9 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 ## 关键规则（CRITICAL）
 
 ### SPA 壳返回 200 ≠ 链接有效
-200 状态码 + SPA 壳（响应 <5KB，同域所有请求返回相同字节数）→ **不能确认导师存在**。立即切换到 **L0-SPA 策略**：通过 WebSearch 找替代来源（个人网站、ResearchGate、研究中心页面），不要在 SPA 壳上浪费尝试。详见 `references/search-techniques.md` L0-SPA 节。
+200 状态码 + SPA 壳（响应相同内容，所有不同 URL 返回相同字节数）→ **不能确认导师存在**。立即切换到 **L0-SPA 策略**：通过 WebSearch 找替代来源（个人网站、ResearchGate、研究中心页面），不要在 SPA 壳上浪费尝试。详见 `references/search-techniques.md` L0-SPA 节。
+
+**经典案例（2026-07-13）**：CUHK STA 的 `/people/faculty/{name}/` 所有 URL 返回完全相同的 114KB 首页 HTML（SPA 壳），浏览器 JS 加载后才显示个人内容。正确格式是 `/peoples/{slug}/`（静态 HTML，可直接验证研究方向）。详见 `references/school-strategies.md` CUHK 章节。
 
 ### 导师主页必须是个人 URL
 禁止使用通用院系列表页。每位导师必须有自己唯一的个人主页 URL。

@@ -369,6 +369,12 @@ Format: Architecture + Layer + Access method + Endpoints + Failures
 | Social Work | `web.swk.cuhk.edu.hk/en-gb/people/full-time-teaching-staff` | `full-time-teaching-staff/{id}-prof-{slug}` | Numeric ID prefix (e.g. `144-prof-ngai-sek-yum-steven`) |
 | Educational Psychology | `fed.cuhk.edu.hk/eps/en/people/academic-staff/` | `eps/en/peoples/{slug}/` | `prof-{firstname}-{lastname}` (e.g. `prof-hawk-skyler`, `prof-chui-tsz-yeung-harold`) |
 | MAE (Engineering) | Uses `/peoples/` NOT `/people/` for individual profiles | `peoples/{slug}/` | Surname-first (e.g. `lau-darwin-tat-ming`) |
+| Statistics & Data Science | `sta.cuhk.edu.hk/pcat/faculty/` | `peoples/{slug}/` | Abbreviated slug (e.g. `jwang`, `hywong`, `bdai`, `ylin`, `ligen`, `tonysit`, `cyyau`, `ywei`, `jiachengzh`, `zxlin`) |
+
+**STA 特殊规则（2026-07-13 验证）：**
+- `/people/faculty/{name}/` 是 SPA 壳 — 所有自动化工具拿到相同首页 HTML（114KB），必须用 `/peoples/{slug}/` 替代
+- pcat/faculty 列表页是静态 HTML，可直接抓取获取正确 slug
+- 个人 `/peoples/` 页面为静态 HTML，包含完整研究方向信息
 
 **Common pitfalls (learned 2026-07):**
 - Psych dept changed slug format — removed `prof-` prefix from URLs (e.g. `prof-wang-qian` → `qian-wang`)
