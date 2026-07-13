@@ -313,14 +313,46 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 
 **教训（2026-07-07）**：12 个「其他导师信息」链接中 4 个已失效（NUS × 2, NTU × 1, CityU × 1），都是因为大学重组了网站结构。
 
-### CityU（港城）特殊规则：Scholars Portal 统一入口 + 写入后 404 复验
+### CityU（港城）特殊规则：WAF 防护 + 双域名策略
 
-CityU 的 `scholars.cityu.edu.hk` 是全校统一的 Pure Portal 教师数据库。对于 CityU 所有导师，必须遵守以下规则：
+#### WAF 防护（2026-07-13 验证）
 
-1. **统一入口**：从 https://scholars.cityu.edu.hk/en/persons/ 搜索导师姓名，打开个人页面获取 URL
-2. **写入 Vika**：将 scholars.cityu.edu.hk 格式的个人页面 URL 填入 `导师主页` 列
-3. **写入后复验（强制执行）**：写入 Vika 后 5 分钟内，逐条 WebFetch 验证该 URL 是否返回有效内容。若返回 404，立即从 Vika 删除该记录。
-4. **原因**：CityU 教师离职或退休后，scholars.cityu.edu.hk 上的个人页面会被移除，导致已写入的链接变成死链。
+CityU 全站部署了 **Incapsula WAF**，会拦截所有来自自动化工具（curl、Python urllib、WebFetch）的请求。这不是链接失效，而是反爬机制。
+
+| 域名 | 自动化访问现象 | 浏览器访问 |
+|------|-------------|-----------|
+| `cityu.edu.hk/stfprofile/` | 200 返回 Incapsula JS 挑战页（200-1000 字节） | ✅ 正常 |
+| `scholars.cityu.edu.hk` | **403 Forbidden** | ✅ 正常 |
+
+**关键认知**：
+- 自动化审计脚本检测 CityU 链接时，**必然全部报死链**（或 SPA 壳），这是一个已知的系统性问题，不作为链接质量缺陷
+- 链接有效性必须由人在浏览器中逐条确认
+- 不要因为 WAF 拦截就删除或替换有效的 CityU 导师链接
+- 自动化审计的链接阈值应考虑 CityU 的 WAF 影响（例如：从 55 条总量中扣除 15 条 CityU 后再计算通过率）
+
+#### 链接格式策略
+
+CityU 有两种导师主页 URL 格式：
+
+1. **stfprofile 格式**（推荐优先使用）：`https://www.cityu.edu.hk/stfprofile/xxx.htm`
+   - 部分旧版教授页面使用此格式
+   - 自动化访问返回 Incapsula JS 挑战页（约 200-1000 字节）
+   
+2. **scholars 格式**：`https://scholars.cityu.edu.hk/en/persons/xxx/`
+   - Pure Portal 全校统一入口，信息更完整
+   - 自动化访问返回 403
+
+**选择策略**：两种格式都可以用，stfprofile 优先级更高（因为至少不返回 403）。最终都需人在浏览器确认。
+
+#### 写入后复验规则
+
+由于 WAF 的存在，"写入后复验"规则做以下调整：
+
+1. 写入 Vika 后，用 WebFetch 或 urllib 快速检查
+2. **预期结果**：stfprofile 返回 200 + 约 200-1000 字节（JS 挑战）；scholars 返回 403
+3. 以上两种结果都**不代表链接失效**——这是 WAF 的正常表现
+4. **仅当以下情况才删除记录**：Google 搜索找不到该导师、系页面已删除、或浏览器确认 404
+5. **交付前**：提示用户在浏览器中抽查 CityU 链接（特别是 scholars 格式的）
 
 ### 排除退休/名誉教授
 不添加 Emeritus、退休、约 70 岁以上、或不在当前教职员目录中的导师。
