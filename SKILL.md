@@ -359,6 +359,48 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 
 **教训（2026-07-07）**：12 个「其他导师信息」链接中 4 个已失效（NUS × 2, NTU × 1, CityU × 1），都是因为大学重组了网站结构。
 
+#### 大规模 404 复盘（2026-07-14）
+
+黄肇启选导任务中，60 条记录的 `博士申请信息` 和 `其他导师信息` 出现大面积 404。复盘发现三个根因：
+
+**根因 1：URL 猜测（占 90%+）**
+
+所有出错的 URL 都是在写表时按路径命名规则直接构造的，没有经过 WebSearch 搜索验证。典型的猜测模式 vs 真实路径：
+
+| 字段 | 猜测的路径 | 真实路径 |
+|------|-----------|---------|
+| HKU SAAS 博士申请 | `/programmes/research-postgraduate` | `/programme/rpg/mphil-phd` |
+| HKU Nursing 博士申请 | `/education/postgraduate/` | `/education/doctor-of-philosophy-programme` |
+| CUHK SPHPC 博士申请 | `/programmes/` | `/mphil-phd-programme/` |
+| HKUST ECE 博士申请 | `/pg/` | `/admissions/postgraduate` |
+| HKUST LifeSci 博士申请 | `/programmes/` | 在 `prog-crs.hkust.edu.hk` 子域名 |
+| HKU BS 博士申请 | `/programmes/research-postgraduate/` | `phd.hkubs.hku.hk/admissions/...` |
+| PolyU Nursing 博士申请 | `/sn/study/` | `/study/pg/rpg/2026/sn` |
+| HKU SAAS 院系列表 | `/staff` | `/staff_teaching.php` |
+| HKUST CSE 院系列表 | `/people/faculty/` | `/admin/people/faculty/` |
+| HKUST LifeSci 院系列表 | `/people/` | `/faculty-members/` |
+| HKUST ECE 院系列表 | `/people/` | 无系级列表页，用 `facultyprofiles.hkust.edu.hk` |
+| HKUST Math 院系列表 | `/people/faculty/` | 无系级列表页，用 `facultyprofiles.hkust.edu.hk` |
+
+**核心教训**：博士申请信息页和院系列表页的 URL 结构在各校各系之间**没有统一规律**。`/programmes/`、`/people/`、`/staff`、`/pg/`、`/study/` 这些常见路径在大量真实站点上都是 404。**必须先 WebSearch 搜索到真实页面，再把 URL 写进表里，一步都不能省。**
+
+**根因 2：大学网站持续重组**
+
+CUHK SPHPC 的院系列表页从 `/people/` 迁移到了 `/academic-staff/`，原有 URL 直接 404。这类重组是常态，不是偶发事件。
+
+**根因 3：CityU WAF 干扰诊断**
+
+CityU 全站 Incapsula WAF 会使自动化工具看到的返回码异常（403/404/超时/空壳），容易和真正 404 混淆。必须区分"WAF 拦截"和"真 404"——前者是所有 CityU URL 的系统性问题，后者是 URL 本身失效。
+
+**防范措施（写入前强制执行）**：
+
+对于 `博士申请信息` 和 `其他导师信息` 两个字段，**写入每条记录前**必须：
+1. 用 WebSearch 搜索 `"[学校] [院系] PhD research postgraduate admission"` 或 `"[学校] [院系] faculty academic staff"`
+2. 打开搜索结果中的真实页面
+3. 确认 URL 可访问（非 404、非 SPA 壳）
+4. 把验证过的 URL 填入字段
+5. **批量写入后，对所有非 CityU 的 URL 逐条 curl/WebFetch 验证**
+
 ### CityU（港城）特殊规则：WAF 防护 + 双域名策略
 
 #### WAF 防护（2026-07-13 验证）
@@ -441,11 +483,11 @@ QS排名、Location、美国USNEWS排名等字段通过 API 只读。
 
 | 错误 | 示例 | 正确做法 |
 |------|------|---------|
-| 猜测 URL | 直接构造 URL 而不搜索 | 先用搜索引擎搜索 |
-| 仅凭职称添加 | 看到 "Head of Education" 就加，未检查研究 | 打开个人页 → 读研究 → 确认匹配 |
-| 未验证活跃状态 | 添加已退休教授 | 检查大学教职员状态 |
-| 使用系列表页作导师主页 | 用 /people/ 而非 /people/john-doe/ | 找到个人 URL |
-| SPA 壳当有效 | 200 响应但无内容 | 交叉验证姓名和内容 |
+| 猜测 URL | 拼 `/programmes/research-postgraduate`、`/people/faculty/`、`/pg/` 等 | WebSearch 搜索真实页面 URL |
+| 批量写入「博士申请信息」时未逐个验证 | 42 条新记录全空，填表时按命名规则拼写 | 每条 URL 写入前必须 WebSearch → 打开验证 → 再填入 |
+| 依赖上次会话的院系列表 URL | CUHK SPHPC `/people/` 已变更为 `/academic-staff/` | 每次会话重新 WebFetch 验证 |
+| SPA 壳当有效 | 200 响应但无内容（HKUST Math `~macyang` 86B） | 交叉验证姓名和内容，换替代 URL |
+| CityU WAF 404 当真实 404 | CityU MKT/EF 系页面返回 404（WAF 拦截） | 浏览器人工确认，区分 WAF 和真 404 |
 
 ---
 

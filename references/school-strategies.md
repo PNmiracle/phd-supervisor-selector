@@ -953,6 +953,78 @@ This pattern applies to ALL German universities using HISinOne (Freiburg, Götti
 
 **Cloudflare WAF**: All findanexpert URLs return "Pardon Our Interruption" via curl (6183 bytes). They work correctly in browser. Same situation as UNSW staff pages.
 
+#### Griffith University (2026-07-14)
+- **Architecture**: Pure Portal (experts.griffith.edu.au)
+- **Layer**: L1 (WebFetch accessible, full HTML content with research interests, supervision records, tags)
+- **Best method**: WebSearch "[Name] Griffith University professor" → WebFetch the experts.griffith.edu.au profile page. Teaching tab shows PhD supervision details.
+- **Key endpoint**: `https://experts.griffith.edu.au/{id}-{slug}/about` and `/teaching` for supervision records
+- **Staff directory**: `https://www.griffith.edu.au/arts-education-law/griffith-law-school/staff`
+- **PhD info**: `https://www.griffith.edu.au/apply/research-study`
+- **Failed**: —
+- **Last verified**: 2026-07-14
+
+#### University of Tasmania (2026-07-14)
+- **Architecture**: Pure Portal (discover.utas.edu.au)
+- **Layer**: L1→L3 (profile about pages return "Discovery" SPA shell in some cases; teaching tab pages load with full supervision content)
+- **Best method**: WebSearch → WebFetch `/teaching` subpage (not `/about`) for supervision records. Alternative: utas.edu.au profiles.
+- **Key endpoint**: `https://discover.utas.edu.au/{Name}/teaching` for supervision; `https://discover.utas.edu.au/{Name}/about` may return SPA shell
+- **Staff directory**: `https://www.utas.edu.au/law/people`
+- **PhD info**: `https://www.utas.edu.au/research/degrees`
+- **Note**: Dianne Nicol is Emeritus, not taking new students
+- **Failed**: discover.utas.edu.au about pages inconsistent (some SPA shell, some load)
+- **Last verified**: 2026-07-14
+
+#### La Trobe University (2026-07-14)
+- **Architecture**: Static HTML staff list + scholars.latrobe.edu.au Pure Portal
+- **Layer**: L1 (staff listing page) / L3 (scholars portal profiles)
+- **Best method**: Use latrobe.edu.au/law/staff for staff list (full HTML). scholars.latrobe.edu.au for individual profiles. LawTech page at latrobe.edu.au/cybersecurity/expertise/lawtech lists key tech-law faculty.
+- **Key endpoint**: `https://www.latrobe.edu.au/law/staff` (staff list); `https://scholars.latrobe.edu.au/display/{username}` (individual)
+- **PhD info**: `https://www.latrobe.edu.au/research/graduate-research/apply`
+- **Failed**: scholars portal individual about pages may return minimal content
+- **Last verified**: 2026-07-14
+
+#### Swinburne University of Technology (2026-07-14)
+- **Architecture**: Pure Portal (experts.swinburne.edu.au)
+- **Layer**: L1 (WebFetch accessible, shows "Available to supervise Doctorate (PhD)" flag clearly)
+- **Best method**: WebSearch → WebFetch experts.swinburne.edu.au profile; supervision availability clearly indicated
+- **Key endpoint**: `https://experts.swinburne.edu.au/{id}-{slug}/about`
+- **Staff directory**: `https://www.swinburne.edu.au/business-law/our-people/`
+- **PhD info**: `https://www.swinburne.edu.au/course/research/doctor-of-philosophy-law/`
+- **Note**: Dan Hunter (founding dean) has left — now at QUT/King's College London
+- **Failed**: —
+- **Last verified**: 2026-07-14
+
+#### Western Sydney University (2026-07-14)
+- **Architecture**: Pure Portal (researchers.westernsydney.edu.au)
+- **Layer**: L1 (WebFetch accessible)
+- **Best method**: WebSearch → WebFetch researchers.westernsydney.edu.au profile
+- **Key endpoint**: `https://researchers.westernsydney.edu.au/en/persons/{slug}`
+- **Staff directory**: `https://www.westernsydney.edu.au/schools/sol/research/school-of-law-research-clusters`
+- **PhD info**: `https://www.westernsydney.edu.au/schools/sol/research/higher_degree_research`
+- **Failed**: —
+- **Last verified**: 2026-07-14
+
+#### University of Canberra (2026-07-14)
+- **Architecture**: Pure Portal (researchprofiles.canberra.edu.au)
+- **Layer**: L1 (WebFetch accessible, shows "Accepting PhD Students" flag)
+- **Best method**: WebSearch → WebFetch researchprofiles.canberra.edu.au profile; PhD acceptance status clearly shown
+- **Key endpoint**: `https://researchprofiles.canberra.edu.au/en/persons/{slug}`
+- **Staff directory**: `https://www.canberra.edu.au/about-uc/faculties/busgovlaw/school-of-law-and-justice`
+- **PhD info**: `https://www.canberra.edu.au/future-students/apply-to-uc/research-applications`
+- **Note**: UC offers Professional Doctorate in Legal Science (Research) rather than traditional PhD; verify program type with student
+- **Failed**: Older profile URLs at canberra.edu.au/research/... may 404
+- **Last verified**: 2026-07-14
+
+#### Flinders University (2026-07-14)
+- **Architecture**: Static HTML + Pure Portal (researchnow.flinders.edu.au)
+- **Layer**: L1
+- **Best method**: WebSearch → PhD program page lists key supervisors with research areas
+- **Key endpoint**: `https://www.flinders.edu.au/study/courses/doctor-philosophy-phd-law/` (lists supervisors)
+- **PhD info**: `https://www.flinders.edu.au/study/courses/doctor-philosophy-phd-law/`
+- **Note**: Law faculty small; no IP specialist. Vivienne Brand (corp gov + AI) and Marinella Marmo (transnational crime) are listed PhD supervisors
+- **Failed**: —
+- **Last verified**: 2026-07-14
+
 ## AU Schools Access Layer Summary (2026-07-01)
 
 | University | Architecture/CMS | Layer | Access Method | Key Endpoint / Profile URL Pattern |
