@@ -999,21 +999,21 @@ This pattern applies to ALL German universities using HISinOne (Freiburg, Götti
 - **Layer**: L1 (WebFetch accessible)
 - **Best method**: WebSearch → WebFetch researchers.westernsydney.edu.au profile
 - **Key endpoint**: `https://researchers.westernsydney.edu.au/en/persons/{slug}`
-- **Staff directory**: `https://www.westernsydney.edu.au/schools/sol/research/school-of-law-research-clusters`
-- **PhD info**: `https://www.westernsydney.edu.au/schools/sol/research/higher_degree_research`
-- **Failed**: —
-- **Last verified**: 2026-07-14
+- **Staff directory**: `https://www.westernsydney.edu.au/schools/sol/key-people` (research-clusters page returned 406, 2026-07-15)
+- **PhD info**: `https://www.westernsydney.edu.au/schools/sol/research/higher_degree_research` (406 on curl, WebFetch OK)
+- **Failed**: research-clusters page (406), key-people is the correct staff directory
+- **Last verified**: 2026-07-15
 
 #### University of Canberra (2026-07-14)
 - **Architecture**: Pure Portal (researchprofiles.canberra.edu.au)
 - **Layer**: L1 (WebFetch accessible, shows "Accepting PhD Students" flag)
 - **Best method**: WebSearch → WebFetch researchprofiles.canberra.edu.au profile; PhD acceptance status clearly shown
 - **Key endpoint**: `https://researchprofiles.canberra.edu.au/en/persons/{slug}`
-- **Staff directory**: `https://www.canberra.edu.au/about-uc/faculties/busgovlaw/school-of-law-and-justice`
+- **Staff directory**: `https://researchprofiles.canberra.edu.au/en/organisations/school-of-law-and-justice/persons/` (Pure Portal, 403 on curl but accessible via browser)
 - **PhD info**: `https://www.canberra.edu.au/future-students/apply-to-uc/research-applications`
-- **Note**: UC offers Professional Doctorate in Legal Science (Research) rather than traditional PhD; verify program type with student
+- **Note**: UC offers Professional Doctorate in Legal Science (Research) rather than traditional PhD; verify program type with student. Old staff dir `school-of-law-and-justice` returned 404 (2026-07-15).
 - **Failed**: Older profile URLs at canberra.edu.au/research/... may 404
-- **Last verified**: 2026-07-14
+- **Last verified**: 2026-07-15
 
 #### Flinders University (2026-07-14)
 - **Architecture**: Static HTML + Pure Portal (researchnow.flinders.edu.au)
@@ -1021,9 +1021,86 @@ This pattern applies to ALL German universities using HISinOne (Freiburg, Götti
 - **Best method**: WebSearch → PhD program page lists key supervisors with research areas
 - **Key endpoint**: `https://www.flinders.edu.au/study/courses/doctor-philosophy-phd-law/` (lists supervisors)
 - **PhD info**: `https://www.flinders.edu.au/study/courses/doctor-philosophy-phd-law/`
-- **Note**: Law faculty small; no IP specialist. Vivienne Brand (corp gov + AI) and Marinella Marmo (transnational crime) are listed PhD supervisors
+- **Note**: Law faculty small; no IP specialist. Vivienne Brand (corp gov + AI) and Marinella Marmo (transnational crime) are listed PhD supervisors. Robert Chalmers (IP + tech law) has personal page but no HDR supervision section — email to confirm PhD supervision eligibility.
 - **Failed**: —
-- **Last verified**: 2026-07-14
+- **Last verified**: 2026-07-15
+
+#### Bond University (2026-07-15)
+- **Architecture**: SharePoint for staff profiles (bond.edu.au/staff → SharePoint login wall)
+- **Layer**: L3 (all individual staff pages behind SharePoint; research.bond.edu.au Pure Portal for profiles)
+- **Best method**: WebSearch → research.bond.edu.au profile pages; manual browser for staff directory
+- **Key endpoint**: `https://research.bond.edu.au/en/persons/{id-slug}`
+- **Staff directory**: `https://bond.edu.au/about-bond/academia/faculty-law/academic-staff/forum` (static HTML, verified)
+- **PhD info**: `https://bond.edu.au/researchers/research-degrees/higher-degree-options/how-apply-hdr`
+- **Note**: Bond profiles show "Accepting PhD Students" flag on research portal. Staff directory at bond.edu.au/staff just links to SharePoint login.
+- **Failed**: bond.edu.au/nz/profile/... returns generic SharePoint directory; bond.edu.au/profile/... returns Access Denied
+- **Last verified**: 2026-07-15
+
+#### University of Southern Queensland (UniSQ) (2026-07-15)
+- **Architecture**: Static HTML staff profiles + Pure Portal (research.usq.edu.au)
+- **Layer**: L2 (staff profiles accessible, research portal has captcha)
+- **Best method**: WebSearch → staffprofile.unisq.edu.au profile (bot protection may intermittently block); research.usq.edu.au researcher pages (captcha on automated access)
+- **Key endpoint**: `https://staffprofile.unisq.edu.au/Profile/{name}` (bot protection, works in browser)
+- **Staff directory**: `https://www.unisq.edu.au/about-unisq/schools/school-of-law-and-justice`
+- **PhD info**: `https://www.unisq.edu.au/research/higher-degree-by-research/apply`
+- **Note**: Eugenia Georgiades is Associate Professor (IP + privacy + cybersecurity), currently supervising 2 doctoral students. Staff profiles may intermittently block automated access.
+- **Failed**: staffprofile.unisq.edu.au/departmentstaff/{id} → 404; research portal has captcha
+- **Last verified**: 2026-07-15
+
+#### Victoria University (2026-07-15)
+- **Architecture**: Pure Portal (vuir.vu.edu.au) + Drupal CMS
+- **Layer**: L1
+- **Best method**: WebSearch → vu.edu.au profile pages
+- **Key endpoint**: `https://www.vu.edu.au/about-vu/our-people/{slug}`
+- **Staff directory**: `https://www.vu.edu.au/node/11362361` (Victoria Law School page, general — not a staff listing)
+- **PhD info**: `https://www.vu.edu.au/node/10890586` (vu.edu.au/research/graduate-research returned 404, 2026-07-15)
+- **Note**: Two strong IP/AI law supervisors: Christina Tao (IP + AI + legal tech) and Yongqiang Li (IP + disruptive tech, Mandarin speaker). Both have PhD supervision availability.
+- **Failed**: vu.edu.au/research/graduate-research → 404; no dedicated law school staff listing page found
+- **Last verified**: 2026-07-15
+
+#### Charles Darwin University (2026-07-15)
+- **Architecture**: Pure Portal (researchers.cdu.edu.au) + Drupal CMS
+- **Layer**: L2 (some researcher pages accessible, others 404)
+- **Best method**: WebSearch → cdu.edu.au or researchers.cdu.edu.au pages (unstable, URLs may change)
+- **Key endpoint**: `https://researchers.cdu.edu.au/en/persons/{slug}/` (intermittently 404, 2026-07-15)
+- **Staff directory**: `https://researchers.cdu.edu.au/en/organisations/law/` (10 staff listed)
+- **PhD info**: `https://www.cdu.edu.au/research/research-degrees/how-apply`
+- **Note**: Jenny Ng listed as "Registered to supervise postgraduate research" on researchers portal (RD3) but page 404 on RD4 recheck. CDU researchers portal highly unstable. Small law faculty, limited IP/criminal law specialists.
+- **Failed**: cdu.edu.au/staff-directory → 404; cdu.edu.au/law → 404; cdu.online subdomain exists but non-standard
+- **Last verified**: 2026-07-15
+
+#### CQUniversity (2026-07-15)
+- **Architecture**: Acquire repository (acquire.cqu.edu.au) + sportal staff pages
+- **Layer**: L2 (acquire portal unstable, sportal requires login)
+- **Best method**: WebSearch → acquire.cqu.edu.au author pages (may 404); sportal.cqu.edu.au as fallback
+- **Key endpoint**: `https://acquire.cqu.edu.au/authors/{name}/{id}` (intermittently 404)
+- **Staff directory**: `https://www.cqu.edu.au/about-us/our-schools/business-law/staff` (formerly `/about-us/school-business-law/staff` → 404 on 2026-07-15)
+- **PhD info**: `https://www.cqu.edu.au/research/higher-degree/applying-for-a-hdr`
+- **Note**: Amanda-Jane George (Senior Lecturer + Postgraduate Research Coordinator, IP + AI + patent law) has PhD from UQ and thesis cited by Australian High Court, but personal page on acquire.cqu.edu.au returns 404.
+- **Failed**: acquire.cqu.edu.au author page → 404; my.cqu.edu.au/login → internal login portal; cqu.edu.au/apply → generic admission (not HDR)
+- **Last verified**: 2026-07-15
+
+#### Southern Cross University (SCU) (2026-07-15)
+- **Architecture**: Standard university CMS
+- **Layer**: L1
+- **Best method**: WebSearch → scu.edu.au staff pages
+- **Key endpoint**: N/A (only Lecturer-level law staff found)
+- **Staff directory**: N/A
+- **PhD info**: N/A
+- **Note**: Law staff primarily Lecturer level; Brendon Murphy (Professor of Law, 2024) has no personal page URL on SCU site. Not recommended for PhD supervision targets.
+- **Failed**: No suitable PhD supervisors found
+- **Last verified**: 2026-07-15
+
+#### Edith Cowan University (ECU) (2026-07-15)
+- **Architecture**: Standard university CMS
+- **Layer**: L1
+- **Best method**: WebSearch → ecu.edu.au staff pages
+- **Key endpoint**: N/A (only AI regulation / criminology staff found, no IP or criminal law doctrine specialists)
+- **Staff directory**: N/A
+- **PhD info**: N/A
+- **Note**: ECU law school focuses on AI regulation and criminology/policing; Anne Wallace (former professor) has moved to La Trobe as Adjunct. No IP or pure criminal law doctrine supervisors found.
+- **Failed**: No suitable PhD supervisors found
+- **Last verified**: 2026-07-15
 
 ## AU Schools Access Layer Summary (2026-07-01)
 
@@ -1044,6 +1121,13 @@ This pattern applies to ALL German universities using HISinOne (Freiburg, Götti
 | Wollongong | Symplectic Elements | L3 | scholars.uow.edu.au/{name}/about → SPA | scholars.uow.edu.au/{firstname}-{lastname}/about |
 | Newcastle | Staff profiles | L2 | Staff profiles may be accessible | newcastle.edu.au/profile/{slug} |
 | Deakin | Pure Portal SPA + Cloudflare | L3 | experts.deakin.edu.au/{slug} → SPA; Cloudflare blocks CMS | experts.deakin.edu.au/{slug} |
+| Bond | SharePoint staff + Pure Portal research | L3 | research.bond.edu.au profiles accessible; staff pages behind SharePoint login | research.bond.edu.au/en/persons/{id-slug} |
+| UniSQ | Static staff profiles + Pure Portal | L2 | staffprofile.unisq.edu.au (bot protection intermittent); research portal has captcha | staffprofile.unisq.edu.au/Profile/{name} |
+| Victoria University | Pure Portal + Drupal | L1 | vu.edu.au profile pages accessible; old research/graduate-research URL → 404 | vu.edu.au/node/10890586 |
+| CDU | Pure Portal (unstable) + Drupal | L2 | researchers.cdu.edu.au profiles intermittently 404; small law faculty | researchers.cdu.edu.au/en/persons/{slug}/ |
+| CQU | Acquire repository + sportal | L2 | acquire.cqu.edu.au pages unstable; sportal requires login | acquire.cqu.edu.au/authors/{name}/{id} |
+| SCU | Standard CMS | L1 | Only Lecturer-level law staff; no PhD supervisors found | — |
+| ECU | Standard CMS | L1 | AI regulation/criminology focus; no IP or criminal law doctrine supervisors | — |
 
 ---
 
