@@ -138,7 +138,8 @@ locked = [r for r in all_records if r["fields"].get("选导意向（点击选择
    - **国内学校**：走「国内学校选导规则」子章节（招生目录优先 → A/B/C 分类 → 邮箱必填 → 主页要求）
 7. 使用 `references/spreadsheet-rules.md` 填写表格
    - **国内学校**：额外遵守「国内学校表格规则」子章节（导师联系方式必填、主页来源要求、备注链接格式）
-8. 没找到合适导师的学校记录排除原因
+8. **写入后立即设置学校关联字段**（见「学校关联字段必填」规则）：确定学校→查找/创建主表记录→设置OneWayLink→验证Location/QS已同步
+9. 没找到合适导师的学校记录排除原因
 
 ---
 
@@ -331,9 +332,12 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 
 禁止用以下 URL 代替个人主页：
 - 院系师资列表页（如 `psych.zju.edu.cn/27612/list.htm`）
+- 实验室成员列表页（如 `www.nakakolab.iis.u-tokyo.ac.jp/member/nakano_e.html`）
+- 第三方平台（如 x-mol.com、百度百科、ResearchGate、**ORCID.org**、Google Scholar、aminer.cn）
 - 学校/学院首页
-- 第三方平台（如 x-mol.com、百度百科、ResearchGate）
 - 返回 200 但内容为空或显示"该页面暂未开放"的占位页（如浙大 person.zju.edu.cn 的 577 字节 SPA 壳）
+
+**特别强调**：ORCID（orcid.org）是研究者 ID 注册平台，不是个人主页。即使 ORCID 页面包含研究者的论文列表和简介，也**绝对不能**作为导师主页 URL 使用。ORCID 是学术身份标识系统，不是机构官方个人页面。
 
 **验证标准**：用 WebFetch 或 curl 打开 URL，必须能看到导师的姓名、职称、研究方向等个人信息。如果页面没有导师个人内容，视为无效。
 
@@ -455,6 +459,74 @@ QS排名、Location、美国USNEWS排名等字段通过 API 只读。
 ### 新增记录去重
 写入新记录前，检查是否已经存在于已有选导意向的记录中。
 
+### 🏫 学校关联字段必填（强制执行 — CRITICAL）
+
+**每条新导师记录写入后，必须立即设置学校关联字段（OneWayLink），让 Location / QS排名 / 美国USNEWS排名 通过 MagicLookUp 自动同步。**
+
+这是最容易遗漏但影响最大的步骤。学校关联字段决定整行的 Location、QS、USNEWS 等信息，不填等于记录残缺。
+
+**Vika 表结构**：
+| 关联字段 | 链接到 | 适用情况 |
+|----------|--------|----------|
+| `非美国地区学校` | QS 学校主表（`dstNvlYbmD2BTMCB0r`） | 非美国的所有学校 |
+| `美国地区学校` | USNEWS 学校主表（`dstd7iuffLGUbSnavd`） | 仅美国学校 |
+
+**关键限制**：
+- 两个学校主表**硬限制 100 条记录**（约 QS/USNEWS 前 100）
+- 超出 100 条的新增记录会被静默丢弃（API 仍返回成功，但 GET 时找不到）
+- **策略**：创建后立即使用返回的 recordId，不要重新 GET 验证（在内存中保留 ID 即可）
+- 已存在的学校（如 Ghent 159、TU Eindhoven 124、DTU 121、Cork 292、KAIST 53）需要创建，但**只增不删**——删除腾位置会影响已关联的导师记录
+
+**特殊问题 — US 表无 Location 字段**：
+- US 主表（`dstd7iuffLGUbSnavd`）只有 `学校`/`排名`/`所在州` 字段，**没有 Location 字段**
+- US 学校记录只设置 `美国地区学校` 时，MagicLookUp 不会自动填充 Location
+- **解决方案**：同时设置 `非美国地区学校` 指向一个**已有的 Location=United States 的美国学校**（如 MIT, Stanford, Harvard, Caltech 等），用做 Location 来源
+- 注意：此时该记录会同时有 `美国地区学校` 和 `非美国地区学校` 两个链接，但这是有意的（避免破坏其他字段）
+
+**操作流程**：
+
+1. **确定目标学校在哪个主表**：美国学校走 `美国地区学校`，其余走 `非美国地区学校`
+2. **在主表中查找学校记录**：
+   ```python
+   # 非美国学校：搜 QS 主表
+   nr = vika('GET', '/datasheets/dstNvlYbmD2BTMCB0r/records?maxRecords=200')
+   for r in nr['data']['records']:
+       if r['fields'].get('学校') == target_school_name:
+           school_record_id = r['recordId']
+   ```
+3. **如果学校不在主表中**：先创建学校记录，再获取 recordId
+   ```python
+   # 非美国学校创建示例（带QS排名和Location）
+   data = {'records': [{'fields': {
+       '学校': 'Ghent University',
+       '排名': 159,           # QS排名
+       'Location': 'Belgium',  # 必须填，MagicLookUp 依赖此字段
+       '地区': 'Europe'
+   }}], 'fieldKey': 'name'}
+   resp = vika('POST', '/datasheets/dstNvlYbmD2BTMCB0r/records', data)
+   school_record_id = resp['data']['records'][0]['recordId']
+   ```
+4. **设置导师记录的 OneWayLink**：
+   ```python
+   data = {'records': [{
+       'recordId': supervisor_record_id,
+       'fields': {'非美国地区学校': [school_record_id]}  # 必须是数组
+   }], 'fieldKey': 'name'}
+   vika('PATCH', f'/datasheets/{datasheet_id}/records', data)
+   ```
+5. **验证**：Patch 后重新 GET 记录，确认 `Location` 和 `QS排名` / `美国USNEWS排名` 已自动填充
+
+**禁止事项**：
+- 禁止为同一记录同时设置 `非美国地区学校` 和 `美国地区学校`（只设一个）
+- 禁止在不创建主表记录的情况下直接设置 OneWayLink（会导致链接无效）
+- 禁止在创建主表学校记录时不填 `排名` 和 `Location` 字段（MagicLookUp 需要这些值）
+- 禁止跳过验证步骤
+
+**常见错误**：
+- 主表学校记录创建时不填 `排名` 和 `Location` → MagicLookUp 无法同步 → 导师记录的 Location/QS 始终为空
+- OneWayLink 值写成字符串而非数组 → API 报错 → 链接未生效
+- 同时设置两个 OneWayLink → MagicLookUp 取值混乱
+
 ### 国内学校搜索（不使用 Google）
 国内（中国大陆）学校的导师搜索**不使用 Google**，改用百度搜索：
 - `[导师名] [学校名] 教授`
@@ -475,6 +547,7 @@ QS排名、Location、美国USNEWS排名等字段通过 API 只读。
 [ ] 5. 匹配方向: 研究关键词与学生方向对比
 [ ] 6. 个人 URL: 验证是个人页面而非通用列表页
 [ ] 7. 写入记录: 所有 6 步检查通过后再写入
+[ ] 8. 设置学校关联: 写入后立即设置 OneWayLink（非美国地区学校/美国地区学校）→ 验证 Location/QS 已同步
 ```
 
 ---
@@ -488,6 +561,9 @@ QS排名、Location、美国USNEWS排名等字段通过 API 只读。
 | 依赖上次会话的院系列表 URL | CUHK SPHPC `/people/` 已变更为 `/academic-staff/` | 每次会话重新 WebFetch 验证 |
 | SPA 壳当有效 | 200 响应但无内容（HKUST Math `~macyang` 86B） | 交叉验证姓名和内容，换替代 URL |
 | CityU WAF 404 当真实 404 | CityU MKT/EF 系页面返回 404（WAF 拦截） | 浏览器人工确认，区分 WAF 和真 404 |
+| 学校主表满 100 条后继续创建 | API 返回 200 但记录静默丢弃（QS 100+ 学校） | 接受 QS/Location 为空；主表只增不删 |
+| CDU/CDU 等小型大学研究人员页 404 | RD3 确认有效后 RD4 再查变 404 | 交付前逐条复验所有链接，不信任上一轮验证结果 |
+| 备注中 SPA 标注和匹配标识混在同一段 | `Macquarie为SPA系统需浏览器验证；建议多看看呢～` | SPA 标注放在第二段末尾，第三段仅放匹配标识 |
 
 ---
 
