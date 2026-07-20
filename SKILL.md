@@ -484,24 +484,37 @@ QS排名、Location、美国USNEWS排名等字段通过 API 只读。
 **操作流程**：
 
 1. **确定目标学校在哪个主表**：美国学校走 `美国地区学校`，其余走 `非美国地区学校`
-2. **在主表中查找学校记录**：
+2. **在主表中查找学校记录（⚠️ 必须翻页到底，不可只查 200 条）**：
+
+   > **教训（2026-07-20）**：QS 主表实际有 1500+ 条学校记录，`pageSize=200` 只返回第一页。
+   > 不翻页会误判学校不存在 → 创建重复 → 占满主表 100 条硬限制 → 后续学校静默丢失。
+   > **必须用 `pageNum` 翻页直到 `len(records) >= total`，确认遍历全部记录后再决定是否新建。**
+
    ```python
-   # 非美国学校：搜 QS 主表
-   nr = vika('GET', '/datasheets/dstNvlYbmD2BTMCB0r/records?maxRecords=200')
-   for r in nr['data']['records']:
-       if r['fields'].get('学校') == target_school_name:
-           school_record_id = r['recordId']
+   # 正确做法：分页遍历全部学校记录
+   def get_all_schools(main_table_id):
+       all_records = []
+       page = 1
+       while True:
+           r = vika('GET', f'/datasheets/{main_table_id}/records?pageSize=200&pageNum={page}&cellFormat=string')
+           records = r['data']['records']
+           all_records.extend(records)
+           total = r['data']['total']
+           if len(all_records) >= total:
+               break
+           page += 1
+       return {r['fields'].get('学校', '').strip(): r['recordId'] for r in all_records}
    ```
-3. **如果学校不在主表中**：先创建学校记录，再获取 recordId
+3. **只有全表搜索确认不存在后才创建学校记录**：
    ```python
-   # 非美国学校创建示例（带QS排名和Location）
+   # 全量搜完后仍未找到
    data = {'records': [{'fields': {
        '学校': 'Ghent University',
-       '排名': 159,           # QS排名
-       'Location': 'Belgium',  # 必须填，MagicLookUp 依赖此字段
+       '排名': '159',           # ⚠️ 排名是 Text 类型，必须传字符串，不能传整数
+       'Location': 'Belgium',
        '地区': 'Europe'
    }}], 'fieldKey': 'name'}
-   resp = vika('POST', '/datasheets/dstNvlYbmD2BTMCB0r/records', data)
+   resp = vika('POST', f'/datasheets/{main_table_id}/records', data)
    school_record_id = resp['data']['records'][0]['recordId']
    ```
 4. **设置导师记录的 OneWayLink**：
@@ -519,6 +532,9 @@ QS排名、Location、美国USNEWS排名等字段通过 API 只读。
 - 禁止在不创建主表记录的情况下直接设置 OneWayLink（会导致链接无效）
 - 禁止在创建主表学校记录时不填 `排名` 和 `Location` 字段（MagicLookUp 需要这些值）
 - 禁止跳过验证步骤
+- **禁止在未翻页遍历全部主表记录前就判断"学校不存在"并创建**（QS 主表 1500+ 条，单页只返回 200 条）
+- 禁止在创建学校记录时将 `排名` 作为整数传（字段类型是 Text，必须传字符串）
+
 
 **常见错误**：
 - 主表学校记录创建时不填 `排名` 和 `Location` → MagicLookUp 无法同步 → 导师记录的 Location/QS 始终为空
