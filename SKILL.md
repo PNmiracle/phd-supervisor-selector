@@ -459,87 +459,217 @@ QS排名、Location、美国USNEWS排名等字段通过 API 只读。
 
 ### 🏫 学校关联字段必填（强制执行 — CRITICAL）
 
-**每条新导师记录写入后，必须立即设置学校关联字段（OneWayLink），让 Location / QS排名 / 美国USNEWS排名 通过 MagicLookUp 自动同步。**
+**每条新导师记录写入后，必须立即设置学校关联字段（OneWayLink），让 Location / QS排名 / 美国USNEWS排名 / 国内学校层次 通过 MagicLookUp 自动同步。**
 
-这是最容易遗漏但影响最大的步骤。学校关联字段决定整行的 Location、QS、USNEWS 等信息，不填等于记录残缺。
+这是最容易遗漏但影响最大的步骤。学校关联字段决定整行的 Location、QS、USNEWS、国内学校层次等信息，不填等于记录残缺。
 
-**Vika 表结构**：
+#### 第一步：识别新学生 / 老学生（强制执行，不可跳过）
+
+每张选导表的 OneWayLink 字段指向的学校主表不同。必须先从字段定义读取 `foreignDatasheetId` 来判断学生类型：
+
+```python
+r = vika('GET', f'/datasheets/{datasheet_id}/fields')
+
+link_fields = []
+for f in r['data']['fields']:
+    if f['type'] == 'OneWayLink':
+        link_fields.append({
+            'field_id': f['id'],
+            'field_name': f['name'],
+            'main_table_id': f['property']['foreignDatasheetId'],
+        })
+```
+
+**根据 `foreignDatasheetId` 的值自动识别**：
+
+| foreignDatasheetId | 学生类型 | 主表模式 |
+|---------------------|----------|----------|
+| `dstMNzQU9Aa58DpgW3` | **新学生** | 统一主表（一张表管全球） |
+| `dstNvlYbmD2BTMCB0r` | **老学生** | QS 主表（非美国学校） |
+| `dstd7iuffLGUbSnavd` | **老学生** | US 主表（美国学校） |
+
+新老学生的后续操作流程不同，下面分别说明。
+
+---
+
+#### 第二步-A：新学生模式（统一主表 `dstMNzQU9Aa58DpgW3`）
+
+约 2200 条记录，统一管理全球所有学校。**只有一个 OneWayLink 字段**（如「学校名字」），链接到同一张主表。
+
+字段结构：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `学校全称` | Text | 完整英文/中文校名 |
+| `学校中文名` | Text | 中文名称 |
+| `学校英文缩写` | Text | 如 SYSU、CUC |
+| `2026年QS排名` | Number | 2026 QS 综合排名（无排名留空） |
+| `2027年QS排名` | Number | 2027 QS 综合排名 |
+| `2025年QS排名` | Number | 历史参考 |
+| `2025年USNews排名` | Number | 美国学校专用 |
+| `国家/地区` | SingleSelect | 含 China (Mainland)、United States 等 |
+| `所在大洲` | SingleSelect | Asia、Europe、Americas 等 |
+| `国内学校层次` | SingleSelect | 985 / 211 / 双非 / 双一流 / 专业院校 |
+| `国内学校所在省份` | SingleSelect | 如广东省、北京市、江苏省 |
+| `美国学校所在州` | SingleSelect | 美国学校专用（如 加利福尼亚州） |
+
+**创建学校记录**（新学生）：
+
+```python
+# 国内学校示例
+data = {'records': [{'fields': {
+    '学校全称': '广州大学',
+    '学校中文名': '广州大学',
+    '学校英文缩写': 'GU',
+    '国家/地区': 'China (Mainland)',
+    '所在大洲': 'Asia',
+    '国内学校层次': '双一流',
+    '国内学校所在省份': '广东省',
+}}], 'fieldKey': 'name'}
+resp = vika('POST', f'/datasheets/{main_table_id}/records', data)
+school_rid = resp['data']['records'][0]['recordId']
+
+# 关联
+data = {'records': [{
+    'recordId': supervisor_rid,
+    'fields': {link_field_name: [school_rid]}
+}], 'fieldKey': 'name'}
+vika('PATCH', f'/datasheets/{datasheet_id}/records', data)
+```
+
+SingleSelect 字段直接传字符串值即可，API 自动匹配选项。
+
+---
+
+#### 第二步-B：老学生模式（双主表）
+
+两张独立的学校主表，选导表通常有**两个 OneWayLink 字段**：
+
 | 关联字段 | 链接到 | 适用情况 |
 |----------|--------|----------|
-| `非美国地区学校` | QS 学校主表（`dstNvlYbmD2BTMCB0r`） | 非美国的所有学校 |
-| `美国地区学校` | USNEWS 学校主表（`dstd7iuffLGUbSnavd`） | 仅美国学校 |
+| `非美国地区学校` | QS 主表（`dstNvlYbmD2BTMCB0r`，~1651 条） | 非美国学校 |
+| `美国地区学校` | US 主表（`dstd7iuffLGUbSnavd`，~439 条） | 美国学校 |
 
-**关键限制**：
-- 两个学校主表**硬限制 100 条记录**（约 QS/USNEWS 前 100）
-- 超出 100 条的新增记录会被静默丢弃（API 仍返回成功，但 GET 时找不到）
-- **策略**：创建后立即使用返回的 recordId，不要重新 GET 验证（在内存中保留 ID 即可）
-- 已存在的学校（如 Ghent 159、TU Eindhoven 124、DTU 121、Cork 292、KAIST 53）需要创建，但**只增不删**——删除腾位置会影响已关联的导师记录
+**QS 主表字段**（老学生）：
 
-**特殊问题 — US 表无 Location 字段**：
-- US 主表（`dstd7iuffLGUbSnavd`）只有 `学校`/`排名`/`所在州` 字段，**没有 Location 字段**
-- US 学校记录只设置 `美国地区学校` 时，MagicLookUp 不会自动填充 Location
-- **解决方案**：同时设置 `非美国地区学校` 指向一个**已有的 Location=United States 的美国学校**（如 MIT, Stanford, Harvard, Caltech 等），用做 Location 来源
-- 注意：此时该记录会同时有 `美国地区学校` 和 `非美国地区学校` 两个链接，但这是有意的（避免破坏其他字段）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `学校` | Text | 英文校名 |
+| `排名` | Number | QS 综合排名 |
+| `Location` | SingleSelect | 国家/地区 |
+| `地区` | SingleSelect | 大洲 |
 
-**操作流程**：
+**US 主表字段**（老学生）：
 
-1. **确定目标学校在哪个主表**：美国学校走 `美国地区学校`，其余走 `非美国地区学校`
-2. **在主表中查找学校记录（⚠️ 必须翻页到底，不可只查 200 条）**：
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `学校` | Text | 英文校名 |
+| `排名` | Number | US News 排名 |
+| `所在州` | SingleSelect | 美国所在州 |
 
-   > **教训（2026-07-20）**：QS 主表实际有 1500+ 条学校记录，`pageSize=200` 只返回第一页。
-   > 不翻页会误判学校不存在 → 创建重复 → 占满主表 100 条硬限制 → 后续学校静默丢失。
-   > **必须用 `pageNum` 翻页直到 `len(records) >= total`，确认遍历全部记录后再决定是否新建。**
+**⚠️ 老学生 US 主表无 Location 字段**：`dstd7iuffLGUbSnavd` 只有 `学校`/`排名`/`所在州`，没有 `Location` 字段。设置 `美国地区学校` 后 MagicLookUp 不会自动填充 Location。
 
-   ```python
-   # 正确做法：分页遍历全部学校记录
-   def get_all_schools(main_table_id):
-       all_records = []
-       page = 1
-       while True:
-           r = vika('GET', f'/datasheets/{main_table_id}/records?pageSize=200&pageNum={page}&cellFormat=string')
-           records = r['data']['records']
-           all_records.extend(records)
-           total = r['data']['total']
-           if len(all_records) >= total:
-               break
-           page += 1
-       return {r['fields'].get('学校', '').strip(): r['recordId'] for r in all_records}
-   ```
-3. **只有全表搜索确认不存在后才创建学校记录**：
-   ```python
-   # 全量搜完后仍未找到
-   data = {'records': [{'fields': {
-       '学校': 'Ghent University',
-       '排名': '159',           # ⚠️ 排名是 Text 类型，必须传字符串，不能传整数
-       'Location': 'Belgium',
-       '地区': 'Europe'
-   }}], 'fieldKey': 'name'}
-   resp = vika('POST', f'/datasheets/{main_table_id}/records', data)
-   school_record_id = resp['data']['records'][0]['recordId']
-   ```
-4. **设置导师记录的 OneWayLink**：
-   ```python
-   data = {'records': [{
-       'recordId': supervisor_record_id,
-       'fields': {'非美国地区学校': [school_record_id]}  # 必须是数组
-   }], 'fieldKey': 'name'}
-   vika('PATCH', f'/datasheets/{datasheet_id}/records', data)
-   ```
-5. **验证**：Patch 后重新 GET 记录，确认 `Location` 和 `QS排名` / `美国USNEWS排名` 已自动填充
+**解决方案**：同时设置 `非美国地区学校` 指向一个已有 Location=United States 的学校（如 MIT、Stanford），用作 Location 来源。此时记录会同时有两个链接。
+
+**创建学校记录**（老学生）：
+
+```python
+# QS 主表
+data = {'records': [{'fields': {
+    '学校': 'Ghent University',
+    '排名': 159,
+    'Location': 'Belgium',
+    '地区': 'Europe',
+}}], 'fieldKey': 'name'}
+vika('POST', f'/datasheets/dstNvlYbmD2BTMCB0r/records', data)
+
+# US 主表
+data = {'records': [{'fields': {
+    '学校': 'Harvard University',
+    '排名': 3,
+    '所在州': '马萨诸塞州',
+}}], 'fieldKey': 'name'}
+vika('POST', f'/datasheets/dstd7iuffLGUbSnavd/records', data)
+```
+
+#### 第三步：在主表中查找/创建学校（⚠️ 必须翻页到底，不可只查 200 条）
+
+> **教训（2026-07-20）**：主表实际有 2200+ 条学校记录，`pageSize=200` 只返回第一页。
+> 不翻页会误判学校不存在 → 创建重复 → 后续维护混乱。
+> **必须用 `pageNum` 翻页直到 `len(records) >= total`，确认遍历全部记录后再决定是否新建。**
+
+```python
+def find_school_by_name(main_table_id, school_name, mode='new'):
+    """翻页遍历全部主表记录，按名字查找学校。mode: 'new' 或 'old'"""
+    name_field = '学校全称' if mode == 'new' else '学校'
+    page = 1
+    while True:
+        r = vika('GET', f'/datasheets/{main_table_id}/records?pageSize=500&pageNum={page}&cellFormat=string')
+        for rec in r['data']['records']:
+            if rec['fields'].get(name_field) == school_name:
+                return rec['recordId'], rec['fields']
+            # 新学生表还支持中文名校准
+            if mode == 'new' and rec['fields'].get('学校中文名') == school_name:
+                return rec['recordId'], rec['fields']
+        total = r['data']['total']
+        if len(r['data']['records']) < 500 or page * 500 >= total:
+            break
+        page += 1
+    return None, None
+```
+
+#### 第四步：创建学校记录（仅在确认不存在时）
+
+第三步搜不到才创建。新老学生字段名不同，按模式选择：
+
+```python
+if mode == 'new':
+    data = {'records': [{'fields': {
+        '学校全称': '广州大学',
+        '学校中文名': '广州大学',
+        '学校英文缩写': 'GU',
+        '国家/地区': 'China (Mainland)',
+        '所在大洲': 'Asia',
+        '国内学校层次': '双一流',
+        '国内学校所在省份': '广东省',
+    }}], 'fieldKey': 'name'}
+elif mode == 'old':
+    data = {'records': [{'fields': {
+        '学校': 'Ghent University',
+        '排名': 159,
+        'Location': 'Belgium',
+        '地区': 'Europe',
+    }}], 'fieldKey': 'name'}
+resp = vika('POST', f'/datasheets/{main_table_id}/records', data)
+school_rid = resp['data']['records'][0]['recordId']
+```
+
+#### 第五步：设置导师记录的 OneWayLink
+
+```python
+data = {'records': [{
+    'recordId': supervisor_rid,
+    'fields': {link_field_name: [school_rid]}
+}], 'fieldKey': 'name'}
+vika('PATCH', f'/datasheets/{datasheet_id}/records', data)
+```
+
+#### 第六步：验证
+
+Patch 后重新 GET 记录，确认 `Location`、`QS排名`、`国内学校层次` / `美国USNEWS排名` 等已通过 MagicLookUp 自动填充。
 
 **禁止事项**：
-- 禁止为同一记录同时设置 `非美国地区学校` 和 `美国地区学校`（只设一个）
-- 禁止在不创建主表记录的情况下直接设置 OneWayLink（会导致链接无效）
-- 禁止在创建主表学校记录时不填 `排名` 和 `Location` 字段（MagicLookUp 需要这些值）
-- 禁止跳过验证步骤
-- **禁止在未翻页遍历全部主表记录前就判断"学校不存在"并创建**（QS 主表 1500+ 条，单页只返回 200 条）
-- 禁止在创建学校记录时将 `排名` 作为整数传（字段类型是 Text，必须传字符串）
+- 禁止假设学生类型（必须从 `foreignDatasheetId` 动态识别新/老学生）
+- 禁止新老学生混用字段名（新学生用 `学校全称`/`2026年QS排名`，老学生用 `学校`/`排名`）
+- 禁止在不创建主表记录的情况下直接设置 OneWayLink（会导致幽灵链接）
+- 禁止在未翻页遍历全部主表记录前就判断"学校不存在"并创建
+- 禁止 OneWayLink 值写成字符串而非数组
 
 
 **常见错误**：
-- 主表学校记录创建时不填 `排名` 和 `Location` → MagicLookUp 无法同步 → 导师记录的 Location/QS 始终为空
+- 不识别学生类型 → 用错字段名 → API 报错或写入无效字段
 - OneWayLink 值写成字符串而非数组 → API 报错 → 链接未生效
-- 同时设置两个 OneWayLink → MagicLookUp 取值混乱
+- 翻页不全就判断学校不存在 → 创建重复记录 → 主表数据混乱
 
 ### 国内学校搜索（不使用 Google）
 国内（中国大陆）学校的导师搜索**不使用 Google**，改用百度搜索：
@@ -561,7 +691,8 @@ QS排名、Location、美国USNEWS排名等字段通过 API 只读。
 [ ] 5. 匹配方向: 研究关键词与学生方向对比
 [ ] 6. 个人 URL: 验证是个人页面而非通用列表页
 [ ] 7. 写入记录: 所有 6 步检查通过后再写入
-[ ] 8. 设置学校关联: 写入后立即设置 OneWayLink（非美国地区学校/美国地区学校）→ 验证 Location/QS 已同步
+[ ] 8. 获取学校主表 ID: GET /datasheets/{id}/fields → 找 OneWayLink 字段的 property.foreignDatasheetId
+[ ] 9. 设置学校关联: 写入后立即设置 OneWayLink → 验证 Location/QS/国内学校层次 已同步
 ```
 
 ---
@@ -575,7 +706,7 @@ QS排名、Location、美国USNEWS排名等字段通过 API 只读。
 | 依赖上次会话的院系列表 URL | CUHK SPHPC `/people/` 已变更为 `/academic-staff/` | 每次会话重新 WebFetch 验证 |
 | SPA 壳当有效 | 200 响应但无内容（HKUST Math `~macyang` 86B） | 交叉验证姓名和内容，换替代 URL |
 | CityU WAF 404 当真实 404 | CityU MKT/EF 系页面返回 404（WAF 拦截） | 浏览器人工确认，区分 WAF 和真 404 |
-| 学校主表满 100 条后继续创建 | API 返回 200 但记录静默丢弃（QS 100+ 学校） | 接受 QS/Location 为空；主表只增不删 |
+| 老学生主表有 100 条硬限制（旧表） | 旧 QS/US 主表写入 >100 条时静默丢弃 | 不重新验证 GET；主表只增不删 |
 | CDU/CDU 等小型大学研究人员页 404 | RD3 确认有效后 RD4 再查变 404 | 交付前逐条复验所有链接，不信任上一轮验证结果 |
 | 备注中 SPA 标注和匹配标识混在同一段 | `Macquarie为SPA系统需浏览器验证；可以备选一下呢～` | SPA 标注放在第二段末尾，第三段仅放匹配标识 |
 
