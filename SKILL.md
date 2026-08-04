@@ -127,6 +127,48 @@ locked = [r for r in all_records if r["fields"].get("选导意向（点击选择
 
 ---
 
+## 表格验证工作流（验证已有表格时触发）
+
+当用户要求"验证表格信息""检查链接""确认 funding 是否属实"时，按以下工作流执行：
+
+### 验证范围
+
+1. **导师主页链接**：逐条 WebFetch 验证，确认是个人主页而非 404 伪装页/院系列表页/第三方平台
+2. **博士申请信息链接**：WebFetch 验证可访问性
+3. **其他导师信息链接**：WebFetch 验证可访问性
+4. **备注信息**：方向匹配性、格式规范、排除 emoji 和主观判断词
+5. **项目综合情况**：PhD 项目名称是否正确、stipend 金额是否与官网一致
+6. **funding 预计情况**：NIH grant 类型/金额/时间线是否可验证、是否存在"中心总计"与"个人 funding"混淆
+
+### 验证执行顺序
+
+```
+Step 1: 获取学生方向定义书 + 表格全部记录
+    ↓
+Step 2: 导师主页链接验证（逐条 WebFetch，禁止仅用 curl）
+    ↓
+Step 3: 博士申请信息 + 其他导师信息链接验证
+    ↓
+Step 4: 备注方向匹配性验证（对照方向定义书核心机制）
+    ↓
+Step 5: Stipend 金额核实（搜索每个学校官网最新数字）
+    ↓
+Step 6: NIH Grant 核实（NIH Reporter 交叉验证）
+    ↓
+Step 7: 生成问题清单 → 分级 → 修正 → 二次验证
+```
+
+### 问题分级
+
+| 级别 | 描述 | 示例 |
+|------|------|------|
+| P0 - 严重 | 404 链接、错误 grant 类型、严重低估 stipend | 必须立即修正 |
+| P1 - 重要 | 院系列表页代替个人主页、第三方平台链接 | 需找替代链接 |
+| P2 - 轻微 | 备注格式问题、emoji、乱码 | 建议清理 |
+| P3 - 提示 | 推测性数据未标注"约"、定性判断 | 建议补充标注 |
+
+---
+
 ## 搜索工作流（Vika 和 Excel 通用）
 
 1. 解析学生背景、研究方向、硬排除条件、目标地区/学校、排名限制
@@ -158,6 +200,35 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 1. **WebFetch** 工具获取页面实际内容验证
 2. **WebSearch** 搜索 `"[Name] [University] professor"` 发现真实 URL
 3. **DDG HTML 搜索**：`https://html.duckduckgo.com/html/?q=...` 返回纯 HTML
+
+### 链接验证标准（验证已有表格时强制执行）
+
+**❌ 禁止仅依赖 HTTP 状态码（curl/urllib）判断链接有效性。**
+
+原因：
+- 美国大学网站对 404 常返回 **200 + "Page Not Found" 页面内容**
+- 旧 URL 路径废弃后可能重定向到院系统一搜索页，状态码仍是 200
+- 必须通过 **WebFetch 读取实际页面内容** 才能判断真假
+
+**✅ 正确做法：逐条 WebFetch 验证**
+
+对每个导师主页 URL，必须：
+1. **用 WebFetch 获取页面完整内容**
+2. **检查页面是否包含导师姓名**（防止 404 伪装页）
+3. **判断页面类型**：
+   - ✅ **真正个人主页**：含 CV、Publication、Research、Contact、Biography 等专属信息
+   - ⚠️ **实验室主页**：多人共用，需标注并在备注中补充个人页链接
+   - ❌ **院系教师目录页**：全院教师列表，该导师只是其中一条
+   - ❌ **第三方平台**：出版商简介、ORCID、LinkedIn、ResearchGate 等
+   - ❌ **404 伪装页**：状态码 200 但内容显示 Not Found / 搜索页
+
+### 常见 URL 陷阱（美国学校）
+
+- **OSU**: `medicine.osu.edu/find-faculty/...` 路径常废弃，faculty 页面迁移到 `mcdb.osu.edu/people/...` 或其他子域名
+- **CWRU/CCF**: `lerner.ccf.org/cvme/faculty/...` 可能改为 `my.clevelandclinic.org/staff/...`
+- **TAMU**: 部分 faculty 页面在子域名如 `genetics.tamu.edu` 而非主站
+- **USF**: `healthscholars.usf.edu` 子域名页面结构不稳定
+- **旧 URL 返回 200 但内容为空**：curl 无法识别，必须 WebFetch
 
 ---
 
@@ -316,6 +387,56 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 ---
 
 ## 关键规则（CRITICAL）
+
+### Stipend 与 Funding 核实规则（验证已有表格时强制执行）
+
+#### Stipend 金额必须逐校核实官网
+
+**禁止未经核实直接填写或接受 stipend 数字。** 表格中常见的 stipend 数据存在系统性偏差，必须搜索每个学校 PhD 项目的官网确认最新数字。
+
+**常见学校官方 stipend 参考（2025-2026 学年）**：
+
+| 学校/项目 | 常见错误数据 | 官方数据 | 偏差 |
+|----------|------------|---------|------|
+| CWRU BSTP | ~$37K+/yr | **$38,000** | 轻微低估 |
+| OSU BSGP | ~$34K/yr | **$33,980** | 基本准确 |
+| UB PPBS | ~$32K/yr | **$31,000-$35,000**（来源不一）| 在范围内 |
+| TAMU Medical Sciences (Medical Physiology) | ~$32K/yr | **$35,000** | **-$3,000** |
+| TAMU Genetics | ~$32K/yr | **$32,000** | 准确 |
+| USF Medical Sciences | ~$30K/yr | **$37,000** | **-$7,000（严重）** |
+| Rochester GDSC/CMPP | ~$35K/yr | **$35,100** | 基本准确 |
+| UW-Madison CMB | $37K+/yr | **$37,000** | 基本准确 |
+
+**关键教训**：
+- USF Medical Sciences 的 stipend 被系统性严重低估（$30K vs 实际 $37K）
+- TAMU 不同 track（Medical Physiology vs Genetics）stipend 不同，不能统一填写
+- 不同来源（学校官网、研究生院、具体项目页面）的 stipend 数字可能不一致，需标注来源
+
+#### NIH Grant 必须通过 NIH Reporter 交叉验证
+
+**对表格中提到的具体 NIH grant，必须到 reporter.nih.gov 核实**：
+- Grant 类型（R01 / R35 MIRA / K99/R00 / T32 / K08 等）
+- 具体金额和资助周期
+- PI 姓名是否与导师一致
+- 项目编号是否可查
+
+**常见错误模式**：
+- 将 K08 过渡性资助描述为已转为 R01（实际可能未获独立 R01）
+- 将合作 grant 误认为个人独立 grant
+- 将"中心总计 funding"与"个人 funding"混为一谈
+- 将 K99/R00 的资助金额误标为 R01 级别
+
+#### Funding 字段中的推测性数据必须标注
+
+以下数据类型属于**推测性估算**，学校官网通常不公布具体数字，必须标注为"约"或"估算"：
+- PhD 录取率（"~15-20%"）
+- 国际生比例（"~30%"）
+- 未来 funding 预估（"2028 年预计..."）
+- startup 金额范围（"$800K-$1.2M"）
+
+**禁止将推测性数据作为事实陈述。**
+
+---
 
 ### SPA 壳返回 200 ≠ 链接有效
 200 状态码 + SPA 壳（响应相同内容，所有不同 URL 返回相同字节数）→ **不能确认导师存在**。立即切换到 **L0-SPA 策略**：通过 WebSearch 找替代来源（个人网站、ResearchGate、研究中心页面），不要在 SPA 壳上浪费尝试。详见 `references/search-techniques.md` L0-SPA 节。
@@ -802,6 +923,13 @@ Patch 后重新 GET 记录，确认 `Location`、`QS排名`、`国内学校层�
 | CityU scholars 403 一律当有效（2026-08-04） | Maurice Benayoun 案例：scholars 403 是 WAF 壳，穿透后实为 "The page does not exist"（导师已离任） | 403 必须 WebFetch 穿透看真实内容；交叉验证 CityU 学术目录（Visiting/Adjunct 标注）+ 系级教职员列表；已离任导师删除记录 |
 | 并发 curl 共享临时文件 | 多个线程写同一 /tmp 文件，title 互相污染（状态码仍可靠） | 每个 URL 用独立临时文件；对 title 异常/200 无 title 的页面用 WebFetch 单独确认 |
 | 备注用「学生」称呼申请者 | `明确接受PhD学生` 违反第二人称规则 | 改为 `明确接受PhD申请`，所有备注以「你」称呼申请者 |
+| **curl 200 当链接有效（美国学校 404 伪装页）** | OSU `medicine.osu.edu/find-faculty/...` 返回 200 但内容显示 "Not Found" | **必须 WebFetch 读内容**，状态码 200 ≠ 页面真实存在 |
+| **院系列表页当个人主页** | 全院教师列表页只有姓名+职称，无 CV/Publications | 个人主页必须含专属研究内容；列表页不可接受 |
+| **第三方平台当个人主页** | DovePress 编辑简介、ORCID、ResearchGate | 禁止用第三方平台代替大学官方个人主页 |
+| **Stipend 系统性低估** | USF 写 `$30K/yr` 实际 `$37K`；TAMU Medical Sciences 写 `$32K` 实际 `$35K` | 每条记录写入前搜索学校官网 stipend 页面核实 |
+| **K08 误认为 R01** | "NIH K08→R01(2017-2022)" 中 R01 查无实据 | NIH Reporter 交叉验证 grant 类型、金额、时间线 |
+| **中心总计与个人 funding 混淆** | "CRM总计>$20M" 被误认为导师个人 funding | 明确区分"中心总计"与"个人独立 grant" |
+| **推测性数据未标注** | "录取率~15-20%""2028年预计" 作为事实陈述 | 标注为"估算""约"，说明无官方来源 |
 
 ---
 
