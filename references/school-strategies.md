@@ -868,6 +868,13 @@ Record of faculty moves discovered during verification. Check this before assumi
 | Neil Stewart | Warwick Psychology | Warwick Business School | — |
 | Mihai Cucuringu | Oxford Statistics (Assoc Prof) | UCLA Mathematics (full Professor) | 2025-01 |
 | Daniel Spielman (CS) | Yale (Sterling Professor, still there) | NOT at Stanford — Stanford profile with same name is a Radiologist | — |
+| Maurice Benayoun (莫奔) | CityU SCM (Professor, PhD coordinator) | Nanjing University (Art School, Professor/博导) | 2024 |
+
+**离任导师验证法（2026-08-04）**：怀疑导师已离任时三步交叉验证——
+1. WebFetch 穿透 WAF 打开 scholars 主页，显示 "The page does not exist" → 已失效
+2. CityU 学术人员目录标注 Visiting/Adjunct Professor → 通常是离任挂名
+3. 系级现任教职员列表（如 scm.cityu.edu.hk/people）各分组均无此人 → 确认离任
+搜 `"[导师名] 原校 教授"` 可找到新机构页面（南大案例：官网注明"原香港城市大学创意媒体学院教授（2012年至2024年）"）。
 
 ## Know-How: URL Quality Gate
 
@@ -894,7 +901,7 @@ BAD_PATTERNS = [
 | SMU (new) | `faculty.smu.edu.sg/profile/{name}` |
 | HKU Psych | `psychology.hku.hk/people/{slug}/` |
 | HKU Business | `hkubs.hku.hk/people/{slug}/` |
-| CityU | `scholars.cityu.edu.hk/en/persons/{name}({uuid})` — use Scholars Portal search first |
+| CityU | `scholars.cityu.edu.hk/en/persons/{name}({uuid})` — use Scholars Portal search first. ⚠️ 离任教授页面会失效（403 壳穿透后 "The page does not exist"），写入后必须 WebFetch 穿透验证 |
 | UCL (new) | `profiles.ucl.ac.uk/{id}-{slug}` |
 | UNSW | `unsw.edu.au/staff/{slug}` |
 | LiU | `liu.se/en/employee/{employeeId}` (IDs like danva85) |
@@ -1223,3 +1230,98 @@ After searching EACH school, update this file. Do NOT defer to end of session �
 | 100 | 100 | ~95% |
 
 After 100 schools, almost every new search hits a known architecture. The skill becomes 3-5x faster.
+
+### 🇬🇧 UK — Dance/Performance/Theatre Schools (2026-08-03, 秦嘉琪选导验证)
+
+#### University of York
+- **Architecture**: Static HTML (staff profiles)
+- **Layer**: L1
+- **Best method**: Direct curl/WebFetch — york.ac.uk/sociology/our-staff/academic/{slug} and arts-creative-technologies/people/{slug}
+- **Key endpoint**: https://www.york.ac.uk/sociology/our-staff/research/ (staff list)
+- **Note**: School of Arts and Creative Technologies (ACT) has theatre faculty; no dedicated dance dept. Sociology has Darren Reed (dance & human sociality)
+- **Last verified**: 2026-08-03
+
+#### Cardiff University
+- **Architecture**: Static HTML (profiles.cardiff.ac.uk) + Cloudflare on main site
+- **Layer**: L1 (profiles subdomain)
+- **Best method**: profiles.cardiff.ac.uk/staff/{username} works; main cardiff.ac.uk blocked by Cloudflare; use ORCA author pages as fallback
+- **Key endpoint**: https://profiles.cardiff.ac.uk/staff/rowdencs
+- **Note**: School of Music, Drama & Performance; no standalone Education school (Cardiff Met is separate)
+- **Last verified**: 2026-08-03
+
+#### Newcastle University
+- **Architecture**: Static HTML
+- **Layer**: L1
+- **Best method**: Direct access ncl.ac.uk/sacs/staff/profile/{slug}.html
+- **Key endpoint**: https://www.ncl.ac.uk/sacs/people/
+- **Note**: School of Arts & Cultures (SACS); no dedicated dance posts; ethnomusicology/performance faculty match
+- **Last verified**: 2026-08-03
+
+#### University of East Anglia (UEA)
+- **Architecture**: Pure Portal (research-portal.uea.ac.uk)
+- **Layer**: L1 (research portal accessible)
+- **Best method**: research-portal.uea.ac.uk/en/persons/{slug}; org pages accessible, /persons subpages may trigger bot check
+- **Key endpoint**: https://research-portal.uea.ac.uk/en/persons/george-mckay
+- **Note**: Drama merged into School of Literature, Drama & Creative Writing; no dance dept
+- **Last verified**: 2026-08-03
+
+#### University of Leicester
+- **Architecture**: Static HTML (le.ac.uk/people/)
+- **Layer**: L1
+- **Best method**: le.ac.uk/people/{slug}; School of Media, Communication and Sociology merged into School of Arts (2024)
+- **Key endpoint**: https://le.ac.uk/people/melanie-kennedy
+- **Last verified**: 2026-08-03
+
+#### Swansea University
+- **Architecture**: Static HTML (swansea.ac.uk/staff/)
+- **Layer**: L1
+- **Best method**: swansea.ac.uk/staff/{initial}.{surname}/
+- **Key endpoint**: https://www.swansea.ac.uk/staff/a.rogers/
+- **Note**: Amanda Rogers (Geography) researches British Chinese performance + digital dance — top match for Chinese diaspora dance students
+- **Last verified**: 2026-08-03
+
+#### University of Reading
+- **Architecture**: Static HTML
+- **Layer**: L1
+- **Best method**: Vicki Harman (Sociology) researches ballroom dancing — biocentre.reading.ac.uk path
+- **Key endpoint**: http://www.biocentre.reading.ac.uk/politics-international-relations/staff/professor-vicki-harman
+- **Last verified**: 2026-08-03
+
+#### University of Strathclyde
+- **Architecture**: Static HTML (strath.ac.uk/staff/)
+- **Layer**: L1
+- **Best method**: strath.ac.uk/staff/{name}dr/
+- **Key endpoint**: https://www.strath.ac.uk/staff/robinsonannadr/ (Anna Robinson — autism + creative arts)
+- **Last verified**: 2026-08-03
+
+#### University of Bristol (Theatre)
+- **Architecture**: Static HTML + research-information.bris.ac.uk Pure portal
+- **Layer**: L1
+- **Best method**: research-information.bris.ac.uk/en/persons/{slug} and bristol.ac.uk/person/{uuid-slug}
+- **Key endpoint**: https://research-information.bris.ac.uk/en/persons/kirsty-sedgman
+- **Note**: Department of Theatre has strong audience/performance faculty (Sedgman, Krebs, Clarke)
+- **Last verified**: 2026-08-03
+
+#### University of St Andrews
+- **Architecture**: Pure Portal (research-portal.st-andrews.ac.uk)
+- **Layer**: L1
+- **Best method**: research-portal.st-andrews.ac.uk/en/persons/{slug}
+- **Key endpoint**: https://research-portal.st-andrews.ac.uk/en/persons/stavroula-pipyrou
+- **Note**: Social Anthropology has Stavroula Pipyrou (performance and dance) — top match for dance anthropology
+- **Last verified**: 2026-08-03
+
+#### University of Waikato (NZ)
+- **Architecture**: Static HTML staff list + Symplectic SPA profiles
+- **Layer**: L1 (staff list) / L2 (profiles.waikato.ac.nz SPA)
+- **Best method**: profiles.waikato.ac.nz/{username} via browser; School of Arts has Theatre Studies and Dance
+- **Key endpoint**: https://www.waikato.ac.nz/about/faculties-schools/arts/our-people
+- **Note**: Laura Haughey (Assoc Prof, Theatre & Dance), Sue Cheesman (dance education)
+- **Last verified**: 2026-08-03
+
+#### University of Tasmania
+- **Architecture**: Pure Portal (discover.utas.edu.au)
+- **Layer**: L1
+- **Best method**: discover.utas.edu.au/{Name}/teaching for supervision records; utas.edu.au/profiles/staff/ for theatre
+- **Key endpoint**: https://discover.utas.edu.au/MaryAnn.Hunter/teaching
+- **Note**: Mary Ann Hunter (arts education, drama AND dance) — strong match for dance education students
+- **Last verified**: 2026-08-03

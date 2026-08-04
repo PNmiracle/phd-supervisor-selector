@@ -425,7 +425,7 @@ CityU 全站 Incapsula WAF 会使自动化工具看到的返回码异常（403/4
 
 ### CityU（港城）特殊规则：WAF 防护 + 双域名策略
 
-#### WAF 防护（2026-07-13 验证）
+#### WAF 防护（2026-07-13 验证；2026-08-04 修正）
 
 CityU 全站部署了 **Incapsula WAF**，会拦截所有来自自动化工具（curl、Python urllib、WebFetch）的请求。这不是链接失效，而是反爬机制。
 
@@ -435,10 +435,20 @@ CityU 全站部署了 **Incapsula WAF**，会拦截所有来自自动化工具�
 | `scholars.cityu.edu.hk` | **403 Forbidden** | ✅ 正常 |
 
 **关键认知**：
-- 自动化审计脚本检测 CityU 链接时，**必然全部报死链**（或 SPA 壳），这是一个已知的系统性问题，不作为链接质量缺陷
-- 链接有效性必须由人在浏览器中逐条确认
-- 不要因为 WAF 拦截就删除或替换有效的 CityU 导师链接
-- 自动化审计的链接阈值应考虑 CityU 的 WAF 影响（例如：从 55 条总量中扣除 15 条 CityU 后再计算通过率）
+- 自动化审计脚本检测 CityU 链接时，**可能全部报死链**（或 SPA 壳），这是一个已知的系统性问题
+- **⚠️ 403 ≠ 必然有效（2026-08-04 修正）**：scholars 返回 403 有两种可能——① 正常教授的页面被 WAF 拦截（有效）；② **离任/已离职教授的页面已删除**（WebFetch 穿透 WAF 后显示 "The page does not exist"）。**必须用 WebFetch 穿透验证**，不能一律当作 WAF 正常现象放过
+- 链接有效性必须由人在浏览器中逐条确认，或 WebFetch 穿透 WAF 看真实内容
+- 不要因为 WAF 拦截就删除有效的 CityU 导师链接，但也**不要因为 403 就假设链接有效**——交叉验证（见下方「离任导师检测」）
+
+**离任导师检测（2026-08-04 沉淀，Maurice Benayoun 案例）**：
+
+判断 CityU 导师是否已离任，三步交叉验证：
+
+1. **WebFetch 穿透 WAF**：`WebFetch("https://scholars.cityu.edu.hk/en/persons/xxx")` — 若返回 "The page does not exist" / "Page not found"，该学者主页已删除，高度怀疑离任
+2. **查 CityU 学术人员目录**：`https://www.cityu.edu.hk/zh-hk/directories/people/academic?page=N` — 若标注 **Visiting Professor** / **Adjunct Professor**，通常是离任后保留的挂名身份
+3. **查系级现任教职员列表**：如 `https://www.scm.cityu.edu.hk/people` — 若现任教授/副教授/客座/兼任各分组均无此人，基本确认离任
+
+**辅助手段**：WebSearch 搜 `"[导师名] [原校] 教授"` 看是否已转到其他学校（如南京大学官网注明"原香港城市大学创意媒体学院教授（2012年至2024年）"）。已离任导师**不进入主表**，已写入的需删除。
 
 #### 链接格式策略
 
@@ -450,9 +460,9 @@ CityU 有两种导师主页 URL 格式：
 
 2. **scholars 格式**：`https://scholars.cityu.edu.hk/en/persons/xxx/`
    - Pure Portal 全校统一入口，信息更完整
-   - 自动化访问返回 403
+   - 自动化访问返回 403；**离任教授此页面会变成真实 404（穿透 WAF 可见）**
 
-**选择策略**：两种格式都可以用，stfprofile 优先级更高（因为至少不返回 403）。最终都需人在浏览器确认。
+**选择策略**：两种格式都可以用，stfprofile 优先级更高（因为至少不返回 403）。scholars 格式写入后必须 WebFetch 穿透验证内容（能显示教授姓名/职称/院系才算有效）。
 
 #### 写入后复验规则
 
@@ -460,8 +470,8 @@ CityU 有两种导师主页 URL 格式：
 
 1. 写入 Vika 后，用 WebFetch 或 urllib 快速检查
 2. **预期结果**：stfprofile 返回 200 + 约 200-1000 字节（JS 挑战）；scholars 返回 403
-3. 以上两种结果都**不代表链接失效**——这是 WAF 的正常表现
-4. **仅当以下情况才删除记录**：Google 搜索找不到该导师、系页面已删除、或浏览器确认 404
+3. 以上两种结果**不能直接判定链接有效**——必须 WebFetch 穿透 WAF 确认页面有该导师姓名/职称/院系内容（穿透后显示 "The page does not exist" 即已失效）
+4. **删除记录条件**：Google 搜索找不到该导师、系页面已删除、浏览器确认 404、或**官方目录已无此人（离任）**
 5. **交付前**：提示用户在浏览器中抽查 CityU 链接（特别是 scholars 格式的）
 
 ### 排除退休/名誉教授
@@ -789,12 +799,24 @@ Patch 后重新 GET 记录，确认 `Location`、`QS排名`、`国内学校层�
 | Python SSL 失败当 404 | `sds.cuhk.edu.cn` Python urllib 报 handshake failure | 换 WebFetch 验证，不直接判死 |
 | Vika URL 字段 PATCH 静默失败 | `fieldKey="name"` 返回 200 但 URL 未更新 | 必须 `fieldKey="id"` + 字段 ID |
 | PATCH 后回读键名错误 | GET 返回字段名键，用 field ID 读永远 None | PATCH 前后各拉字段列表，回读用字段名 |
+| CityU scholars 403 一律当有效（2026-08-04） | Maurice Benayoun 案例：scholars 403 是 WAF 壳，穿透后实为 "The page does not exist"（导师已离任） | 403 必须 WebFetch 穿透看真实内容；交叉验证 CityU 学术目录（Visiting/Adjunct 标注）+ 系级教职员列表；已离任导师删除记录 |
+| 并发 curl 共享临时文件 | 多个线程写同一 /tmp 文件，title 互相污染（状态码仍可靠） | 每个 URL 用独立临时文件；对 title 异常/200 无 title 的页面用 WebFetch 单独确认 |
+| 备注用「学生」称呼申请者 | `明确接受PhD学生` 违反第二人称规则 | 改为 `明确接受PhD申请`，所有备注以「你」称呼申请者 |
 
 ---
 
 ## 链接修复工作流（用户说"链接打不开/404"时触发）
 
 当用户反馈已有表格中某学校/学院的导师链接大面积失效时，按以下步骤系统修复：
+
+### 步骤 0：批量拉取全部 URL（2026-08-04 沉淀）
+
+不要只修用户点名的那几条，先全量审计：
+
+1. GET 全部记录，提取三个 URL 字段（`导师主页` / `博士申请信息` / `其他导师信息`）去重
+2. 批量 curl 检查状态码 + 字节数 + title（用**独立临时文件**，不要并发共享同一文件——共享文件会污染 title 读取，但状态码仍可靠）
+3. 按学校分组整理结果，区分：真 404 / SPA 壳 / WAF 拦截 / 疑似正常
+4. 对存疑的（200 但无 title、403、SPA 壳、标题异常）逐一 WebFetch 穿透验证内容
 
 ### 步骤 1：诊断区分失效类型
 
@@ -804,7 +826,7 @@ Patch 后重新 GET 记录，确认 `Location`、`QS排名`、`国内学校层�
 |------|------|------|
 | 真 404 | HTTP 404 + 页面标题含"404" | URL 确实失效，需搜索新链接 |
 | SPA 壳 | 200 + 所有 URL 返回相同字节数 + 无实际教授信息 | 站点是 JavaScript 渲染，自动化无法判断 |
-| WAF/SSL 拦 | 403 / SSL 握手失败 / 超时 | 防护机制干扰，需换工具验证 |
+| WAF/SSL 拦 | 403 / SSL 握手失败 / 超时 | 防护机制干扰，需换工具验证（**注意：403 也可能是离任教授页面已删除，必须 WebFetch 穿透看真实内容，见 CityU 章节**） |
 
 ### 步骤 2：按学校搜索新 URL
 
@@ -825,6 +847,16 @@ for name in broken_professors:
 - 搜 `"dsa.hkust-gz.edu.cn [导师名] faculty blog"` 找 WordPress 格式替代页
 - `facultyprofiles.hkust-gz.edu.cn` 是纯 SPA，自动化只能确认 200，无法确认内容
 - 若 DSA 博客有个人页则优先使用（可自动化验证内容）
+
+**各校 2026 年改版经验（2026-08-04 沉淀）**：
+
+| 学校 | 变化 | 新旧格式 |
+|------|------|---------|
+| PolyU Scholars Hub | slug 全面变更，旧 slug 404 | 旧 `persons/christina-wong-wing-yan` → 新 `persons/christina-wong`；`chloe-ki`→`chung-wha-ki`；`magnum-lam`→`man-lok-lam-2`；`minjung-cho`→`min-jung-cho`；`haze-ng`→UUID 格式 `c4fd5adc-...`。**规律：搜 `"[导师名] polyu scholars hub"` 或从 `polyu.edu.hk/sft/people/academic-staff` 列表页抓个人页链接** |
+| HKUST HUMA | 路径重组 | 博士申请 `programmes/research-postgraduate` → `teaching/pg/phd`；院系列表 `people` → `about/faculty` |
+| HKU Art History | 加 index.php 前缀 | `people/xxx` → `index.php/people/xxx` |
+| HKUBS | 人名用英文全名 slug | `people/wan-wen/` → `people/echo-wen-wan/`（万雯的英文名是 Echo Wen Wan） |
+| CUHK | 系页面下线后迁移研究门户 | `arch.cuhk.edu.hk/en/people/faculty-members/xxx` → `research.cuhk.edu.hk/en/persons/xxx` |
 
 ### 步骤 3：写入前逐条 WebFetch 验证
 
@@ -886,6 +918,24 @@ python3 scripts/audit.py [DATASHEET_ID] [VIKA_TOKEN]
 3. 备注中是否有垃圾内容
 4. 缺少必填字段（导师主页、博士申请信息、其他导师信息）
 5. **国内学校**：检查 `导师联系方式` 是否为空，是否为有效 email 格式
+
+## 链接健康审计（用户报"链接404/badcase"时，2026-08-04 新增）
+
+先全量审计再针对性修复，不要只修用户点名的几条：
+
+```bash
+python3 scripts/link-audit.py [DATASHEET_ID] [VIKA_TOKEN]
+```
+
+脚本输出：每个 URL 状态码/字节数/title（独立临时文件避免并发污染）→ 按类型汇总 →
+待 WebFetch 穿透验证的存疑项清单（403 / 200 无 title / 疑似 WAF 壳）。
+
+**关键判断规则**：
+- `403`（尤其 CityU scholars）：**不能当作 WAF 正常现象直接放过**，必须 WebFetch 穿透看真实内容——
+  正常教授页面穿透后可见姓名/职称；离任教授穿透后显示 "The page does not exist" → 删除记录
+- `200 + 小字节无 title`：疑似 WAF JS 挑战壳，WebFetch 确认内容
+- 修复流程：搜索替代 URL → 逐条 WebFetch 验证 → `fieldKey="id"` PATCH → 回读验证
+- 各校 2026 年 URL 改版格式见「链接修复工作流 → 步骤 2」表格
 
 ---
 
