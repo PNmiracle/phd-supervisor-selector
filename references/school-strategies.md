@@ -556,6 +556,18 @@ Format: Architecture + Layer + Access method + Endpoints + Failures
 - **Failed**: No psychology/behavioral science thrust area; no relevant department
 - **Last verified**: 2026-06-26
 
+##### HKUST(GZ) IPE 学域补充（2026-08-05 验证）
+- **IPE 学域教师列表（WordPress 可抓取）**: https://soch.hkust-gz.edu.cn/academics/ipe/faculty/ — 完整 26 人名单，含姓名/职称/邮箱/SPA 个人页链接
+- **官方博士招生手册 PDF**: `soch.hkust-gz.edu.cn/wp-content/uploads/2026/04/PhD-in-Innovation-Policy-and-Entrepreneurship_CN-2026-27-Intake-*.pdf` — 权威在招导师名单，与 faculty 列表有出入，优先以此交叉验证
+- **facultyprofiles.hkust-gz.edu.cn 全站 SPA**：`?id=X` 与 `/faculty-personal-page/NAME/slug` 两种格式均返回 1522B Loading 壳，WebFetch/curl 均无法确认内容 → 个人主页必须用替代来源
+- **替代主页来源（已验证可抓取）**：
+  - 官网人员页：`hkust-gz.edu.cn?p=6493/`（Ye Qi 格式）、`/people/slug/` 只覆盖高级管理人员（如 hui-xiong）
+  - 个人网站：luoyec.github.io（Luoye Chen）、qianping-ren.com（Qianping Ren）、seonaparklab.github.io（Seona Park CARE lab）、coreyxu.com（Cloudflare 403 但内容可 WebFetch）、personal.hkust-gz.edu.cn/dxie（Danyang Xie）
+  - HKUST 官方页：ppol.hkust.edu.hk/people/detail/（Corey Xu、Xun Wu）、aging.hkust.edu.hk（Corey Xu）
+  - 前任机构官方页：dbaswiss.ceibs.edu/he_jinyu（Jinyu He，CEIBS）、sece.xmu.edu.my/（Kok Sin Woon，厦大马校兼职）
+- **博士申请信息**: IPE 项目页 `pcc.hkust-gz.edu.cn/postgraduate/program-catalog/innovation-policy-and-entrepreneurship-5` + 申请系统 `fytgs.hkust-gz.edu.cn`（WebFetch 可渲染）
+- **Last verified**: 2026-08-05
+
 #### BNBU / UIC (北师香港浸会大学, Zhuhai)
 - **Architecture**: Static HTML (general) + Vue SPA (FHSS comm department)
 - **Layer**: L1 (general) / L3 (FHSS comm)
