@@ -222,7 +222,27 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
    - ❌ **第三方平台**：出版商简介、ORCID、LinkedIn、ResearchGate 等
    - ❌ **404 伪装页**：状态码 200 但内容显示 Not Found / 搜索页
 
-### 常见 URL 陷阱（美国学校）
+### 导师主页类型前置过滤（搜索阶段强制执行）
+
+**在决定把导师写入表格前，必须先判断导师主页类型。以下类型的页面直接跳过，不入表：**
+
+| 页面类型 | 判断标准 | 示例 |
+|---------|---------|------|
+| **第三方平台** | 域名非学校官方（`.edu` 或学校官方子域） | Loop.frontiersin.org、DovePress、ResearchGate、ORCID、Google Scholar、X-MOL、Aminer |
+| **医生预约/诊所页** | 页面结构是医生 profile（含预约、就诊信息），无 Publications/Research Lab 板块 | NYU Langone `/doctors/...`、医院医师介绍页 |
+| **CRM/中心聚合页** | 页面是研究中心/CRM 系统首页，非个人专属页 | USF `healthscholars.usf.edu/crm`、中心 landing page |
+| **院系列表页** | 页面是全系教师列表，该导师只是其中一行 | `psych.zju.edu.cn/27612/list.htm` |
+| **SPA 空壳** | 200 状态码但内容 < 1KB 或返回相同字节数的通用 HTML | 无实际内容的 JS 渲染壳 |
+
+**判断方法**：
+1. 用 WebFetch 打开候选 URL
+2. 检查页面内容是否包含**导师姓名 + 职称 + 研究方向/论文列表**（至少两项）
+3. 检查域名是否属于学校官方（`.edu`、学校官方子域、或学校官网明确列出的教师目录子域）
+4. 第三方平台、医生预约页、CRM 聚合页 → **直接放弃该导师，不入表**
+
+**例外**：SPA 壳但学校官方域名，且通过 WebSearch 能找到**替代可抓取来源**（如个人网站、实验室 WordPress 页）→ 用替代来源作为导师主页 URL。
+
+---
 
 - **OSU**: `medicine.osu.edu/find-faculty/...` 路径常废弃，faculty 页面迁移到 `mcdb.osu.edu/people/...` 或其他子域名
 - **CWRU/CCF**: `lerner.ccf.org/cvme/faculty/...` 可能改为 `my.clevelandclinic.org/staff/...`
@@ -917,6 +937,7 @@ Patch 后重新 GET 记录，确认 `Location`、`QS排名`、`国内学校层�
 [ ] 4. 检查活跃状态: 非 Emeritus/Retired/Visiting
 [ ] 5. 匹配方向: 研究关键词与学生方向对比
 [ ] 6. 个人 URL: 验证是个人页面而非通用列表页
+[ ] 6a. 主页类型检查: 非第三方平台/医生预约页/CRM聚合页/SPA空壳 → 否则直接跳过
 [ ] 7. 写入记录: 所有 6 步检查通过后再写入
 [ ] 8. 获取学校主表 ID: GET /datasheets/{id}/fields → 找 OneWayLink 字段的 property.foreignDatasheetId
 [ ] 9. 设置学校关联: 写入后立即设置 OneWayLink → 验证 Location/QS/国内学校层次 已同步
@@ -1050,6 +1071,45 @@ for r in verified['data']['records']:
 | PATCH 后回读用错键名 | GET 返回字段名键，但用 field ID 去读永远 None | PATCH 前后各拉一次字段列表，回读用当前字段名 |
 | 精确匹配搜不到学校就自建 | 搜 "University of Exeter" 搜不到 "The University of Exeter" → 在主表 POST 创建重复 | 必须用 L1→L2→L3 分层搜索，L2 用不区分大小写子串匹配；搜不到就告诉用户，绝不自建 |
 | 对主表执行写入操作 | POST 到主表新建学校、或 PATCH 修改主表记录 | 🚫 主表是只读参考数据源，任何写操作都是禁止的 |
+
+---
+
+## 小批次强制审核（搜索阶段强制执行）
+
+**不要等所有学校搜完再统一审核。每写完 10 条新记录，必须立即 spawn supervisor-auditor 做对抗审核。**
+
+### 审核触发条件
+
+| 场景 | 操作 |
+|------|------|
+| 写完 10 条新记录 | 立即停，spawn supervisor-auditor |
+| 搜完一个学校的全部导师 | 即使不足 10 条，也 spawn auditor |
+| auditor 返回 P0 | 修正后再继续搜索，不积压 |
+
+### auditor 指令模板
+
+每次 spawn supervisor-auditor 时，传递以下指令：
+
+```
+你是一名选导审计官。对以下 X 条新记录进行对抗审核。
+
+审核规则（逐条检查，一项不通过即标记 P0）：
+1. 导师主页必须是大学官方页面（.edu 或学校官方子域），排除第三方平台/医生预约页/CRM聚合页
+2. 研究方向是否为核心方向（不能只是"研究方向之一"，必须是实验室主页/论文中明确的主攻方向）
+3. 硬排除：线虫/果蝇/酵母模式生物？纯计算(>70% dry lab)？癌症生物学为主线？
+4. URL 健康：无 __trashed、非 SPA 空壳、非 302 跳转到搜索页
+
+输出格式：
+- 只输出 P0 清单（记录编号 + 原因）
+- 无 P0 则输出 "PASS"
+```
+
+### 修正后二次验证
+
+收到 auditor 的 P0 清单后：
+1. 对 P0 记录立即修正（换链接/改备注/删除）
+2. 修正后重新 spawn auditor 验证同一批
+3. 确认 PASS 后再进入下一轮搜索
 
 ---
 
