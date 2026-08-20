@@ -36,7 +36,7 @@ Requires `TAVILY_API_KEY` environment variable. If installed, search automatical
 
 收到任务时，检测数据源：
 
-1. **用户提供 Vika 分享链接**（如 `https://vika.cn/share/shrXXX/dstXXX/viwXXX`）：直接通过 Fusion API 操作 Vika 表格
+1. **用户提供 Vika 分享链接**（如 `https://vika.cn/share/shrXXX/dstXXX/viwXXX`）：直接通过 Fusion API 操作 Vika 表格。**⚠️ 重要（2026-08-19 验证）**：分享链接页面通过 `dataPack` 接口只能看到**当前分享视图**的记录，可能不完整；若要获得完整表（全部视图的全部记录），必须用**个人 API Token** 调用 Fusion API `GET /datasheets/{dstId}/records`。发现差异时优先向用户索要 API Token 做完整读取，不要只依赖分享链接的 dataPack。
 2. **用户上传 `.xlsx` 文件**：操作本地电子表格
 3. **用户同时提供**：优先 Vika 做 CRUD，Excel 做参考/填充源
 
@@ -65,6 +65,8 @@ Requires `TAVILY_API_KEY` environment variable. If installed, search automatical
    echo 'export VIKA_TOKEN=你的token' >> ~/.zshrc && source ~/.zshrc
    ```
 3. Base URL: `https://api.vika.cn/fusion/v1`
+
+> ⚠️ **CRITICAL — 绝不硬编码 token（2026-08-13 复盘）**：每个 Python 脚本里必须用 `os.environ.get("VIKA_TOKEN")` 读取，先 `source ~/.zshrc` 再运行。**绝对不要在脚本里写死 token 字符串**——之前因硬编码了错误的 token 值（只凭 `echo ${VIKA_TOKEN:0:8}` 看到前 8 位就脑补了后面 15 位），导致所有 API 请求返回 401，误判为"权限问题"浪费了多轮排查。诊断 token 是否失效的方法：调用 `GET /spaces`——能返回空间列表说明 token 有效（是表权限问题），返回 401 说明 token 本身失效或写错了。
 
 ### 操作前必做：过滤选导意向非空行
 
@@ -326,6 +328,19 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 - `【毕业业界可能性】`：毕业生去向 + 产业/临床转化前景
 
 **禁止**写录取率等推测性数字（标注为"约"或留空）。
+
+### 项目综合情况信息 → 项目综合情况 转换（2026-08-14 沉淀）
+
+部分学生表有两列：`项目综合情况信息`（带 `【】` 标签的原始信息）和 `项目综合情况`（待填）。用户要求"去掉【】整合成一段话"时，按以下规则转换：
+
+1. 用正则 `【([^】]+)】` 切分标签与内容
+2. `【项目】内容` → 直接作为段落（保留原句）
+3. `【录取难度】X` → 写成 `录取难度X`
+4. `【funding】内容` → 直接作为段落（保留原句）
+5. `【毕业业界可能性】内容` → 写成 `毕业业界可能性内容`
+6. 各段落用 `。` 连接成一段话，结尾加 `。`；去除段落间多余的分号/逗号
+
+**注意**：转换只做格式整理，不增删事实信息。转换前先全部拉取 `选导意向（点击选择）` 为空的记录；选导意向非空的行只读不写。
 
 **默认使用中文填写备注**，即使 Excel 源数据的研究方向为英文也需翻译为中文关键词。格式：`职称；研究方向（中文关键词）；风险/注意事项。`
 
@@ -1128,6 +1143,7 @@ for name in broken_professors:
 | HKU Art History | 加 index.php 前缀 | `people/xxx` → `index.php/people/xxx` |
 | HKUBS | 人名用英文全名 slug | `people/wan-wen/` → `people/echo-wen-wan/`（万雯的英文名是 Echo Wen Wan） |
 | CUHK | 系页面下线后迁移研究门户 | `arch.cuhk.edu.hk/en/people/faculty-members/xxx` → `research.cuhk.edu.hk/en/persons/xxx` |
+| 英美欧法学院（2026-08-18 沉淀） | 大面积 404，博士申请/院系列表路径重组 | 博士申请：Kent `courses/postgraduate/237/law`→`courses/postgraduate/340/law-canterbury`；UEA `course/phd/law-phd`→`law/research/research-degrees`；Sheffield `law/postgraduate/research-degrees`→`law/postgraduate/phd/phd-study`；Buffalo `academics/degrees/doctoral.html`→`admissions/apply-to-law-school.jsd.html`；Essex `courses/pgr/phd-law`→`departments/law/research-degrees`；Leeds `law/doc/phd`→`law-research-degrees`；Birmingham `schools/law/courses/postgraduate/research-degrees`→`postgraduate/courses/research/law/law.aspx`。院系列表：UCD `law/about/academicstaff/`→`law/people/`；Vienna `zivilrecht.univie.ac.at/en/team/`→`id.univie.ac.at/en/team/`（创新与数字化系改名）;IVIR `ivir.nl/people/`→`ivir.nl/people/staff/researchers`；LSTS `lsts.research.vub.be/people`→`lsts.research.vub.be/staff-0`；KU `law.ku.edu/people`→`law.ku.edu/faculty`；Tulane `law.tulane.edu/faculty`→`law.tulane.edu/faculty/full-time`；Indiana `law.indiana.edu/about/people/faculty.html`→`law.indiana.edu/about/people/`；Essex `departments/law/people/academic-staff`→`departments/law/people/academic`；Leeds `law/staff`→`law/stafflist`；Birmingham `schools/law/people/index.aspx`→`schools/law/staff/index.aspx`；Temple `contact/`→`directory/faculty/`；UEA `law/people`→`research-portal.uea.ac.uk/en/organisations/school-of-law/persons/`（UEA 主站走 Imperva Human Verification，用研究门户 persons 页兜底） |
 
 ### 步骤 3：写入前逐条 WebFetch 验证
 
