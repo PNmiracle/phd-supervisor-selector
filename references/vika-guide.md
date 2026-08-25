@@ -572,6 +572,19 @@ See section 4.2 above. URL-type fields require field IDs without `fieldKey` para
 - Always `strip()` names before comparison
 - URL fields accept plain strings (API wraps them)
 
+### 长文本批量 PATCH 连接重置（2026-08-25 实战教训）
+
+**现象**：一次 PATCH 10 条备注（每条 50-150 字长文本）时，`Connection reset by peer`（Errno 54），整批失败、0 条生效。同样的请求内容改小批次后成功。
+
+**原因**：请求体过大 + 网络不稳定，Vika API 或中间链路断开连接。**返回 200 不一定成功，连接重置则一定失败**——PATCH 后必须 GET 回读确认。
+
+**正确做法**：
+1. **每批 5 条**（备注长文本场景，不要用满 10 条上限）
+2. 请求加 `timeout=30`
+3. 加重试循环（3 次，间隔 1.5s）
+4. PATCH 后 GET 回读全部记录，确认每条都是新内容
+5. 批量修复前先做全量备份（`GET /records` 全量存 JSON 到本地），删除/修改不可逆时尤其重要
+
 ---
 
 ## 14. 待确认导师自查流程
