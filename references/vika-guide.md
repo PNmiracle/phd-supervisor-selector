@@ -165,8 +165,8 @@ result = vika("GET", "/records?maxRecords=200&pageSize=200&cellFormat=string")
 
 ```python
 new_records = [
-    {"fields": {"导师": "张三", "Department": "心理学院(XX大学)", "备注": "教授；决策研究；比较匹配～", "待确认导师": "新加待check"}},
-    {"fields": {"导师": "李四", "Department": "商学院(YY大学)", "备注": "副教授；消费者行为；比较匹配～", "待确认导师": "新加待check"}},
+    {"fields": {"导师": "张三", "Department": "心理学院(XX大学)", "备注": "教授；决策研究。", "待确认导师": "新加待check"}},
+    {"fields": {"导师": "李四", "Department": "商学院(YY大学)", "备注": "副教授；消费者行为。", "待确认导师": "新加待check"}},
 ]
 result = vika("POST", "/records", {"records": new_records, "fieldKey": "name"})
 print(f"Created {len(result['data']['records'])} records")
@@ -202,7 +202,25 @@ for i in range(0, len(all_records), 10):
 
 **字段键名**：必须用**字段名称**（中文），不能用字段 ID（`fldXXX`）。POST 时 `fieldKey="name"` 是默认值，可省略。
 
-**POST 创建时能否同时写 OneWayLink？** 见 Section 11 的 workaround（第 491-498 行）。
+### ⚠️ POST 创建带 OneWayLink 字段时**不能**包含 fieldKey 参数（2026-08-21 实测教训）
+
+**根因**：当请求体中包含 OneWayLink 字段且同时传递 `fieldKey` 参数时，API 会返回 `api_params_instance_fields_error`（HTTP 500），即使空记录也报错。这个错误信息完全没有提示是 `fieldKey` 导致的。
+
+**正确格式**：创建带 OneWayLink 字段的记录时，**不要**在请求体中包含 `fieldKey` 参数：
+
+```python
+# ✅ 正确：不带 fieldKey
+body = {"records": [{"fields": {"导师": "张三", "非美国地区学校": ["recXXX"]}}]}
+result = vika("POST", "/records", body)
+
+# ❌ 错误：带 fieldKey 会导致 500 错误
+body = {"records": [{"fields": {"导师": "张三", "非美国地区学校": ["recXXX"]}}], "fieldKey": "name"}
+result = vika("POST", "/records", body)  # HTTP 500 api_params_instance_fields_error
+```
+
+**注意**：这个限制**仅影响 POST 创建**。PATCH 更新时可以正常使用 `fieldKey="name"`。
+
+**POST 创建时能否同时写 OneWayLink？** 是的，但必须不带 `fieldKey` 参数（如上所示）。
 
 ---
 
@@ -518,7 +536,9 @@ body = {
 2. PATCH the record WITHOUT `fieldKey` to set `学校名字: [school_record_id]`
 3. `Location` and `QS排名` will auto-fill after school link is set
 
-**Note**: This primarily applies to PATCH. **POST 创建时也可以写 OneWayLink**（2026-08-20 实测）：字段名做 key + 数组值 + 不带 fieldKey 参数即可成功，无需分两步。
+**POST 创建时也可以写 OneWayLink**（2026-08-20 实测）：字段名做 key + 数组值 + **不带 fieldKey 参数**即可成功，无需分两步。
+
+⚠️ **关键提醒**（2026-08-21 实测）：POST 创建带 OneWayLink 字段时，**绝对不能**在请求体中包含 `fieldKey` 参数，否则会返回 `api_params_instance_fields_error`（HTTP 500），即使空记录也报错。这个错误信息完全没有提示是 `fieldKey` 导致的。
 
 ---
 
