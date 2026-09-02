@@ -544,6 +544,46 @@ body = {
 
 ## 12. Known API Issues
 
+### POST Requests Timeout — GET Works, POST Fails (2026-08-26 confirmed)
+
+**现象**：所有 POST 请求（创建/更新记录）持续超时，GET 正常。
+- Python `urlopen`: `TimeoutError: The read operation timed out`
+- curl: exit 28 (timeout) 或 exit 137 (SIGKILL)
+- httpx/requests: `ReadTimeout`
+- 所有库、所有 timeout 值（10s/60s/90s/150s）一致失败
+- **GET 完全正常**（1-2s 内返回 200）
+- 不受代理设置影响（`unset HTTP_PROXY` 也失败）
+
+**影响**：无法创建学校记录、导师记录，无法 PATCH 更新。
+
+**根因**：Vika 服务器对 POST 请求不返回任何响应（连接建立成功，body 发送成功，但服务器 0 字节响应后挂起）。可能是服务端维护、地区屏蔽或速率限制。
+
+**临时方案**：
+- 等待 Vika 服务恢复后重试
+- 可设置循环重试脚本（间隔 5-10 分钟）
+- 如需紧急写入，考虑网页端手动录入
+
+**验证脚本**：
+```python
+import json, ssl
+from urllib.request import Request, urlopen
+
+with open('env.json') as f:
+    token = json.load(f)['VIKA_TOKEN']
+
+ctx = ssl.create_default_context()
+headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+
+url = 'https://api.vika.cn/fusion/v1/datasheets/dstMNzQU9Aa58DpgW3/records'
+data = json.dumps({'fields': {'学校全称': 'Test'}}).encode()
+req = Request(url, data=data, headers=headers, method='POST')
+try:
+    with urlopen(req, timeout=15, context=ctx) as r:
+        print('SUCCESS:', r.status)
+except Exception as e:
+    print('POST FAILED:', type(e).__name__, str(e)[:100])
+```
+
 ### DELETE Format (Critical)
 
 Vika DELETE API uses query parameter, NOT request body. The `vika()` function handles this automatically.
