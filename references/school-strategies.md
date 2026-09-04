@@ -935,6 +935,14 @@ BAD_PATTERNS = [
 # If individual URL is JS-rendered, mark in 备注
 ```
 
+#### CUNY 系统（纽约城市大学）— 金融/经济 PhD（2026-09-04 郝悦嘉验证）
+- **博士结构速查（三成员平行，非一校三院）**：金融/商科 PhD = **Baruch College / Zicklin 商学院**主导，与 **CUNY Graduate Center** 联合授予 **PhD in Business**（2014 秋起联合授予，日常教学在 Baruch 曼哈顿中城校区）；经济 PhD = **CUNY Graduate Center**（GC）经济学项目授予 **PhD in Economics**；City College 无商科 PhD（其教授通过 GC 项目带博）。Krugman 在 GC 仅 Research Professor，不带 PhD。
+- **官方域**：GC `gc.cuny.edu`（people 页 `gc.cuny.edu/people/{slug}`、经济项目页 `gc.cuny.edu/economics/*`）；Zicklin `zicklin.baruch.cuny.edu`（profile `zicklin.baruch.cuny.edu/faculty-profile/{slug}`）。**gc.cuny.edu 全站 curl 403（WAF 拦截壳，~5.4KB），非 404——用 WebFetch 穿透验证**；zicklin 直连 200 正常。
+- **GC Econ PhD 硬性前置（官网 Curriculum 页，2026-09 核实）**：所有新生须已修本科中级微观+中级宏观；两门本科微积分+一门线性代数（B 及以上）；至少一门本科统计+一门本科计量。GRE 必需、无豁免、无最低分；deadline 2/1；100% tuition-free + 5 年机构资助自动评审；不招终结性 MA。
+- **Baruch PhD in Business (Finance)**：无明文数学/经济课程前置，仅要求认可院校学士或硕士学位；GRE/GMAT 均可（GRE code 2113），无最低线（2025 录取 GRE 均值约 308-320）；deadline 1/15。
+- **统一主表（dstMNzQU9Aa58DpgW3）只有 CUNY City College，缺 Baruch 与 CUNY Graduate Center**——涉及这两校导师时学校关联无法设置：按规则不 POST 建校，先写导师（学校列留空、学校归属写进 Department/备注），提示用户自行补主表。
+- **Last verified**: 2026-09-04
+
 ### URL patterns by university (for quick lookup):
 
 | University | Individual profile pattern |
