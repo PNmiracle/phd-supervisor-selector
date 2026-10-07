@@ -1,3 +1,10 @@
+<!-- 头部由 2026-10-07 瘦身改造统一添加：三行说明用于阻止无谓加载，正文未改动 -->
+> **本文含**：2026-10 月度区域案例更新日志（FSU outside member 路径、港澳与中外合办 EdD 双轨、港教大名单入口、港澳有 EdD 的学校权威底账）
+> **什么时候读**：遇到该月同方向或同校的相似场景时，按校名或学生名 grep 定位；查港澳 EdD 项目清单时
+> **什么时候不用读**：当前任务与该月案例无关；⚠️ 禁止整读，必须先 grep 定位
+
+---
+
 # 区域案例更新日志 · 2026-10
 
 > 自 `school-updates-log.md` 于 2026-10-07 按月拆分。索引见 `school-updates-log.md`。
@@ -87,8 +94,6 @@ FSU 研究生手册（University policy，各院系手册均引用同一段）�
 - 🔴 **写入后必须跑「职称位扫描」**（本轮教训）：`备注` 首段（分号前）必须是真实职称，不能写成「博士生导师」。港校门槛过滤：`OK=("教授","副教授","助理教授","讲座教授","特聘教授","杰出教授","高级副教授","首席教授")`，`LOW=("讲师","Lecturer","Teaching Fellow","Instructor","Professor of Practice","Research Assistant Professor","研究助理教授","兼职","Adjunct","Visiting","客座","Emeritus")`。本轮靠这一步抓出 1 条讲师（EdUHK 甄沛豪）+ 4 条 XJTLU 职称位误写（Qian Wang=Associate Professor、Angela Fitzgerald=Professor、Na Li=Senior Associate Professor 兼 EdD 项目主任、Juliana Tay=Assistant Professor）。
   - XJTLU 的 `scholar.xjtlu.edu.cn/en/persons/<slug>` 页可 curl，**职称藏在正文首段**（"Dr X is an Associate Professor / a professor of education / Senior Associate Professor"），不在 meta 里，正则要抓正文。
 
-
----
 
 ---
 

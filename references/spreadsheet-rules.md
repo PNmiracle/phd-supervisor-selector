@@ -1,3 +1,10 @@
+<!-- 头部由 2026-10-07 瘦身改造统一添加：三行说明用于阻止无谓加载，正文未改动 -->
+> **本文含**：Excel 回退模式下的列格式规则：列结构判定、序号列偏移陷阱、主页链接规则、备注、附加表、质量检查、常见边缘情况、国内学校表规则
+> **什么时候读**：任务落在 Excel / 本地工作簿而非 Vika 时
+> **什么时候不用读**：主力 Vika 模式（默认路径）——Vika 字段规则看 field-rules.md 与 notes-and-fields.md
+
+---
+
 # Supervisor Spreadsheet Rules
 
 ## Column Format Selection

@@ -1,3 +1,10 @@
+<!-- 头部由 2026-10-07 瘦身改造统一添加：三行说明用于阻止无谓加载，正文未改动 -->
+> **本文含**：Vika API 操作手册：Setup 与 URL 解析、新建数据表、schema 查看、读记录五种姿势、批量创建（≤10）、各类型字段更新、删除与去重、Excel 导入、批量补链、跨校链接审计、不可写字段绕法、已知 API 问题（POST 超时、DELETE 格式）
+> **什么时候读**：任何 Vika 读写操作之前；遇到 309、POST 超时、OneWayLink / MagicLookUp 写入失败时；要批量修订备注时
+> **什么时候不用读**：Excel 回退模式；只做页面抓取、不落库时；只判断导师合格性时
+
+---
+
 # Vika Guide — API 代码模板 + 完整操作指南
 
 零依赖。所有操作使用 Python 3 标准库（`urllib` + `json`）——无需 `vika-cli`、npm 或第三方 SDK。仅需 API token 和任意 Python 3 安装。导入 Excel 时额外需要 `openpyxl`。

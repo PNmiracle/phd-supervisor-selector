@@ -1,4 +1,9 @@
+<!-- 头部由 2026-10-07 瘦身改造统一添加：三行说明用于阻止无谓加载，正文未改动 -->
+> **本文含**：学校策略库入口与总则：L0-SPA → L4 访问框架、架构→层映射、院校条目更新协议、院系名录页索引与覆盖度台账、已停止追踪的人
+> **什么时候读**：开始一个搜索任务、需要确定该用哪条访问通道时；要新增或更新院校情报时；要查院系名录页入口时
+> **什么时候不用读**：已有明确目标校且地区分册里能找到条目时——直接看分册；只做字段格式或备注写作时
 
+---
 
 ## School Strategy Knowledge Base
 
@@ -21,7 +26,7 @@ Living registry of which access layer to use for each university. Discipline-agn
 | `school-updates-log.md` | **日志索引**（2026-10-07 起按月分册） | 先看索引再进对应月份 |
 | `school-updates-2026-08.md` / `-09.md` / `-10.md` | 各月的区域案例更新 | 排查「以前是否遇到过同类问题」 |
 
-> ⚠️ 拆分后本文件名**不变**，仍是唯一入口——`search-orchestrator.md`、`critical-rules.md`、`search-techniques.md`、`SKILL.md` 中对 `school-strategies.md` 的引用依然有效。
+> ⚠️ 拆分后本文件名**不变**，仍是唯一入口——`search-orchestrator.md`、`rules-write.md`、`search-techniques.md`、`SKILL.md` 中对 `school-strategies.md` 的引用依然有效。
 > 新增学校时：按地区写入对应注册表分册；跨地区的通用教训写入 `access-framework.md`；带日期的案例复盘追加到 `school-updates-log.md`（本文件只保留访问框架与协议）。
 
 ## Universal Access Framework (L0-SPA → L1 → L2 → L3 → L4)

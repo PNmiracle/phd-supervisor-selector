@@ -33,21 +33,22 @@ agent_created: true
 
 > 这些规则**常驻正文**，因为漏掉代价高。每条后括号内是详解所在文件。
 
-- 🏫 学校关联字段必填　→　`critical-rules.md`
-- 禁止向 MagicLookUp 或计算字段写入　→　`critical-rules.md`
-- 禁止修改已填写选导意向的记录　→　`critical-rules.md`
-- 新增记录去重　→　`critical-rules.md`
-- 排除退休/名誉教授　→　`critical-rules.md`
-- ⚠️ Vika 同记录多字段修改：必须合并为一次 PATCH　→　`critical-rules.md`
-- 禁止猜测 URL　→　`critical-rules.md`
-- 导师主页必须是个人 URL　→　`critical-rules.md`
+- 🏫 学校关联字段必填（六步操作）　→　`vika-school-link.md`
+- 禁止向 MagicLookUp 或计算字段写入　→　`rules-write.md`
+
+- 禁止修改已填写选导意向的记录　→　`rules-write.md`
+- 新增记录去重　→　`rules-write.md`
+- 排除退休/名誉教授　→　`rules-write.md`
+- ⚠️ Vika 同记录多字段修改：必须合并为一次 PATCH　→　`rules-write.md`
+- 禁止猜测 URL　→　`rules-write.md`
+- 导师主页必须是个人 URL　→　`rules-write.md`
 - 链接**四关**：能打开 + 落点对 + 是本人页 + 层级对（"不是 404"≠合格）　→　`field-rules.md` / `verification-workflows.md`
-- 禁止在备注中出现 AI 痕迹语言　→　`critical-rules.md`
-- 禁止在备注中写入方向偏向　→　`critical-rules.md`
-- 国内学校搜索（不使用 Google）　→　`critical-rules.md`
-- Stipend 与 Funding 核实规则　→　`critical-rules.md`
-- Funding 字段中的推测性数据必须标注　→　`critical-rules.md`
-- NIH Grant 必须通过 NIH Reporter 交叉验证　→　`critical-rules.md`
+- 禁止在备注中出现 AI 痕迹语言　→　`rules-write.md`
+- 禁止在备注中写入方向偏向　→　`rules-write.md`
+- 国内学校搜索（不使用 Google）　→　`rules-write.md`
+- Stipend 与 Funding 核实规则　→　`rules-write.md`
+- Funding 字段中的推测性数据必须标注　→　`rules-write.md`
+- NIH Grant 必须通过 NIH Reporter 交叉验证　→　`rules-write.md`
 - 📛 备注自包含原则　→　`notes-and-fields.md`
 - 📛 备注可追溯原则　→　`notes-and-fields.md`
 - 📛 元注释禁止规则　→　`notes-and-fields.md`
@@ -82,7 +83,9 @@ Requires `TAVILY_API_KEY` environment variable. If installed, search automatical
 | 参考文件 | 何时读 |
 |---|---|
 | `search-orchestrator.md` | **开始搜索任务前**（状态续传、学校优先级 P0-P3、Pass1/Pass2 分阶段） |
-| `critical-rules.md` | **执行任何写入前必读**——硬规则合集（学校关联流程、去重、字段纪律、导师主页要求、排除规则等，含 57 个子节） |
+| `rules-write.md` | 📕 **执行任何写入前必读、可整读**（185 行）——写入前硬规则全集：导师主页要求、链接四关、备注禁令、职称、排除规则、去重、Funding 标注、字段一致性、Vika 写入机械硬门。**这是唯一需要「整读」的文件。** |
+| `vika-school-link.md` | 给记录设**学校关联字段**时（识别新/老学生、创建学校记录、四层搜索主表、搜不到就停、验证） |
+| `cases-rules.md` | ⚠️ **禁止整读**，按校名/关键词定位——案例复盘（404 大规模复盘、CityU 离任检测）、定级数据（Stipend 官方表）、某校特殊规则明细（美国通道表、港澳门槛表、UQ）、批量补字段方法论、港澳项目页 URL 底账 |
 | `vika-guide.md` | Vika API 操作：写入前重新 GET、DELETE 上限、配额 309、分页 1000 行、批量修订备注、新版学生表结构 |
 | `field-rules.md` | 校验/修正字段时：「博士申请信息」层级、职称、其他导师信息、链接检查 |
 | `notes-and-fields.md` | 写「备注」「项目综合情况」等字段前（格式、语气、可追溯原则、备选/后放写法） |
@@ -497,7 +500,10 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 
 ## 关键规则（CRITICAL）
 
-> 📎 本节全文已迁至 `references/critical-rules.md`（含 57 个子节）。
+> 📎 2026-10-07 二次拆分：原 `critical-rules.md`（876 行）已按内容性质拆为三本——
+> - **`references/rules-write.md`**（185 行）：写入前硬规则全集，**可整读，写入前必读**
+> - **`references/vika-school-link.md`**（291 行）：学校关联字段六步操作手册
+> - **`references/cases-rules.md`**（392 行）：案例 · 数据 · 某校特殊规则明细 · 批量方法论，**按关键词定位，禁止整读**
 
 ## 飞行前检查清单（添加导师前强制执行）
 

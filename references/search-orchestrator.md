@@ -1,3 +1,10 @@
+<!-- 头部由 2026-10-07 瘦身改造统一添加：三行说明用于阻止无谓加载，正文未改动 -->
+> **本文含**：搜索编排：Step 0 学生身份确认硬门、项目底座硬门（课程总目录 + 官方博导名单）、状态续传、学校优先级 P0-P3、Pass1/Pass2 分阶段、子代理派发约定、状态更新与学习回路
+> **什么时候读**：开始任何搜索任务之前必读
+> **什么时候不用读**：非搜索任务：纯审核已有表、纯分析类、纯链接修复；任务已在进行中且状态文件已建立时（只需回看状态文件）
+
+---
+
 # Search Orchestrator
 
 Session-aware search coordination with state tracking, smart prioritization, and standardized sub-agent dispatch. Read this before starting ANY search task.

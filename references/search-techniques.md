@@ -1,3 +1,10 @@
+<!-- 头部由 2026-10-07 瘦身改造统一添加：三行说明用于阻止无谓加载，正文未改动 -->
+> **本文含**：抓取技术：SPA 替代源策略、API 端点定位、URL 模式推断、并行子代理设计、浏览器验证、不可达子域处理、DDG 降级搜索、Tavily L4 兜底
+> **什么时候读**：常规通道抓不到正文、需要换技术手段时；要批量并行抓取并设计子代理任务时
+> **什么时候不用读**：通道正常、单页可读时；只做写入或字段校验时
+
+---
+
 # Search Techniques for PhD Supervisor Discovery
 
 Practical techniques for discovering supervisor profiles, bypassing website limitations, and scaling verification efficiently.
