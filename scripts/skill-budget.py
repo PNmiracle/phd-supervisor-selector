@@ -64,6 +64,44 @@ def count(text):
     return len(text.split("\n")), len(text)
 
 
+def check_cross_refs():
+    """跨文件引用检查。失效引用不会报错、只会静默误导，必须由脚本兜住。
+
+    检查两类：
+      1. md 里提到的 `references/xxx.md` 是否真实存在
+      2. md 里写的 `SKILL.md「某小节」` 是否还在 SKILL.md 里
+         —— 小节被迁出 SKILL.md 后这类指针会静默失效（2026-10-07 迁移时确实发生了 4 处）
+    """
+    problems = []
+    skill_md = lines_of(os.path.join(SKILL_DIR, "SKILL.md"))
+    headings = {h.strip().lstrip("#").strip()
+                for h in re.findall(r"(?m)^#{1,6}\s+(.+)$", skill_md)}
+
+    for root, dirs, files in os.walk(SKILL_DIR):
+        dirs[:] = [d for d in dirs if d not in (".git", "_archive")]
+        for fn in files:
+            if not fn.endswith(".md"):
+                continue
+            p = os.path.join(root, fn)
+            rel = os.path.relpath(p, SKILL_DIR)
+            text = lines_of(p)
+            for m in re.finditer(r"`?references/([A-Za-z0-9_\-\u4e00-\u9fa5]+\.md)`?", text):
+                if not os.path.exists(os.path.join(REF_DIR, m.group(1))):
+                    problems.append(f"{rel} → 指向不存在的 references/{m.group(1)}")
+            for m in re.finditer(r"SKILL\.md\s*[「『]([^」』]+)[」』]", text):
+                base = m.group(1).split("→")[0].strip()
+                if base and not any(base in h for h in headings):
+                    problems.append(
+                        f"{rel} → 指向 SKILL.md 中已不存在的「{base}」"
+                        f"（该节可能已被迁出，应改为指向具体 references 文件）")
+    seen, out = set(), []
+    for x in problems:
+        if x not in seen:
+            seen.add(x)
+            out.append(x)
+    return out
+
+
 def report(rows, quiet):
     """rows: [(级别, 名称, 实测, 预算, 说明)]"""
     if not quiet:
@@ -147,7 +185,16 @@ def main():
         rows.append(("OK", "每次任务需整读的文件数", n_read, bud,
                      "SKILL.md + rules-write.md + 当前阶段手册"))
 
-    # 5. 逐校索引是否与源文件同步（防止索引悄悄过期后给出旧情报）
+    # 5. 跨文件引用是否失效（拆分/迁移后最容易静默坏掉的一项）
+    xref = check_cross_refs()
+    if xref:
+        rows.append(("FAIL", "跨文件引用有效性", len(xref), 0,
+                     "有失效引用；详见下方清单（不会报错，只会静默误导）"))
+        fails.append("cross-refs")
+    else:
+        rows.append(("OK", "跨文件引用有效性", "全部有效", "-", ""))
+
+    # 6. 逐校索引是否与源文件同步（防止索引悄悄过期后给出旧情报）
     idx = os.path.join(SKILL_DIR, "scripts", "build-school-index.py")
     if os.path.exists(idx):
         r = subprocess.run([sys.executable, idx, "--check"], capture_output=True, text=True)
@@ -157,7 +204,7 @@ def main():
         if not ok:
             fails.append("school-index-stale")
 
-    # 6. audit-all.py 自检（改正则后必须仍全过）
+    # 7. audit-all.py 自检（改正则后必须仍全过）
     if not args.skip_selftest:
         aa = os.path.join(SKILL_DIR, "scripts", "audit-all.py")
         if os.path.exists(aa):
@@ -169,6 +216,13 @@ def main():
                 fails.append("audit-all-selftest")
 
     report(rows, args.quiet)
+
+    if xref and not args.quiet:
+        print("\n=== 失效引用清单（逐条修掉）===")
+        for x in xref:
+            print(f"  · {x}")
+        print("\n注：这类引用不会让任何命令报错，只会让读者被指到不存在的地方。"
+              "拆分/迁移文件后必须重跑本脚本。")
 
     verdict = "pass" if not fails else "fail"
     line = (f"KS_SKILL_BUDGET_{verdict.upper()} 超预算 {len(fails)} 项"

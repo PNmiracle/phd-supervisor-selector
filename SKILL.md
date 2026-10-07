@@ -53,6 +53,7 @@ agent_created: true
 - 📛 备注可追溯原则　→　`notes-and-fields.md`
 - 📛 元注释禁止规则　→　`notes-and-fields.md`
 - 链接层级三分法　→　`field-rules.md`
+- 🚦 学生可执行性**三座闸门**（研究对象 / 跨学科先修背景 / **博士项目的学位学科必须对口**）　→　`selection-rules.md`
 
 ## 搜索编排（首先阅读）
 
