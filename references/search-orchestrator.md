@@ -15,6 +15,35 @@ Before touching `search-state/` or any existing state file, you MUST establish t
 
 > ⚠️ **复盘教训（2026-08-28）**：用户发来新学生的列表，agent 未确认姓名就直接 resume 了目录里一份完整的历史 state 文件（含方向、Vika 表、学校优先级），导致整轮操作指向错误学生。根因：skill 把"resume existing state"设为第一步却没规定姓名来源，agent 顺手 ls 了目录就误命中。
 
+## 0.5 项目底座：先抓「学校课程总目录 + 项目官方博导名单」（HARD GATE，2026-10-07 曹琇翕案例沉淀）
+
+**在派发任何搜索子代理之前**，必须为每所目标学校先建立「项目底座」，只用两类官方页面：
+
+1. **学校自己的博士学位课程总目录**（研究生院 / 教务处 / study 页的 course list，按院系列出全部博士课程）
+2. **每个对口项目的官方博导名单页**（potential supervisors / supervisor list / 导师名单）
+
+### 为什么（两个真实失误）
+- **漏掉整个项目**：曹琇翕（艺术+教育方向）的澳门清单里，我把「澳门科技大学 → 人文艺术学院」写进了子代理指令。代理在该院系范围内查完，如实回「无教育博士」→ 我直接把「该校无 EdD」写进交付物。**实际上澳科大 EdD 挂在「国际学院（University International College）」，2025-05 才获批新设，根本不在我给的那个学院里。**
+- **导师池过薄**：香港教育大学 EdD，我只从「文化与创意艺术学系 + 教育政策与领导学系」两个系筛出 7 人（其中 6 人做的是艺术类 PhD、不是 EdD），而官方 EdD 的 **Potential Supervisors 名单一次给出 59 人**。我是靠后面偶然搜到才补的。
+
+### 硬规则
+1. **项目是否存在，只认「学校自己的课程总目录」**——不认院系页、不认第三方聚合站、不认自己的先验判断。
+2. 🔴 **子代理报「该校没有 X 项目」时，必须在课程总目录上复核后才能写进交付物**。子代理的否定结论**只在它被指定的范围内成立**；把「院系内没有」当「学校没有」是这一轮最大的一类错误。
+3. 🔴 **派发子代理时不要预指定院系**。只给「学校 + 方向关键词」，让代理自己从总目录定位院系。在指令里写死学院名，等于把错误前件传下去，代理越听话越会漏。
+4. **专业博士（EdD / DBA / DDes / DClinPsy / EngD 等）几乎都有独立的 "potential supervisors" 名单页**，而且常常由**研究生院**维护（不在院系站点里）→ 优先抓它，比从院系师资页逐个筛准确得多、也快得多。
+5. **新设项目是最容易漏的一类**：近两年新批的项目（常挂在新建学院下，如「国际学院」「未来教育学院」「教育科学学院」）在老的院系索引里找不到。抓总目录时留意「拟开办 / 新开办」标注。
+
+### 已知可用的「项目底座」入口
+| 学校 | 总目录 / 官方博导名单 |
+|---|---|
+| 香港教育大学 EdUHK | EdD 官方潜在导师名单（59 人）：`gs.eduhk.hk/prospective-students/edd/potential-supervisors/`（中文版 `/zh-hans/`） |
+| 澳门科技大学 MUST | 研究生院博士课程总目录（按院系列出，每项目带「导师名单」链接）：`sgs.must.edu.mo/faculty/id-2894.html?locale=zh_CN`；国际学院教育/教育学导师名单：`uic.must.edu.mo/person/id-15199.html?locale=zh_CN` |
+| 香港都会大学 HKMU | EdDC 督导名单：`hkmu.edu.hk/el/list-of-eddc-supervisors/` |
+| 西交利物浦 XJTLU | 未来教育学院博导名单：`xjtlu.edu.cn/en/study/departments/academy-of-future-education/doctoral-supervisors` |
+| 澳门理工大学 MPU | 报考条件与课程页：`mpu.edu.mo/admission_local/zh/pg_routes.php`（注意：艺术及设计学院**无博士课程**） |
+
+> ⚠️ 顺带一条交付纪律：**交付报告里的「重点人选」表不要手写**。手写表格会静默漏掉整所学校——港教大 EdD 就是这样从 A 线重点人选表里消失的。应当**从表内数据脚本生成**（如按学校分组取前 N 条），再人工微调。
+
 ## 1. Check for Existing State
 
 Before searching any school, check for a state file — but **only after Step 0 has confirmed the current student's name**:

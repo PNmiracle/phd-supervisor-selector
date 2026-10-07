@@ -12,6 +12,47 @@ agent_created: true
 
 **主力模式：Vika（在线表格直接 CRUD）。Excel 作为可选回退模式。**
 
+## 🎯 五项验收口径（用户最在意的五项，优先级高于其他任何指标）
+
+每次写表与交付前，**逐条自查这五项**。每项末尾是详解所在文件（需要时再打开，不要凭印象）。
+
+1. **方向不能出错** — `导师研究领域` 与排除理由都必须来自**本人亲手打开的官方页面原文**，不得凭先验知识填写；**系页描述太泛不能作为排除理由**（必须打开个人页取到具体方向才能判）；关键词撞上 ≠ 真能接住学生的题目。→ `evidence-discipline.md`、`selection-rules.md`
+2. **职称不能出错** — 职称以**院系或中心的教师名录页**为准；个人页标题、讲席头衔（`Chair`、`Professorial Fellow`、`apl. Prof.`）都不算职称；非英语职称不得直译（`Professeur associé` 是**副教授**）；且必须满足各地区最低职级（美国/港澳/欧陆：助理教授及以上；港澳讲师序列一刀切排除）。→ `field-rules.md`、`selection-rules.md`、`school-registry-hk-mo-cn.md`
+3. **链接必须真实官网可达、且落在正确的页面** — **四关全过才算合格，"不是 404"远不等于合格**：
+   - **① 能打开**：明确 404 / 410 / 域名解析失败＝坏链，必须替换。**但非 200 不等于坏链、也不等于放过**——403 / 429 / 202 / 超时 / `200 但字节数很小且无 title` 都可能是反爬或 JS 壳，必须换通道（WebFetch / 完整浏览器 UA）穿透看真实内容；穿透后显示 "page does not exist" 即为真失效（CityU 案例：403 的离任教授页就是这样查出来的）。
+   - **② 落点对**：`curl -L -w "%{url_effective}"` 取最终 URL 与原 URL 比对。**能打开但已跳到院系搜索页 / 机构概览页 / 别的项目页，等于失效**（`oge.mit.edu/?p=589` 就是：打得开，但已不是原来那一页）。
+   - **③ 是这个人的页**：抓到的正文必须含该导师姓或名——防「404 伪装成 200」「SPA 空壳」「跳转页」「通用列表页」；域名与所关联学校不一致要单独看（可能是已转校）。
+   - **④ 层级对**：导师主页＝**个人页**（不可用 Google Scholar / ResearchGate / 院系首页）；`博士申请信息`＝**项目申请页**（不可用全校研究生院入口）；`其他导师信息`＝**该导师所在院系的教师名录页**（不可用站点根目录 / 搜索落地页）。
+   - ⚠️ **禁止仅凭 HTTP 状态码判定**（正文「链接验证标准」已写明：美国校常对 404 返回 200 + "Page Not Found" 内容，旧路径废弃后则静默重定向到院系搜索页）→ `field-rules.md`、`verification-workflows.md`、正文「链接验证标准」
+4. **备注按现行要求** — 格式 `职称；做…。`；正文**不得出现任何链接**（含 scholar.google / researchgate / orcid / linkedin）；不得出现"试试 / 再看看 / 失效"这类草稿语；不得出现 AI 痕迹语言与方向编号。自查法：去掉 `职称；` 前缀后，句子应当能回答"这个组做什么"；出现"创办 / 获得 / 担任 / 曾任"说明混进了履历。→ `notes-and-fields.md`、`field-rules.md`
+5. **尽可能全面** — **先出候选池、再筛选，两段分开做**；任何抓取失败（超时 / 403 / 解析为空）**必须进「待重试」清单**，不得静默丢弃；报告里的"覆盖 N 人"必须与候选名单长度对账，**差额逐人说明去向**。→ `evidence-discipline.md`
+
+---
+
+## 🚦 写入前硬门速查（常驻正文，不要跳过）
+
+> 这些规则**常驻正文**，因为漏掉代价高。每条后括号内是详解所在文件。
+
+- 🏫 学校关联字段必填　→　`critical-rules.md`
+- 禁止向 MagicLookUp 或计算字段写入　→　`critical-rules.md`
+- 禁止修改已填写选导意向的记录　→　`critical-rules.md`
+- 新增记录去重　→　`critical-rules.md`
+- 排除退休/名誉教授　→　`critical-rules.md`
+- ⚠️ Vika 同记录多字段修改：必须合并为一次 PATCH　→　`critical-rules.md`
+- 禁止猜测 URL　→　`critical-rules.md`
+- 导师主页必须是个人 URL　→　`critical-rules.md`
+- 链接**四关**：能打开 + 落点对 + 是本人页 + 层级对（"不是 404"≠合格）　→　`field-rules.md` / `verification-workflows.md`
+- 禁止在备注中出现 AI 痕迹语言　→　`critical-rules.md`
+- 禁止在备注中写入方向偏向　→　`critical-rules.md`
+- 国内学校搜索（不使用 Google）　→　`critical-rules.md`
+- Stipend 与 Funding 核实规则　→　`critical-rules.md`
+- Funding 字段中的推测性数据必须标注　→　`critical-rules.md`
+- NIH Grant 必须通过 NIH Reporter 交叉验证　→　`critical-rules.md`
+- 📛 备注自包含原则　→　`notes-and-fields.md`
+- 📛 备注可追溯原则　→　`notes-and-fields.md`
+- 📛 元注释禁止规则　→　`notes-and-fields.md`
+- 链接层级三分法　→　`field-rules.md`
+
 ## Optional Companion Skill
 
 **tavily-search-pro** — AI-powered search platform that acts as **L4 fallback** when L1-L3 access methods all fail (WAF blocks curl+browser+search). Provides:
@@ -29,6 +70,62 @@ Requires `TAVILY_API_KEY` environment variable. If installed, search automatical
 - **状态追踪**：续传中断的搜索，跳过已完成的学校
 - **智能优先级**：按预期产出（P0-P3 层级）对学校排序
 - **分阶段策略**：先快速扫描所有学校（Pass 1），再深入验证有希望的学校（Pass 2）
+
+---
+
+---
+
+## 📚 参考文件索引（按需读取；大文件请定位后局部读，不要整读）
+
+本技能已于 2026-10-07 瘦身：原 274KB 正文按主题拆分至 `references/`，正文只保留核心流程、硬门与操作权限。**下表说明每个参考文件何时该读。**
+
+| 参考文件 | 何时读 |
+|---|---|
+| `search-orchestrator.md` | **开始搜索任务前**（状态续传、学校优先级 P0-P3、Pass1/Pass2 分阶段） |
+| `critical-rules.md` | **执行任何写入前必读**——硬规则合集（学校关联流程、去重、字段纪律、导师主页要求、排除规则等，含 57 个子节） |
+| `vika-guide.md` | Vika API 操作：写入前重新 GET、DELETE 上限、配额 309、分页 1000 行、批量修订备注、新版学生表结构 |
+| `field-rules.md` | 校验/修正字段时：「博士申请信息」层级、职称、其他导师信息、链接检查 |
+| `notes-and-fields.md` | 写「备注」「项目综合情况」等字段前（格式、语气、可追溯原则、备选/后放写法） |
+| `evidence-discipline.md` | 从候选生成到决定写入之间的纪律（候选 ≠ 写入依据） |
+| `verification-workflows.md` | 交付前机械复查 SOP、链接修复、链接健康审计、申请截止日核查、汇编文档批量核查 |
+| `common-errors.md` | 交付前扫一遍高频错误 |
+| `analysis-workflows.md` | 套磁结果归因分析、学生方向偏好逆向分析 |
+| `access-channels.md` | 站点访问通道实测（curl vs WebFetch）、sitemap 找院系页、港澳/澳新抓取情报 |
+| `school-strategies.md` | **学校策略库入口**（访问框架 L0–L4、更新协议、院系名录索引）。已按地区分册：`school-registry-uk / -au-nz / -hk-mo-cn / -sg-eu / -us-ca`、`access-framework`、`school-updates-log`（含 `school-updates-2026-08/-09/-10` 月册）——按目标校所在地区先开对应分册，再关键词定位 |
+| `language-requirements.md` | 填「语言要求」列前（7 项必录清单、新旧分制换算、助教口语分档） |
+| `selection-rules.md` | 判断导师是否合格、筛选口径与排除标准 |
+| `search-techniques.md` | 抓取受阻时的通道选择与 L4 兜底（Tavily） |
+| `spreadsheet-rules.md` | Excel 回退模式下的列格式规则 |
+| `collaboration-workflow.md` | 「开始学生」/「结束学生」协作流程 |
+| `lark-board-entry.md` | 任务来自飞书「选导任务管理看板」记录时 |
+
+## 任务入口：飞书「选导任务管理看板」（2026-09-14 沉淀）
+
+> 📎 本节全文已迁至 `references/lark-board-entry.md`。
+
+## 🔴 维格空间行数上限：写入会被 309 拒绝（2026-09-20 实测，必须前置检查）
+
+> 📎 本节全文已迁至 `references/vika-guide.md`。
+
+## 学校站点访问通道：本机 curl 与 WebFetch 的实际差异（2026-09-20 实测）
+
+> 📎 本节全文已迁至 `references/access-channels.md`（含 5 个子节）。
+
+## 写入后的「检查一遍」：职称与「其他导师信息」是最容易出错的两处（2026-09-21 实测）
+
+> 📎 本节全文已迁至 `references/field-rules.md`（含 5 个子节）。
+
+## 接手别人的表时：先扫一遍历史批次的备注（2026-09-22 实测）
+
+> 📎 本节全文已迁至 `references/field-rules.md`。
+
+## 「博士申请信息」这一列：必须是项目页，不能是全校入口（2026-09-23 实测，125 条）
+
+> 📎 本节全文已迁至 `references/field-rules.md`（含 4 个子节）。
+
+## 语言要求核验（做"语言要求"列前必读）
+
+见 `references/language-requirements.md`：每校必录 7 项（是否接受家考／托福总分／口语单项／助教口语／雅思是否可用／有效期以申请截止日还是开始日／建议递哪张成绩），含新旧分制换算、口语不足时的资助分档标尺、已核实校别样例，以及一条**已证伪**的常见谣言（"家考有效期缩短至 18 个月"）。
 
 ---
 
@@ -93,7 +190,7 @@ locked = [r for r in all_records if r["fields"].get("选导意向（点击选择
 |------|------|------|
 | 列出字段 | `GET /datasheets/{id}/fields` | 发现字段名和类型 |
 | 列出记录 | `GET /datasheets/{id}/records?viewId=...&maxRecords=...` | 支持 filterByFormula、sort、分页 |
-| 创建记录 | `POST /datasheets/{id}/records` | 每批最多 10 条，使用 `fieldKey: "name"` |
+| 创建记录 | `POST /datasheets/{id}/records` | 每批最多 10 条。**body 必须是 `{'records': [{'fields': {...}}, ...], 'fieldKey': 'name'}`**——每条记录要包一层 `fields` 键；直接传裸字段映射会返回 HTTP 500 `api_params_instance_fields_error`（2026-09-14 实测踩坑） |
 | 更新记录 | `PATCH /datasheets/{id}/records` | 发送 `{"records": [{"recordId":"xxx","fields":{...}}], "fieldKey": "name"}` |
 | 删除记录 | `DELETE /datasheets/{id}/records?recordIds=recXXX` | recordIds 在 query parameter 中，非 request body |
 
@@ -104,6 +201,20 @@ locked = [r for r in all_records if r["fields"].get("选导意向（点击选择
 - 每批最多 10 条记录，批次间加 0.3-0.5 秒延迟。
 
 详细的 API 代码模板和操作指南见 `references/vika-guide.md`。
+
+### ⚠️ 写入前必须重新 GET 当前记录（2026-09-15 实测教训，强制执行）
+
+**同一张表可能在两轮之间被别人改过。** 本次实例：第一轮 GET 快照为 **68 条**记录、含「Greg Aldrich（Kansas State）」；几个小时后第二轮 GET 只剩 **65 条**——该记录已被删除，替换为「Julia Guazzelli Pezzali / Chad Paulk」两条，且申请页已改成正确的 Grain Science 链接。用户随后提出的"待修问题"里，K-State 那一项其实**已经不存在了**。
+
+**若直接拿旧快照去 PATCH，会写到已不存在的 recordId，或把别人刚改好的值覆盖回去。**
+
+**执行清单**：
+1. **每次 PATCH / POST / DELETE 之前，重新 GET 一次全表**，不复用上一轮落盘的 `records.json`。
+2. **前置断言**：用 `recordId` 存在性 + 待改字段的**当前值**做校验（如 `assert cur[rid][字段].startswith(旧首句)`），不匹配立即中止，不要"尽力而为"地写。
+3. **先备份**：改前把原值 dump 到 `backup_before.json`，便于回滚。
+4. **写完回读**：再 GET 一遍，逐字段比对确认。
+5. **先核对再动手**：用户报的"待修项"可能已经被修掉了，逐条核实现状，避免改坏或重复报告。
+6. **两类字段分两次请求**：URL 字段（导师主页 / 博士申请信息 / 其他导师信息）必须用**字段 ID + `fieldKey="id"`**；文本字段用**字段名 + `fieldKey="name"`**。两者不可混在同一请求里。
 
 ### 自然语言删除流程
 
@@ -128,49 +239,51 @@ locked = [r for r in all_records if r["fields"].get("选导意向（点击选择
 
 ⚠️ **DELETE 格式陷阱**：必须发送 `{"records": ["recXXX"]}`，不能发送纯数组 `["recXXX"]`。
 
+#### 🔴 DELETE 单次上限 10 条（2026-09-21 实测）
+
+`DELETE /datasheets/{ds}/records?recordIds=a,b,c,...` **单次最多 10 条**，超过直接报错（**不是**静默失败）：
+
+```
+Can't update/delete/create more than $10 records in one single request
+```
+
+- 实测 **8 条/批最稳**；批间 `time.sleep(1)`。
+- 注意与 POST/PATCH 的坑**性质不同**：DELETE 是**显式报错**（好排查），而 POST 超 10 条是 **HTTP 201 + success:true 但 `data.records` 返回空数组**（静默失败，回读才发现）。两个都要防。
+- 删完必须 `GET` 回读，逐个确认 target recordId 已消失，并打印实际删除条数。
+
+#### 🔴 删行前必须 dump 整行 `fields`，不能只看关键字段（2026-09-21 踩坑）
+
+初筛「空行」时若只检查关键字段（导师/学校/备注等），会把**只保留了非关键字段的行**误判为垃圾行。实测：两条记录 8 个关键字段全空，但其中一条有 `确认套磁=True`、`状态=被拒绝`、`等邮件几天=12`、`选导时间`、`From` —— 是一条**真实处理过的套磁记录**（导师名字段丢失的孤儿行），删掉就丢了历史状态。
+
+**规则**：
+1. 判定「空行/垃圾行」时，必须 `print(rec["fields"])` 看**整行所有键**，不能只看白名单字段。
+2. 只要该行含「选导时间 / 确认套磁 / 状态 / 套磁备注 / 你的反馈 / From / 状态变更日期」中任一字段，就**不是**可删的垃圾行，应报告给用户人工处置。
+
 ---
 
 ## 表格验证工作流（验证已有表格时触发）
 
-当用户要求"验证表格信息""检查链接""确认 funding 是否属实"时，按以下工作流执行：
+> 📎 本节全文已迁至 `references/verification-workflows.md`（含 3 个子节）。
 
-### 验证范围
+## 申请截止日期核查（2026-09-17 沉淀，CRITICAL）
 
-1. **导师主页链接**：逐条 WebFetch 验证，确认是个人主页而非 404 伪装页/院系列表页/第三方平台
-2. **博士申请信息链接**：WebFetch 验证可访问性
-3. **其他导师信息链接**：WebFetch 验证可访问性
-4. **备注信息**：方向匹配性、格式规范、排除 emoji 和主观判断词
-5. **项目综合情况**：PhD 项目名称是否正确、stipend 金额是否与官网一致
-6. **funding 预计情况**：NIH grant 类型/金额/时间线是否可验证、是否存在"中心总计"与"个人 funding"混淆
+> 📎 本节全文已迁至 `references/verification-workflows.md`（含 5 个子节）。
 
-### 验证执行顺序
+## 申请信息汇编文档的批量核查（2026-09-24 沉淀）
 
-```
-Step 1: 获取学生方向定义书 + 表格全部记录
-    ↓
-Step 2: 导师主页链接验证（逐条 WebFetch，禁止仅用 curl）
-    ↓
-Step 3: 博士申请信息 + 其他导师信息链接验证
-    ↓
-Step 4: 备注方向匹配性验证（对照方向定义书核心机制）
-    ↓
-Step 5: Stipend 金额核实（搜索每个学校官网最新数字）
-    ↓
-Step 6: NIH Grant 核实（NIH Reporter 交叉验证）
-    ↓
-Step 7: 生成问题清单 → 分级 → 修正 → 二次验证
-```
+> 📎 本节全文已迁至 `references/verification-workflows.md`（含 8 个子节）。
 
-### 问题分级
+## 学生方向偏好逆向分析（2026-09-14 贺禧案例沉淀）
 
-| 级别 | 描述 | 示例 |
-|------|------|------|
-| P0 - 严重 | 404 链接、错误 grant 类型、严重低估 stipend | 必须立即修正 |
-| P1 - 重要 | 院系列表页代替个人主页、第三方平台链接 | 需找替代链接 |
-| P2 - 轻微 | 备注格式问题、emoji、乱码 | 建议清理 |
-| P3 - 提示 | 推测性数据未标注"约"、定性判断 | 建议补充标注 |
+> 📎 本节全文已迁至 `references/analysis-workflows.md`（含 4 个子节）。
 
----
+## 套磁结果归因分析（2026-09-20 刘艺佳案例沉淀）
+
+> 📎 本节全文已迁至 `references/analysis-workflows.md`（含 11 个子节）。
+
+## 证据纪律：候选生成 ≠ 写入依据（2026-09-17 沉淀，务必执行）
+
+> 📎 本节全文已迁至 `references/evidence-discipline.md`（含 3 个子节）。
 
 ## 搜索工作流（Vika 和 Excel 通用）
 
@@ -326,182 +439,7 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 
 ## 项目综合情况字段结构
 
-`项目综合情况` 列需覆盖四项，用 `【】` 标签分隔：
-- `【项目】`：PhD项目名称 + 项目实力 + 方向覆盖 + 产业联系
-- `【录取难度】`：直接判断高/中等偏高/中等/中等偏低/低
-- `【funding】`：奖学金类型 + 金额（搜索官网核实最新数据）+ 覆盖年限
-- `【毕业业界可能性】`：毕业生去向 + 产业/临床转化前景
-
-**禁止**写录取率等推测性数字（标注为"约"或留空）。
-
-### 项目综合情况信息 → 项目综合情况 转换（2026-08-14 沉淀）
-
-部分学生表有两列：`项目综合情况信息`（带 `【】` 标签的原始信息）和 `项目综合情况`（待填）。用户要求"去掉【】整合成一段话"时，按以下规则转换：
-
-1. 用正则 `【([^】]+)】` 切分标签与内容
-2. `【项目】内容` → 直接作为段落（保留原句）
-3. `【录取难度】X` → 写成 `录取难度X`
-4. `【funding】内容` → 直接作为段落（保留原句）
-5. `【毕业业界可能性】内容` → 写成 `毕业业界可能性内容`
-6. 各段落用 `。` 连接成一段话，结尾加 `。`；去除段落间多余的分号/逗号
-
-**注意**：转换只做格式整理，不增删事实信息。转换前先全部拉取 `选导意向（点击选择）` 为空的记录；选导意向非空的行只读不写。
-
-**默认使用中文填写备注**，即使 Excel 源数据的研究方向为英文也需翻译为中文关键词。格式：`职称；研究方向（中文关键词）；风险/注意事项。`
-
-### 语气要求：自然、客观、像人在说话
-
-备注是给申请学生看的，要像坐在旁边帮 ta 梳理信息的口吻——**自然、松弛、不打分**。
-
-#### 📛 备注自包含原则（2026-09-02 郝悦嘉案例沉淀，CRITICAL）
-
-**学生不一定持有选导方向书/方向梳理——很多学生从未收到过方向定义文档。备注不得默认学生知道任何内部方向定义、排除项或上下文。**
-
-写每条备注前先确认：**这个学生拿到过方向梳理吗？**
-
-- **学生没有方向梳理**（不确定时一律按此处理）：备注必须**自包含**——只客观写「导师做什么方向 + 用什么方法 + 什么通道/招生信息」，学生不依赖任何外部文档就能看懂。
-  - ❌ `和你的国际金融/开放宏观方向能搭上`（学生不知道"我的方向"是什么）
-  - ❌ `与你的排除项无重叠`（学生不知道排除项是什么）
-  - ❌ `契合度中等`（学生不知道在跟什么比）
-  - ✅ `教授；国际金融与开放宏观方向，实证为主（资本流动、汇率与货币政策传导）。`
-  - ✅ `副教授；方法偏结构性宏观建模（DSGE类），实证成分相对少。`
-- **学生持有方向梳理**：才允许方向关联描述，且必须写出**具体方向名**（如 `和你的心血管药物流病方向比较对口`），禁止笼统的"和你的方向能搭上"。
-
-- **允许**方向关联描述（**仅当学生持有方向梳理时**）——说明导师方向与你的交叉点（`和你的XX方向能搭上`、`和你的XX方向有交叉`、`与XX方向比较对口`），帮学生判断是否值得套磁
-- **禁止**机器打分语言——`匹配度最高`、`匹配面最广`、`很契合`、`直接对话`、`很有交集`、`核心人选`、`高度相关`、`很匹配`、`完美匹配`
-- **禁止**写任何将学生导向外部链接的内容（如"文章看这个链接"）
-- **禁止**写任何暴露内部审查动作的内容（见下方「元注释禁止规则」）
-- **禁止**堆砌术语关键词——写完要读一遍，想象你是说给一个紧张的申请者听的
-- **要**写短句，多用"，"和"；"，少用长定语句
-- 信息量要保持，但语气要松弛——是"帮你梳理"不是"给你打分"
-
-### 备注格式：两段式主体 + 末尾附加（可选）
-
-每条备注以两段式为主体，用分号分隔，末尾允许两类附加（见下方）：
-
-**导师职称 + 研究方向（可带导师主页中的原文出处）**
-
-| 段落 | 内容 | 说明 |
-|------|------|------|
-| 第一段 | 导师职称 | 教授/副教授/助理教授/讲师等 |
-| 第二段 | 研究方向 | 从导师主页中找原文依据再写研究方向（没有依据不写）；可摘录主页原文作为出处（如 `"research focuses on consumer judgment and decision-making"`） |
-
-末尾附加（可选，两类可同时出现）：
-1. **方向关联描述**（**仅当学生持有方向梳理时可用**；学生无方向梳理时禁止使用，改用上方「备注自包含原则」的写法）：说明导师方向与你的交叉点，帮学生判断是否值得套磁——如 `和你的药物流行病学方向能搭上`、`和你的健康信息学方向有交叉`、`与心血管药物流病方向比较对口`。**注意**：附加描述用"你"指代学生（如 `和你的XX方向能搭上`），不用"学生"；且必须写出具体方向名，不能只写"和你的方向"。
-2. **匹配度标识**：方向部分匹配但有偏离时，写 `可以备选一下呢～` 或 `可以往XX方向靠～`。
-
-**禁止事项**：
-- 禁止使用任何 emoji 符号或图标（如 🔥👍⚠️ 等）
-- 禁止使用机器打分用语如 `高度相关`、`很匹配`、`完美匹配`、`匹配度最高`、`匹配面最广`、`很契合`、`直接对话`、`很有交集`、`核心人选`
-- 描述事实，不做评判
-- **禁止在备注里写任何内部工具名称**（如 Vika、表格、源数据等）
-
-**正确示例**（下方含"和你的XX方向"的示例，仅适用于**学生持有方向梳理**时；学生无方向梳理时按「备注自包含原则」直接写导师方向+方法，不带关联句式）：
-- `副教授；做消费者判断与决策、跨期选择。`
-- `教授；文化遗产和建筑史研究。`
-- `助理教授；消费者决策、道德决策；MIT PhD。`
-- `副教授；做心血管药物流行病学，但也有老年用药安全的方向；和你的药流方向能搭上，可以备选一下呢～`
-- `教授；心血管疾病流行病学，主持哥伦比亚大学MESA现场中心，做亚临床动脉粥样硬化、肥胖和代谢综合征的人群研究；和慢病预防方向能搭上。`
-
-### 何时可以写「可以备选一下呢～」/「可以往XX方向靠～」
-
-**底线要求**：导师的研究方向**不触及**学生绝对不考虑的部分。
-
-**触发条件**：导师的研究内容**部分满足**学生方向，但**同时有偏离**，值得让学生了解考虑。方向关联描述（`能搭上`/`有交叉`/`比较对口`）可单独使用，也可与备选标识连用。
-
-**正确写法**：
-- `教授；做心血管药物流行病学，但也有老年用药安全的研究方向；和你的药流方向能搭上，可以备选一下呢～`
-- `副教授；做药物经济学和卫生技术评估，也有糖尿病慢病管理方向；可以往慢病预测模型方向靠～`
-- `副教授；做慢性病流行病学，用医保理赔数据做真实世界研究；和你的比较效果研究方向有交叉。`（仅关联描述，不写备选标识）
-
-**禁止场景**：
-- 方向明显不相关、偏离核心 → 不写，直接不推荐
-- 方向完全匹配、核心对应 → 不写任何推荐语，客观描述即可
-
-### 人称规则：表达风格（「你」而非「学生」）
-
-**内容要求 vs 表达风格是两件独立的事：**
-- **内容**：备注是导师的客观描述——如实写导师在研究什么，不夸大、不打分
-- **风格**：用「你」指学生，不用「学生」——这是表达自然度的要求，与客观描述不冲突
-
-**表达风格规则：**
-- ✅ `和你的药流方向能搭上，可以备选一下呢～`（自然，像朋友说话）
-- ❌ ~~`和学生方向能搭上，学生可以备选一下`~~（生硬，像在做数据统计）
-- ✅ `研究涉及心血管药物流行病学，但也有老年用药安全的部分；和你的方向有交叉，可以备选一下呢～`
-- ❌ ~~`研究涉及心血管药物流行病学，但也有老年用药安全的部分，学生可以备选一下`~~
-
-**内容规则（客观描述）：**
-- ❌ 不得暴露特定学生的研究方向、项目名称或兴趣偏好
-- ❌ 不得写「方向1」「方向2」等内部编号——学生不知道方向书的存在
-- ❌ 不得写「匹配度最高」「匹配面最广」「核心人选」等机器打分语言
-
-### 📛 元注释禁止规则（CRITICAL）
-
-**备注是写给学生的客观描述，绝对禁止包含任何内部审查动作、修正记录或数据来源说明。**
-
-以下内容**一律不得**出现在备注中：
-
-| 禁止类型 | 错误示例 | 说明 |
-|----------|----------|------|
-| 职称修正记录 | `⚠️【职称修正】Vika写"副教授"——实际为 Assistant Professor` | 把"我在修正Vika数据"写进备注 |
-| 核实确认记录 | `✅【FIU确认】此教授仍在职` | 把"我核实过了"写进备注 |
-| 数据来源暴露 | `Vika严重高估职称`、`以SPH官方为准` | 把内部数据质量判断写进备注 |
-| 警告标签 | `⚠️【重大错误：导师已离职】` | 把内部风险标记写进备注 |
-| 内部分类编号 | `方向1核心匹配`、`TOP/SECONDARY/TERTIARY方向` | 把内部选校体系编号写进备注 |
-| 工具名称提及 | `Vika表`、`表格`、`源数据` | 把数据管理工具名称写进备注 |
-
-**修正原则：遇到职称/部门/在职状态等信息与源数据不一致时，修正后直接写入正确值，不要写任何"修正说明"。**
-
-正确做法：
-- ❌ ~~`⚠️【职称修正】Vika写副教授——实际为正教授；以SPH官方为准`~~
-- ✅ `教授；因果推断、纵向数据分析、社会网络分析。`（直接写正确职称）
-
-- ❌ ~~`⚠️【重大错误：导师已离职，现为UT Southwestern教授】`~~
-- ✅ `教授；心血管病流行病学、营养代谢研究。（注：已于2025年10月离职Tulane）`（只在学生需要知道时客观注明去向）
-
-### 📛 方向编号禁止规则
-
-**禁止在备注里写"方向1""方向2""方向3"等编号。必须写出具体的学术研究方向名称。**
-
-- ❌ ~~`方向1核心匹配`~~
-- ❌ ~~`方向1+2精准匹配`~~
-- ❌ ~~`方向2方向对口`~~
-- ✅ `研究方向涵盖青少年心理健康与学校支持体系`
-- ✅ `涉及跨文化适应与学生发展领域`
-- ✅ `在青少年心理健康与学校支持体系的视角下研究家庭干预`
-
-**学生不知道方向书的存在。** 任何备注不得直接引用「方向1」「方向2」「方向3」「TOP」「SECONDARY」等内部编号——学生阅读时完全无法理解这些指什么。有相关性就直接用文字描述，如「和心血管药物流行病学方向相关」。（注意：学生无方向梳理时，连「和XX方向相关」这类关联句式也应避免，直接描述导师方向+方法，见「备注自包含原则」）
-
-### 🧹 写备注后的自检清单（强制执行）
-
-**每次写完或批量修改备注后，必须执行以下自检：**
-
-1. **有 emoji 符号？** → 删除（🔥👍⚠️✅ 等）
-2. **有方向编号（方向1/方向2/TOP/SECONDARY）？** → 改为具体研究方向文字描述
-3. **有工具名称（Vika/表格/源数据）？** → 删除
-4. **有修正记录语言（职称修正/Vika写/已确认）？** → 删除，只保留正确值
-5. **有「文章看这个链接」以外的引导性语言？** → 删除，只保留 `文章看这里 [链接]`
-6. **有机器打分语言（匹配度最高/匹配面最广/很契合/直接对话/很有交集/核心人选/高度相关/很匹配/完美匹配）？** → 删除或改为客观交叉点描述
-7. **方向关联描述/备选标识用「你」了吗？** → 用「你」指学生，不用「学生」（如 `和你的XX方向能搭上`，不写 `和学生的XX方向能搭上`）
-8. **学生无方向梳理时，备注自包含吗？** → 检查有无 `和你的XX方向能搭上`、`与排除项重叠`、`契合度中等` 等需要学生已知方向定义才能理解的表述 → 如有，改为直接描述导师方向+方法（见「备注自包含原则」）
-9. **读一遍**：像不像一个真实的人写给申请学生的备注？不是像 AI 审计报告？
-
-### 当学校匹配导师极少时（1-2位）
-
-**在备注末尾补充说明该系其他教师的主要方向**，让学生有"已全面搜索"的信心。使用客观描述，不要写"确实没有"等主观判断。
-
-正确示例：
-- `教授；决策神经科学、风险与社会决策、无创脑刺激；这个系老师主要做临床和辅导实践方向，这一位的决策方向是唯一交叉点。`
-- `副教授；消费者判断与决策；这个系以社会认知和神经犯罪学为主，就这一位做消费者行为相关。`
-
-要点：
-- 说明"这个系老师主要做XX方向"——客观陈述事实
-- 说明"只有这一位和XX搭边"——给出数量，让学生有"全面看过了"的感觉
-- 不要写"没有合适的"、"确实没有"等主观评价
-
-**补充信息行写入规则**：当需要另起一行单独写入系/院的补充说明（如某系无匹配导师）时，只需填写 `导师` 和 `备注` 两个字段，无需填写导师主页、博士申请信息等其他字段。
-
----
+> 📎 本节全文已迁至 `references/notes-and-fields.md`（含 13 个子节）。
 
 ## 操作权限（CRITICAL — 所有操作前首先检查）
 
@@ -559,569 +497,7 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 
 ## 关键规则（CRITICAL）
 
-### Stipend 与 Funding 核实规则（验证已有表格时强制执行）
-
-#### Stipend 金额必须逐校核实官网
-
-**禁止未经核实直接填写或接受 stipend 数字。** 表格中常见的 stipend 数据存在系统性偏差，必须搜索每个学校 PhD 项目的官网确认最新数字。
-
-**常见学校官方 stipend 参考（2025-2026 学年）**：
-
-| 学校/项目 | 常见错误数据 | 官方数据 | 偏差 |
-|----------|------------|---------|------|
-| CWRU BSTP | ~$37K+/yr | **$38,000** | 轻微低估 |
-| OSU BSGP | ~$34K/yr | **$33,980** | 基本准确 |
-| UB PPBS | ~$32K/yr | **$31,000-$35,000**（来源不一）| 在范围内 |
-| TAMU Medical Sciences (Medical Physiology) | ~$32K/yr | **$35,000** | **-$3,000** |
-| TAMU Genetics | ~$32K/yr | **$32,000** | 准确 |
-| USF Medical Sciences | ~$30K/yr | **$37,000** | **-$7,000（严重）** |
-| Rochester GDSC/CMPP | ~$35K/yr | **$35,100** | 基本准确 |
-| UW-Madison CMB | $37K+/yr | **$37,000** | 基本准确 |
-
-**关键教训**：
-- USF Medical Sciences 的 stipend 被系统性严重低估（$30K vs 实际 $37K）
-- TAMU 不同 track（Medical Physiology vs Genetics）stipend 不同，不能统一填写
-- 不同来源（学校官网、研究生院、具体项目页面）的 stipend 数字可能不一致，需标注来源
-
-#### NIH Grant 必须通过 NIH Reporter 交叉验证
-
-**对表格中提到的具体 NIH grant，必须到 reporter.nih.gov 核实**：
-- Grant 类型（R01 / R35 MIRA / K99/R00 / T32 / K08 等）
-- 具体金额和资助周期
-- PI 姓名是否与导师一致
-- 项目编号是否可查
-
-**常见错误模式**：
-- 将 K08 过渡性资助描述为已转为 R01（实际可能未获独立 R01）
-- 将合作 grant 误认为个人独立 grant
-- 将"中心总计 funding"与"个人 funding"混为一谈
-- 将 K99/R00 的资助金额误标为 R01 级别
-
-#### Funding 字段中的推测性数据必须标注
-
-以下数据类型属于**推测性估算**，学校官网通常不公布具体数字，必须标注为"约"或"估算"：
-- PhD 录取率（"~15-20%"）
-- 国际生比例（"~30%"）
-- 未来 funding 预估（"2028 年预计..."）
-- startup 金额范围（"$800K-$1.2M"）
-
-**禁止将推测性数据作为事实陈述。**
-
----
-
-### SPA 壳返回 200 ≠ 链接有效
-200 状态码 + SPA 壳（响应相同内容，所有不同 URL 返回相同字节数）→ **不能确认导师存在**。立即切换到 **L0-SPA 策略**：通过 WebSearch 找替代来源（个人网站、ResearchGate、研究中心页面），不要在 SPA 壳上浪费尝试。详见 `references/search-techniques.md` L0-SPA 节。
-
-**经典案例（2026-07-13）**：CUHK STA 的 `/people/faculty/{name}/` 所有 URL 返回完全相同的 114KB 首页 HTML（SPA 壳），浏览器 JS 加载后才显示个人内容。正确格式是 `/peoples/{slug}/`（静态 HTML，可直接验证研究方向）。详见 `references/school-strategies.md` CUHK 章节。
-
-**经典案例（2026-07-23）**：HKUST(GZ) 的 `facultyprofiles.hkust-gz.edu.cn` 全站 SPA，所有页面返回完全相同的 1522 字节 HTML 壳。URL 格式从 `?name=XXX` 查询参数改为 `/faculty-personal-page/NAME/shortname` 路径格式，但两种格式的 SPA 行为一致。自动化工具无法区分旧 URL 失效和新 URL 有效——200 ≠ 内容正确，必须浏览器人工确认。DSA 学域的替代来源为 `dsa.hkust-gz.edu.cn/blog/YYYY/MM/DD/name-slug`（WordPress 格式，可直接抓取内容）。
-
-### CUHK(SZ) 特殊规则：教师 URL ID 不稳定（2026-07-23 验证）
-
-CUHK(SZ) 数据科学学院的 `sds.cuhk.edu.cn/teacher/XXX` 的 ID 不是稳定标识符。2026 年 7 月的大规模重组中，同一学院的教授被分散到多个子域名和路径格式：
-
-| 变化类型 | 示例 | 旧 URL | 新 URL |
-|----------|------|--------|--------|
-| teacher ID 变更 | 李爽 | `/teacher/273` | `/teacher/472` |
-| 路径格式切换 | 王子卓 | `/teacher/254` | `/node/59` |
-| 跨子域名迁移 | 罗智泉 | `sds.cuhk.edu.cn/teacher/478` | `sse.cuhk.edu.cn/teacher/184` |
-| 个人网站 | 丁宏强 | `sds.cuhk.edu.cn/teacher/378` | `myweb.cuhk.edu.cn/chrisding/Home/Index` |
-
-**关键规则**：
-
-1. **每次会话重新搜索**：不信任上次存储的 teacher ID，使用 WebSearch 搜索 `"[导师名] sds.cuhk.edu.cn teacher"` 找新 ID
-2. **不能按旧 ID 推断新 ID**：ID 变更无明显规律（不是简单递增/递减）
-3. **多种 URL 格式并存**：同一学院同时存在 `/teacher/XXX`、`/node/XXX`、`myweb.cuhk.edu.cn`、`gklbdc.cuhk.edu.cn`、`sse.cuhk.edu.cn`、`mscfe.cuhk.edu.cn` 等多种格式，每种都需独立搜索验证
-4. **Python SSL 握手失败 ≠ 链接失效**：`sds.cuhk.edu.cn` 在 Python urllib 中报 `SSLV3_ALERT_HANDSHAKE_FAILURE`，但 WebFetch 和浏览器可以正常访问。先用 WebFetch 测，再判死
-
-### 导师主页必须是个人 URL
-
-禁止使用通用院系列表页。每位导师必须有自己唯一的个人主页 URL。
-
-**找不到合格个人主页的导师不得写入 Vika 表**（强制规则）：
-
-禁止用以下 URL 代替个人主页：
-- 院系师资列表页（如 `psych.zju.edu.cn/27612/list.htm`）
-- 实验室成员列表页（如 `www.nakakolab.iis.u-tokyo.ac.jp/member/nakano_e.html`）
-- 第三方平台（如 x-mol.com、百度百科、ResearchGate、**ORCID.org**、Google Scholar、aminer.cn）
-- 学校/学院首页
-- 返回 200 但内容为空或显示"该页面暂未开放"的占位页（如浙大 person.zju.edu.cn 的 577 字节 SPA 壳）
-
-**特别强调**：ORCID（orcid.org）是研究者 ID 注册平台，不是个人主页。即使 ORCID 页面包含研究者的论文列表和简介，也**绝对不能**作为导师主页 URL 使用。ORCID 是学术身份标识系统，不是机构官方个人页面。
-
-**验证标准**：用 WebFetch 或 curl 打开 URL，必须能看到导师的姓名、职称、研究方向等个人信息。如果页面没有导师个人内容，视为无效。
-
-**处理**：找不到合格个人主页 → 不写入 Vika。宁可缺，不可用错误链接凑数。
-
-### 备注中文章链接：例外允许
-
-**规则：**
-- `导师主页` 列必须填学校官网的导师个人 URL（禁止第三方平台）
-- 当导师主页信息非常少（没有展现文章、研究内容寥寥）时，在备注中补偿文章链接
-
-**写法**：
-- `教授；药物流行病学、比较效果研究；文章看这里 https://scholar.google.com/...`
-- `副教授；机器学习临床预测模型；主页信息较少，文章看这里 https://pubmed.ncbi.nlm.nih.gov/...`
-
-**绝对禁止：**
-- 将 Google Scholar / ResearchGate / PubMed 链接放在 `导师主页` 列（那是第三方平台）
-- 在备注中写"文章看这个链接"以外的引导性语言（如"建议阅读"、"点击查看"）
-
-### 禁止在备注中出现 AI 痕迹语言（CRITICAL）
-
-**备注是给申请学生看的人工整理信息。以下内容一律禁止——它们不像人说话，不像人操作：**
-
-| 禁止类型 | 错误示例 | 说明 |
-|----------|----------|------|
-| 机器语气 | `网页被js渲染，需要稍后查看` | 人操作时不会这样说 |
-| 警告图标 | `⚠️ 【重大错误：导师已离职】` | 人不会在备注里写警告标签 |
-| 操作记录 | `Vika写副教授——实际为正教授` | 人不会把自己的修正过程写进备注 |
-| 核实说明 | `✅ 已确认此教授仍在职` | 人不会在备注里写核实状态 |
-| 方向编号 | `方向1核心匹配`、`TOP/SECONDARY/TERTIARY方向` | 学生不知道方向书的存在 |
-| 工具名称 | `Vika表`、`表格`、`源数据` | 人不会提到自己在用什么工具管理表格 |
-
-**遇到信息与源数据不一致时：**
-- 直接写入正确值，不写任何修正说明
-- 如果不确定，询问用户下一步操作指示，而不是自己在备注里打标签
-
-**正确做法（遇到导师已离职等重大信息变更时）：**
-- ❌ ~~`⚠️【重大错误：导师已离职】`~~
-- ❌ ~~`Vika表中该导师状态需更新`~~
-- ✅ 不写这条导师记录（如果该导师已不相关）
-- ✅ 或写：`教授；心血管病流行病学、营养代谢研究。（已于2025年10月离职Tulane，现为UT Southwestern教授）`（客观注明去向，不写任何修正说明）
-
-### 禁止在备注中写入方向偏向
-
-不要写 "方向偏X"、"没有非常符合的老师" 等主观评价。
-
-**特别强调：学生不知道方向书的存在。** 任何备注不得引用方向书里的编号或内部术语（如「方向1」「方向2」「TOP方向」「SECONDARY方向」）。有相关性就直接用具体研究方向名称描述。（学生无方向梳理时，备注必须自包含——直接写导师方向+方法，见「备注自包含原则」）
-
-### 禁止猜测 URL
-
-**永远不要通过命名规则构造 URL。** 大学网站经常重组，URL 路径会变。必须通过以下方式获取 URL：
-1. WebSearch 搜索 `"[Name] [University] professor"` 找个人页面
-2. WebSearch 搜索 `"[University] [Department] faculty staff listing"` 找系列表页
-3. **WebFetch 逐条验证**——200 状态码不代表内容正确（可能是 SPA 壳或 404 软页面）
-
-**「其他导师信息」字段的特殊规则**：这些是系级教职员列表页 URL。每次会话开始、或用户说"检查链接"时，必须对每个 Department 的列表页 URL 逐一 WebFetch 验证。不要依赖 `references/school-strategies.md` 中记录的 URL——它们可能在你上次访问后已经变了。
-
-**教训（2026-07-07）**：12 个「其他导师信息」链接中 4 个已失效（NUS × 2, NTU × 1, CityU × 1），都是因为大学重组了网站结构。
-
-#### 大规模 404 复盘（2026-07-14）
-
-黄肇启选导任务中，60 条记录的 `博士申请信息` 和 `其他导师信息` 出现大面积 404。复盘发现三个根因：
-
-**根因 1：URL 猜测（占 90%+）**
-
-所有出错的 URL 都是在写表时按路径命名规则直接构造的，没有经过 WebSearch 搜索验证。典型的猜测模式 vs 真实路径：
-
-| 字段 | 猜测的路径 | 真实路径 |
-|------|-----------|---------|
-| HKU SAAS 博士申请 | `/programmes/research-postgraduate` | `/programme/rpg/mphil-phd` |
-| HKU Nursing 博士申请 | `/education/postgraduate/` | `/education/doctor-of-philosophy-programme` |
-| CUHK SPHPC 博士申请 | `/programmes/` | `/mphil-phd-programme/` |
-| HKUST ECE 博士申请 | `/pg/` | `/admissions/postgraduate` |
-| HKUST LifeSci 博士申请 | `/programmes/` | 在 `prog-crs.hkust.edu.hk` 子域名 |
-| HKU BS 博士申请 | `/programmes/research-postgraduate/` | `phd.hkubs.hku.hk/admissions/...` |
-| PolyU Nursing 博士申请 | `/sn/study/` | `/study/pg/rpg/2026/sn` |
-| HKU SAAS 院系列表 | `/staff` | `/staff_teaching.php` |
-| HKUST CSE 院系列表 | `/people/faculty/` | `/admin/people/faculty/` |
-| HKUST LifeSci 院系列表 | `/people/` | `/faculty-members/` |
-| HKUST ECE 院系列表 | `/people/` | 无系级列表页，用 `facultyprofiles.hkust.edu.hk` |
-| HKUST Math 院系列表 | `/people/faculty/` | 无系级列表页，用 `facultyprofiles.hkust.edu.hk` |
-
-**核心教训**：博士申请信息页和院系列表页的 URL 结构在各校各系之间**没有统一规律**。`/programmes/`、`/people/`、`/staff`、`/pg/`、`/study/` 这些常见路径在大量真实站点上都是 404。**必须先 WebSearch 搜索到真实页面，再把 URL 写进表里，一步都不能省。**
-
-**根因 2：大学网站持续重组**
-
-CUHK SPHPC 的院系列表页从 `/people/` 迁移到了 `/academic-staff/`，原有 URL 直接 404。这类重组是常态，不是偶发事件。
-
-**根因 3：CityU WAF 干扰诊断**
-
-CityU 全站 Incapsula WAF 会使自动化工具看到的返回码异常（403/404/超时/空壳），容易和真正 404 混淆。必须区分"WAF 拦截"和"真 404"——前者是所有 CityU URL 的系统性问题，后者是 URL 本身失效。
-
-**防范措施（写入前强制执行）**：
-
-对于 `博士申请信息` 和 `其他导师信息` 两个字段，**写入每条记录前**必须：
-1. 用 WebSearch 搜索 `"[学校] [院系] PhD research postgraduate admission"` 或 `"[学校] [院系] faculty academic staff"`
-2. 打开搜索结果中的真实页面
-3. 确认 URL 可访问（非 404、非 SPA 壳）
-4. 把验证过的 URL 填入字段
-5. **批量写入后，对所有非 CityU 的 URL 逐条 curl/WebFetch 验证**
-
-### CityU（港城）特殊规则：WAF 防护 + 双域名策略
-
-#### WAF 防护（2026-07-13 验证；2026-08-04 修正）
-
-CityU 全站部署了 **Incapsula WAF**，会拦截所有来自自动化工具（curl、Python urllib、WebFetch）的请求。这不是链接失效，而是反爬机制。
-
-| 域名 | 自动化访问现象 | 浏览器访问 |
-|------|-------------|-----------|
-| `cityu.edu.hk/stfprofile/` | 200 返回 Incapsula JS 挑战页（200-1000 字节） | ✅ 正常 |
-| `scholars.cityu.edu.hk` | **403 Forbidden** | ✅ 正常 |
-
-**关键认知**：
-- 自动化审计脚本检测 CityU 链接时，**可能全部报死链**（或 SPA 壳），这是一个已知的系统性问题
-- **⚠️ 403 ≠ 必然有效（2026-08-04 修正）**：scholars 返回 403 有两种可能——① 正常教授的页面被 WAF 拦截（有效）；② **离任/已离职教授的页面已删除**（WebFetch 穿透 WAF 后显示 "The page does not exist"）。**必须用 WebFetch 穿透验证**，不能一律当作 WAF 正常现象放过
-- 链接有效性必须由人在浏览器中逐条确认，或 WebFetch 穿透 WAF 看真实内容
-- 不要因为 WAF 拦截就删除有效的 CityU 导师链接，但也**不要因为 403 就假设链接有效**——交叉验证（见下方「离任导师检测」）
-
-**离任导师检测（2026-08-04 沉淀，Maurice Benayoun 案例）**：
-
-判断 CityU 导师是否已离任，三步交叉验证：
-
-1. **WebFetch 穿透 WAF**：`WebFetch("https://scholars.cityu.edu.hk/en/persons/xxx")` — 若返回 "The page does not exist" / "Page not found"，该学者主页已删除，高度怀疑离任
-2. **查 CityU 学术人员目录**：`https://www.cityu.edu.hk/zh-hk/directories/people/academic?page=N` — 若标注 **Visiting Professor** / **Adjunct Professor**，通常是离任后保留的挂名身份
-3. **查系级现任教职员列表**：如 `https://www.scm.cityu.edu.hk/people` — 若现任教授/副教授/客座/兼任各分组均无此人，基本确认离任
-
-**辅助手段**：WebSearch 搜 `"[导师名] [原校] 教授"` 看是否已转到其他学校（如南京大学官网注明"原香港城市大学创意媒体学院教授（2012年至2024年）"）。已离任导师**不进入主表**，已写入的需删除。
-
-#### 链接格式策略
-
-CityU 有两种导师主页 URL 格式：
-
-1. **stfprofile 格式**（推荐优先使用）：`https://www.cityu.edu.hk/stfprofile/xxx.htm`
-   - 部分旧版教授页面使用此格式
-   - 自动化访问返回 Incapsula JS 挑战页（约 200-1000 字节）
-
-2. **scholars 格式**：`https://scholars.cityu.edu.hk/en/persons/xxx/`
-   - Pure Portal 全校统一入口，信息更完整
-   - 自动化访问返回 403；**离任教授此页面会变成真实 404（穿透 WAF 可见）**
-
-**选择策略**：两种格式都可以用，stfprofile 优先级更高（因为至少不返回 403）。scholars 格式写入后必须 WebFetch 穿透验证内容（能显示教授姓名/职称/院系才算有效）。
-
-#### 写入后复验规则
-
-由于 WAF 的存在，"写入后复验"规则做以下调整：
-
-1. 写入 Vika 后，用 WebFetch 或 urllib 快速检查
-2. **预期结果**：stfprofile 返回 200 + 约 200-1000 字节（JS 挑战）；scholars 返回 403
-3. 以上两种结果**不能直接判定链接有效**——必须 WebFetch 穿透 WAF 确认页面有该导师姓名/职称/院系内容（穿透后显示 "The page does not exist" 即已失效）
-4. **删除记录条件**：Google 搜索找不到该导师、系页面已删除、浏览器确认 404、或**官方目录已无此人（离任）**
-5. **交付前**：提示用户在浏览器中抽查 CityU 链接（特别是 scholars 格式的）
-
-### 排除退休/名誉教授
-不添加 Emeritus、退休、约 70 岁以上、或不在当前教职员目录中的导师。
-
-### 排除顶尖名校（默认规则）
-
-以下学校**默认不纳入搜索范围**，除非用户**明确点名要搜**：
-
-| 地区 | 学校 | 排除原因 |
-|------|------|----------|
-| 🇬🇧 英国 | University of Oxford、University of Cambridge | 顶尖名校，申请门槛极高 |
-| 🇺🇸 美国 | Stanford、MIT、Harvard + **美国 Top 15**（按 US News 排名） | 同上 |
-
-触发条件：用户说「QS 前 xxx」「澳洲和英国 QS 前 xxx」等范围描述时，自动跳过以上学校。仅在用户**单独点名**（如「加上剑桥」）时才纳入。
-
-### 禁止修改已填写选导意向的记录（见上方「操作权限」）
-
-当 Vika 表中 `选导意向（点击选择）` 非空时，该行即被锁定——不得修改、删除或覆盖。详见「操作权限 → 选导意向保护」。
-
-### 禁止向 MagicLookUp 或计算字段写入
-QS排名、Location、美国USNEWS排名等字段通过 API 只读。
-
-### 新增记录去重
-
-写入新记录前，检查是否已存在于已有选导意向的记录中。
-
-#### Unicode 规范化去重（2026-08-07 沉淀）
-
-不同来源对名字的拼写可能存在变音符号差异（如 `Jaffre` vs `Jaffré`），简单字符串精确匹配会漏检。**写入前必须使用 Unicode NFKD 规范化去除重音后再比对：**
-
-```python
-import unicodedata
-
-def normalize_name(name):
-    nfkd = unicodedata.normalize('NFKD', name)
-    return ''.join(c for c in nfkd if not unicodedata.combining(c)).lower().strip()
-```
-
-**去重流程**：
-1. 拉取表中所有已有记录，按 `normalize_name()` 分组
-2. 对每个新导师，用 `normalize_name()` 查是否已有同名记录
-3. 若已有→**跳过**不写入，或先合并信息到已有记录再删除重复（如果已有记录字段空缺）
-4. 删除重复时，优先保留**选导意向非空**（已确认）的记录，删除选导意向为空的记录
-5. **DELETE 格式**：`DELETE /records?recordIds=recXXX,recYYY`，不带 Content-Type header
-
-### 🏫 学校关联字段必填（强制执行 — CRITICAL）
-
-**每条新导师记录写入后，必须立即设置学校关联字段（OneWayLink），让 Location / QS排名 / 美国USNEWS排名 / 国内学校层次 通过 MagicLookUp 自动同步。**
-
-这是最容易遗漏但影响最大的步骤。学校关联字段决定整行的 Location、QS、USNEWS、国内学校层次等信息，不填等于记录残缺。
-
-#### 第一步：识别新学生 / 老学生（强制执行，不可跳过）
-
-每张选导表的 OneWayLink 字段指向的学校主表不同。必须先从字段定义读取 `foreignDatasheetId` 来判断学生类型：
-
-```python
-r = vika('GET', f'/datasheets/{datasheet_id}/fields')
-
-link_fields = []
-for f in r['data']['fields']:
-    if f['type'] == 'OneWayLink':
-        link_fields.append({
-            'field_id': f['id'],
-            'field_name': f['name'],
-            'main_table_id': f['property']['foreignDatasheetId'],
-        })
-```
-
-**根据 `foreignDatasheetId` 的值自动识别**：
-
-| foreignDatasheetId | 学生类型 | 主表模式 |
-|---------------------|----------|----------|
-| `dstMNzQU9Aa58DpgW3` | **新学生** | 统一主表（一张表管全球） |
-| `dstNvlYbmD2BTMCB0r` | **老学生** | QS 主表（非美国学校） |
-| `dstd7iuffLGUbSnavd` | **老学生** | US 主表（美国学校） |
-
-新老学生的后续操作流程不同，下面分别说明。
-
----
-
-#### 第二步-A：新学生模式（统一主表 `dstMNzQU9Aa58DpgW3`）
-
-约 2200 条记录，统一管理全球所有学校。**只有一个 OneWayLink 字段**（如「学校名字」），链接到同一张主表。
-
-字段结构：
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `学校全称` | Text | 完整英文/中文校名 |
-| `学校中文名` | Text | 中文名称 |
-| `学校英文缩写` | Text | 如 SYSU、CUC |
-| `2026年QS排名` | Number | 2026 QS 综合排名（无排名留空） |
-| `2027年QS排名` | Number | 2027 QS 综合排名 |
-| `2025年QS排名` | Number | 历史参考 |
-| `2025年USNews排名` | Number | 美国学校专用 |
-| `国家/地区` | SingleSelect | 含 China (Mainland)、United States 等 |
-| `所在大洲` | SingleSelect | Asia、Europe、Americas 等 |
-| `国内学校层次` | SingleSelect | 985 / 211 / 双非 / 双一流 / 专业院校 |
-| `国内学校所在省份` | SingleSelect | 如广东省、北京市、江苏省 |
-| `美国学校所在州` | SingleSelect | 美国学校专用（如 加利福尼亚州） |
-
-**创建学校记录**（新学生）：
-
-```python
-# 国内学校示例
-data = {'records': [{'fields': {
-    '学校全称': '广州大学',
-    '学校中文名': '广州大学',
-    '学校英文缩写': 'GU',
-    '国家/地区': 'China (Mainland)',
-    '所在大洲': 'Asia',
-    '国内学校层次': '双一流',
-    '国内学校所在省份': '广东省',
-}}], 'fieldKey': 'name'}
-resp = vika('POST', f'/datasheets/{main_table_id}/records', data)
-school_rid = resp['data']['records'][0]['recordId']
-
-# 关联
-data = {'records': [{
-    'recordId': supervisor_rid,
-    'fields': {link_field_name: [school_rid]}
-}], 'fieldKey': 'name'}
-vika('PATCH', f'/datasheets/{datasheet_id}/records', data)
-```
-
-SingleSelect 字段直接传字符串值即可，API 自动匹配选项。
-
----
-
-#### 第二步-B：老学生模式（双主表）
-
-两张独立的学校主表，选导表通常有**两个 OneWayLink 字段**：
-
-| 关联字段 | 链接到 | 适用情况 |
-|----------|--------|----------|
-| `非美国地区学校` | QS 主表（`dstNvlYbmD2BTMCB0r`，~1651 条） | 非美国学校 |
-| `美国地区学校` | US 主表（`dstd7iuffLGUbSnavd`，~439 条） | 美国学校 |
-
-**QS 主表字段**（老学生）：
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `学校` | Text | 英文校名 |
-| `排名` | Number | QS 综合排名 |
-| `Location` | SingleSelect | 国家/地区 |
-| `地区` | SingleSelect | 大洲 |
-
-**US 主表字段**（老学生）：
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `学校` | Text | 英文校名 |
-| `排名` | Number | US News 排名 |
-| `所在州` | SingleSelect | 美国所在州 |
-
-**⚠️ 老学生 US 主表无 Location 字段**：`dstd7iuffLGUbSnavd` 只有 `学校`/`排名`/`所在州`，没有 `Location` 字段。设置 `美国地区学校` 后 MagicLookUp 不会自动填充 Location。
-
-**解决方案**：同时设置 `非美国地区学校` 指向一个已有 Location=United States 的学校（如 MIT、Stanford），用作 Location 来源。此时记录会同时有两个链接。
-
-**创建学校记录**（老学生）：
-
-```python
-# QS 主表
-data = {'records': [{'fields': {
-    '学校': 'Ghent University',
-    '排名': 159,
-    'Location': 'Belgium',
-    '地区': 'Europe',
-}}], 'fieldKey': 'name'}
-vika('POST', f'/datasheets/dstNvlYbmD2BTMCB0r/records', data)
-
-# US 主表
-data = {'records': [{'fields': {
-    '学校': 'Harvard University',
-    '排名': 3,
-    '所在州': '马萨诸塞州',
-}}], 'fieldKey': 'name'}
-vika('POST', f'/datasheets/dstd7iuffLGUbSnavd/records', data)
-```
-
-#### 第三步：在主表中查找学校（⚠️ 多层模糊搜索 → 搜不到就停，禁止自建）
-
-> **教训（2026-07-20）**：主表实际有 2200+ 条学校记录，`pageSize=200` 只返回第一页。
-> 不翻页会误判学校不存在 → 创建重复 → 后续维护混乱。
-> **必须用 `pageNum` 翻页直到 `len(records) >= total`，确认遍历全部记录后再判断。**
-
-> **教训（2026-07-24）**：精确匹配 `"University of Exeter"` 搜不到主表中的 `"The University of Exeter"`（少了 The）。
-> 搜索必须分多层：精确 → 模糊 → 缩写 → 多候选确认 → 搜不到就停。
-> **绝对禁止在主表 POST 新建学校。** 搜不到就告诉用户去补，等用户补完再继续。
-
-**搜索策略（四层，逐层兜底）：**
-
-| 层 | 策略 | 适用场景 | 搜到多个怎么办 |
-|----|------|----------|---------------|
-| L1 | 精确匹配 `学校全称` / `学校中文名` | 已知完整名 | 不会多（精确匹配唯一） |
-| L2 | 大小写不敏感子串匹配 `lower(学校全称)` in `lower(target)` OR `lower(target)` in `lower(学校全称)` | The/University 等前缀差异 | **列出所有候选让用户选** |
-| L3 | 匹配 `学校英文缩写`（如 UW-Madison、Exeter） | 名称差异较大时 | **列出所有候选让用户选** |
-| L4 | 搜不到 | 学校确实不在主表 | **停下来告诉用户，绝不 POST** |
-
-> **美国学校特别注意**：L2 子串匹配可能搜出多个同名分校（如 "University of California" 匹配到 UC Berkeley、UC Davis、UCLA 等）。当候选 > 1 时，必须列出全名 + recordId 让用户确认。
-
-```python
-def find_school_by_name(main_table_id, school_name, mode='new'):
-    """翻页遍历全部主表记录，分层查找学校。搜不到返回None让用户自己补。"""
-    name_field = '学校全称' if mode == 'new' else '学校'
-    all_records = []
-    page = 1
-    while True:
-        r = vika('GET', f'/datasheets/{main_table_id}/records?pageSize=500&pageNum={page}&cellFormat=string')
-        all_records.extend(r['data']['records'])
-        total = r['data']['total']
-        if len(r['data']['records']) < 500 or page * 500 >= total:
-            break
-        page += 1
-    
-    # L1: 精确匹配
-    for rec in all_records:
-        if rec['fields'].get(name_field) == school_name:
-            return [rec['recordId']]  # 返回单个候选的列表
-        if mode == 'new' and rec['fields'].get('学校中文名') == school_name:
-            return [rec['recordId']]
-    
-    # L2: 大小写不敏感子串匹配
-    target_lower = school_name.lower()
-    candidates = []
-    for rec in all_records:
-        full = (rec['fields'].get(name_field) or '').lower()
-        cn = (rec['fields'].get('学校中文名') or '').lower()
-        if target_lower in full or full in target_lower or target_lower in cn or cn in target_lower:
-            candidates.append(rec)
-    
-    if candidates:
-        # 去重（可能有中文名和英文名指向同一条）
-        seen = set()
-        unique = []
-        for rec in candidates:
-            if rec['recordId'] not in seen:
-                seen.add(rec['recordId'])
-                unique.append(rec)
-        if len(unique) == 1:
-            return [unique[0]['recordId']]
-        else:
-            # 多个候选 → 必须让用户选
-            return [(r['recordId'], r['fields'].get(name_field, '?')) for r in unique]
-    
-    # L3: 英文缩写匹配
-    candidates = []
-    for rec in all_records:
-        abbr = (rec['fields'].get('学校英文缩写') or '').lower()
-        if abbr and abbr in target_lower:
-            candidates.append(rec)
-    if candidates:
-        return [(r['recordId'], r['fields'].get(name_field, '?')) for r in candidates]
-    
-    # L4: 搜不到 → 停下来
-    return None  # 告诉用户：学校不在主表，请手动添加后再继续
-```
-
-**使用方式**：
-```python
-result = find_school_by_name(main_table_id, "University of Exeter", mode='new')
-if result is None:
-    # 搜不到 → 告诉用户，停止操作
-    print("学校 'University of Exeter' 不在主表中，请先在主表手动添加。")
-elif isinstance(result[0], tuple):
-    # 多个候选 → 让用户选
-    print(f"搜到 {len(result)} 个匹配：")
-    for rid, name in result:
-        print(f"  {rid}: {name}")
-else:
-    # 唯一匹配 → 直接用
-    school_rid = result[0]
-```
-
-#### 第四步：搜不到学校时 — 停下来，不要自建 🚫
-
-第三步搜不到学校时，**绝对不要在主表 POST 新建**。改为：
-
-1. 把导师记录先写入选导表（不含学校关联）
-2. 告诉用户："XX 学校不在主表中，请手动添加"
-3. 等用户补完学校后，再设置 OneWayLink
-
-**禁止事项（新增）**：
-- 🚫 **绝对禁止**对主表执行 POST/PATCH/DELETE 操作（即使 API token 有权限）
-- 🚫 **绝对禁止**用 `vika('POST', f'/datasheets/{main_table_id}/...')` 在任何路径下创建学校
-- 🚫 **绝对禁止**在搜不到学校时自己去建——正确做法是停下来告诉用户
-
-#### 第五步：设置导师记录的 OneWayLink
-
-```python
-data = {'records': [{
-    'recordId': supervisor_rid,
-    'fields': {link_field_name: [school_rid]}
-}], 'fieldKey': 'name'}
-vika('PATCH', f'/datasheets/{datasheet_id}/records', data)
-```
-
-#### 第六步：验证
-
-Patch 后重新 GET 记录，确认 `Location`、`QS排名`、`国内学校层次` / `美国USNEWS排名` 等已通过 MagicLookUp 自动填充。
-
-**禁止事项**：
-- 禁止假设学生类型（必须从 `foreignDatasheetId` 动态识别新/老学生）
-- 禁止新老学生混用字段名（新学生用 `学校全称`/`2026年QS排名`，老学生用 `学校`/`排名`）
-- 禁止在不创建主表记录的情况下直接设置 OneWayLink（会导致幽灵链接）
-- 禁止在未翻页遍历全部主表记录前就判断"学校不存在"并创建
-- 禁止 OneWayLink 值写成字符串而非数组
-- 🚫 **禁止对主表执行任何写操作**（POST/PATCH/DELETE）。搜不到学校就告诉用户，不自己建
-
-**常见错误**：
-- 不识别学生类型 → 用错字段名 → API 报错或写入无效字段
-- OneWayLink 值写成字符串而非数组 → API 报错 → 链接未生效
-- 翻页不全就判断学校不存在 → 创建重复记录 → 主表数据混乱
-
-### 国内学校搜索（不使用 Google）
-国内（中国大陆）学校的导师搜索**不使用 Google**，改用百度搜索：
-- `[导师名] [学校名] 教授`
-- `[导师名] [学校名] 博士导师`
-- 辅助来源：百度学者、百度百科、知网、万方
-
-所有国内学校导师必须遵守 `references/selection-rules.md` 中的「国内学校选导规则」。
-
----
+> 📎 本节全文已迁至 `references/critical-rules.md`（含 57 个子节）。
 
 ## 飞行前检查清单（添加导师前强制执行）
 
@@ -1143,140 +519,21 @@ Patch 后重新 GET 记录，确认 `Location`、`QS排名`、`国内学校层�
 
 ---
 
+## ✅ 交付前机械复查 SOP（10 项，全部可脚本化）
+
+> 📎 本节全文已迁至 `references/verification-workflows.md`。2026-10-07 新增两项：第 9 项「地区职称门槛闸门」（HK/MO 助理教授及以上；讲师序列一刀切，不自行套用「页面明示可带博」例外）与第 10 项「项目与学校覆盖完整性」（逐校核对博士学位课程总目录，防整所学校/整个项目缺席）。
+
+## 🇭🇰 港城 / 港理 / 浸会 三校抓取口径（2026-09-24 黄肇启案例沉淀）
+
+> 📎 本节全文已迁至 `references/school-strategies.md`（含 5 个子节）。
+
 ## 常见错误速查表
 
-| 错误 | 示例 | 正确做法 |
-|------|------|---------|
-| 猜测 URL | 拼 `/programmes/research-postgraduate`、`/people/faculty/`、`/pg/` 等 | WebSearch 搜索真实页面 URL |
-| 批量写入「博士申请信息」时未逐个验证 | 42 条新记录全空，填表时按命名规则拼写 | 每条 URL 写入前必须 WebSearch → 打开验证 → 再填入 |
-| 依赖上次会话的院系列表 URL | CUHK SPHPC `/people/` 已变更为 `/academic-staff/` | 每次会话重新 WebFetch 验证 |
-| SPA 壳当有效 | 200 响应但无内容（HKUST Math `~macyang` 86B） | 交叉验证姓名和内容，换替代 URL |
-| CityU WAF 404 当真实 404 | CityU MKT/EF 系页面返回 404（WAF 拦截） | 浏览器人工确认，区分 WAF 和真 404 |
-| 老学生主表有 100 条硬限制（旧表） | 旧 QS/US 主表写入 >100 条时静默丢弃 | 不重新验证 GET；主表只增不删 |
-| CDU/CDU 等小型大学研究人员页 404 | RD3 确认有效后 RD4 再查变 404 | 交付前逐条复验所有链接，不信任上一轮验证结果 |
-| 备注中 SPA 标注和匹配标识混在同一段 | `Macquarie为SPA系统需浏览器验证；可以备选一下呢～` | SPA 标注放在第二段末尾；备选标识（可以备选一下呢～）仅在方向部分匹配有偏离时使用，且应放在备注最末尾 |
-| CUHK(SZ) teacher ID 跨会话失效 | 上次存的 `/teacher/254` 已变 `/node/59`、`/teacher/273`→`/teacher/472` | 每次会话重新 WebSearch 搜新 ID，不信任历史 URL |
-| HKUST(GZ) SPA 全站 1522B 壳 | 新旧 URL 格式均返回相同字节数，自动化无法判定有效性 | 标记 SPA，提示浏览器确认；同步搜索 DSA 博客替代来源 |
-| Python SSL 失败当 404 | `sds.cuhk.edu.cn` Python urllib 报 handshake failure | 换 WebFetch 验证，不直接判死 |
-| Vika Text 字段 PATCH 用错 fieldKey | Text 字段（如「备注」「你的反馈（具体原因）」）用 `fieldKey="id"` 时 API 返回 code=200 但实际 HTTP 400 "The format of the fields parameter value is wrong"，数据未写入 | Text 字段必须用 `fieldKey="name"`（字段名），不能用 `fieldKey="id"`（字段 ID 留给 URL 字段） |
-| PATCH 后回读键名错误 | GET 返回字段名键，用 field ID 读永远 None | PATCH 前后各拉字段列表，回读用字段名 |
-| CityU scholars 403 一律当有效（2026-08-04） | Maurice Benayoun 案例：scholars 403 是 WAF 壳，穿透后实为 "The page does not exist"（导师已离任） | 403 必须 WebFetch 穿透看真实内容；交叉验证 CityU 学术目录（Visiting/Adjunct 标注）+ 系级教职员列表；已离任导师删除记录 |
-| 并发 curl 共享临时文件 | 多个线程写同一 /tmp 文件，title 互相污染（状态码仍可靠） | 每个 URL 用独立临时文件；对 title 异常/200 无 title 的页面用 WebFetch 单独确认 |
-| 备注用「学生」称呼申请者 | `明确接受PhD学生` 违反第二人称规则 | 改为 `明确接受PhD申请`，所有备注以「你」称呼申请者 |
-| **curl 200 当链接有效（美国学校 404 伪装页）** | OSU `medicine.osu.edu/find-faculty/...` 返回 200 但内容显示 "Not Found" | **必须 WebFetch 读内容**，状态码 200 ≠ 页面真实存在 |
-| **院系列表页当个人主页** | 全院教师列表页只有姓名+职称，无 CV/Publications | 个人主页必须含专属研究内容；列表页不可接受 |
-| **第三方平台当个人主页** | DovePress 编辑简介、ORCID、ResearchGate | 禁止用第三方平台代替大学官方个人主页 |
-| **Stipend 系统性低估** | USF 写 `$30K/yr` 实际 `$37K`；TAMU Medical Sciences 写 `$32K` 实际 `$35K` | 每条记录写入前搜索学校官网 stipend 页面核实 |
-| **K08 误认为 R01** | "NIH K08→R01(2017-2022)" 中 R01 查无实据 | NIH Reporter 交叉验证 grant 类型、金额、时间线 |
-| **中心总计与个人 funding 混淆** | "CRM总计>$20M" 被误认为导师个人 funding | 明确区分"中心总计"与"个人独立 grant" |
-| **推测性数据未标注** | "录取率~15-20%""2028年预计" 作为事实陈述 | 标注为"估算""约"，说明无官方来源 |
-| **选导顾问自审自填（确认偏误）** | 优录-刘同学案例：同一会话反复复查"没问题"，换新对话框 auditor 查出 7 条 P0 | 批次审核必须 spawn 独立 auditor，不复用选导顾问上下文 |
-| **长对话疲劳放过** | 几十轮后对"看起来还行"的记录直接放行，`__trashed` 发现了但 WebFetch 能打开就判有效 | 同一会话处理 30+ 条后开新会话；auditor 有罪推定，主动找理由拒绝 |
-| **方向定义书转述失真** | 选导顾问把"干细胞+心血管"转述成"干细胞"，auditor 信了转述，iPSC 副业当核心 | auditor 必须亲自读方向定义书原文，不信任任何人的摘要 |
-| **硬排除项漏检** | 线虫模型/纯生信/癌症主线一路漏到最终审核才发现，删除 7 条 = 11% 工作量浪费 | 飞行前清单 6b 硬排除检查是写入前硬门，不是写入后审计项 |
-| **备注默认学生知道方向定义（2026-09-02 郝悦嘉）** | 写 `和你的国际金融/开放宏观方向能搭上`，但学生没有方向梳理、看不懂"我的方向"指什么 | 写备注前先确认学生是否持有方向梳理；无方向梳理时备注必须自包含：直接写「导师做什么方向+用什么方法+什么通道」（如 `教授；国际金融与开放宏观方向，实证为主（资本流动、汇率与货币政策传导）`）；有方向梳理时才允许"和你的XX方向"关联句式，且须写具体方向名 |
-
----
+> 📎 本节全文已迁至 `references/common-errors.md`。
 
 ## 链接修复工作流（用户说"链接打不开/404"时触发）
 
-当用户反馈已有表格中某学校/学院的导师链接大面积失效时，按以下步骤系统修复：
-
-### 步骤 0：批量拉取全部 URL（2026-08-04 沉淀）
-
-不要只修用户点名的那几条，先全量审计：
-
-1. GET 全部记录，提取三个 URL 字段（`导师主页` / `博士申请信息` / `其他导师信息`）去重
-2. 批量 curl 检查状态码 + 字节数 + title（用**独立临时文件**，不要并发共享同一文件——共享文件会污染 title 读取，但状态码仍可靠）
-3. 按学校分组整理结果，区分：真 404 / SPA 壳 / WAF 拦截 / 疑似正常
-4. 对存疑的（200 但无 title、403、SPA 壳、标题异常）逐一 WebFetch 穿透验证内容
-
-### 步骤 1：诊断区分失效类型
-
-用 curl/WebFetch 逐一检查每个链接的状态，区分三类情况：
-
-| 类型 | 症状 | 说明 |
-|------|------|------|
-| 真 404 | HTTP 404 + 页面标题含"404" | URL 确实失效，需搜索新链接 |
-| SPA 壳 | 200 + 所有 URL 返回相同字节数 + 无实际教授信息 | 站点是 JavaScript 渲染，自动化无法判断 |
-| WAF/SSL 拦 | 403 / SSL 握手失败 / 超时 | 防护机制干扰，需换工具验证（**注意：403 也可能是离任教授页面已删除，必须 WebFetch 穿透看真实内容，见 CityU 章节**） |
-
-### 步骤 2：按学校搜索新 URL
-
-不要逐个导师搜，先搜学校的教师目录页找全员新链接格式，再针对性补充搜索：
-
-```python
-# 批量搜索语法示例
-for name in broken_professors:
-    WebSearch(f'"{name}" sds.cuhk.edu.cn teacher OR node')
-```
-
-**CUHK(SZ) 搜索技巧**：
-- 搜 `"[导师名] sds.cuhk.edu.cn teacher"` 找标准 teacher 页
-- 搜 `"[导师名] cuhk.edu.cn"` 发现跨子域名迁移（myweb/gklbdc/sse/mscfe）
-- 搜 `"[导师名] sds.cuhk.edu.cn node"` 发现 node 格式页面
-
-**HKUST(GZ) 搜索技巧**：
-- 搜 `"dsa.hkust-gz.edu.cn [导师名] faculty blog"` 找 WordPress 格式替代页
-- `facultyprofiles.hkust-gz.edu.cn` 是纯 SPA，自动化只能确认 200，无法确认内容
-- 若 DSA 博客有个人页则优先使用（可自动化验证内容）
-
-**各校 2026 年改版经验（2026-08-04 沉淀）**：
-
-| 学校 | 变化 | 新旧格式 |
-|------|------|---------|
-| PolyU Scholars Hub | slug 全面变更，旧 slug 404 | 旧 `persons/christina-wong-wing-yan` → 新 `persons/christina-wong`；`chloe-ki`→`chung-wha-ki`；`magnum-lam`→`man-lok-lam-2`；`minjung-cho`→`min-jung-cho`；`haze-ng`→UUID 格式 `c4fd5adc-...`。**规律：搜 `"[导师名] polyu scholars hub"` 或从 `polyu.edu.hk/sft/people/academic-staff` 列表页抓个人页链接** |
-| HKUST HUMA | 路径重组 | 博士申请 `programmes/research-postgraduate` → `teaching/pg/phd`；院系列表 `people` → `about/faculty` |
-| HKU Art History | 加 index.php 前缀 | `people/xxx` → `index.php/people/xxx` |
-| HKUBS | 人名用英文全名 slug | `people/wan-wen/` → `people/echo-wen-wan/`（万雯的英文名是 Echo Wen Wan） |
-| CUHK | 系页面下线后迁移研究门户 | `arch.cuhk.edu.hk/en/people/faculty-members/xxx` → `research.cuhk.edu.hk/en/persons/xxx` |
-| 英美欧法学院（2026-08-18 沉淀） | 大面积 404，博士申请/院系列表路径重组 | 博士申请：Kent `courses/postgraduate/237/law`→`courses/postgraduate/340/law-canterbury`；UEA `course/phd/law-phd`→`law/research/research-degrees`；Sheffield `law/postgraduate/research-degrees`→`law/postgraduate/phd/phd-study`；Buffalo `academics/degrees/doctoral.html`→`admissions/apply-to-law-school.jsd.html`；Essex `courses/pgr/phd-law`→`departments/law/research-degrees`；Leeds `law/doc/phd`→`law-research-degrees`；Birmingham `schools/law/courses/postgraduate/research-degrees`→`postgraduate/courses/research/law/law.aspx`。院系列表：UCD `law/about/academicstaff/`→`law/people/`；Vienna `zivilrecht.univie.ac.at/en/team/`→`id.univie.ac.at/en/team/`（创新与数字化系改名）;IVIR `ivir.nl/people/`→`ivir.nl/people/staff/researchers`；LSTS `lsts.research.vub.be/people`→`lsts.research.vub.be/staff-0`；KU `law.ku.edu/people`→`law.ku.edu/faculty`；Tulane `law.tulane.edu/faculty`→`law.tulane.edu/faculty/full-time`；Indiana `law.indiana.edu/about/people/faculty.html`→`law.indiana.edu/about/people/`；Essex `departments/law/people/academic-staff`→`departments/law/people/academic`；Leeds `law/staff`→`law/stafflist`；Birmingham `schools/law/people/index.aspx`→`schools/law/staff/index.aspx`；Temple `contact/`→`directory/faculty/`；UEA `law/people`→`research-portal.uea.ac.uk/en/organisations/school-of-law/persons/`（UEA 主站走 Imperva Human Verification，用研究门户 persons 页兜底） |
-
-### 步骤 3：写入前逐条 WebFetch 验证
-
-每个候选 URL 必须用 WebFetch 打开，验证能显示：
-- ✅ 导师姓名、职称
-- ✅ 研究方向
-- ✅ 院系归属
-
-出现以下任一情况即判定无效：
-- ❌ 404 / 页面未找到
-- ❌ 只有导航栏/空壳（SPA）
-- ❌ 显示的是其他不相关人员
-
-### 步骤 4：Vika PATCH 修复
-
-```python
-# URL 字段 PATCH 必须 fieldKey="id"
-fields = vika("GET", "/fields")
-homepage_fid = next(f["id"] for f in fields["data"]["fields"] if '导师主页' in f['name'])
-
-updates = [{"recordId": rid, "fields": {homepage_fid: new_url}} for rid, new_url in fixes.items()]
-
-for i in range(0, len(updates), 10):
-    vika("PATCH", "/records", {"records": updates[i:i+10], "fieldKey": "id"})
-```
-
-### 步骤 5：PATCH 后回读验证
-
-```python
-# 回读时必须用字段名（不是 field ID）
-verified = vika("GET", f"/records?recordIds={','.join(fixed_ids)}")
-for r in verified['data']['records']:
-    # ✅ 正确：用字段名读取
-    url = r['fields'].get('导师主页', '')
-    # ❌ 错误：用 field ID 读取 → 永远 None
-    # url = r['fields'].get(homepage_fid, '')
-```
-| CUHK(SZ) teacher ID 跨会话失效 | 上次存的 `/teacher/254` 已变 `/node/59`、`/teacher/273` 变 `/teacher/472` | 每次会话重新 WebSearch 搜索新 ID，不信任旧 ID |
-| HKUST(GZ) SPA 全站 1522B 壳 | 新旧 URL 格式均返回相同字节数，自动化无法判定有效性 | 标记为 SPA，提示用户浏览器确认；同步搜索 DSA 博客替代来源 |
-| Python SSL 失败当链接失效 | `sds.cuhk.edu.cn` Python urllib 报 handshake failure | 换 WebFetch 验证，不直接判 404 |
-| Vika Text 字段 PATCH 用错 fieldKey | Text 字段（如「备注」「你的反馈」）用 `fieldKey="id"` 时 API 返回 code=200 但实际 HTTP 400 "The format of the fields parameter value is wrong"，数据未写入 | Text 字段必须用 `fieldKey="name"`（字段名），不能用 `fieldKey="id"`（字段 ID 留给 URL 字段） |
-| PATCH 后回读用错键名 | GET 返回字段名键，但用 field ID 去读永远 None | PATCH 前后各拉一次字段列表，回读用当前字段名 |
-| 精确匹配搜不到学校就自建 | 搜 "University of Exeter" 搜不到 "The University of Exeter" → 在主表 POST 创建重复 | 必须用 L1→L2→L3 分层搜索，L2 用不区分大小写子串匹配；搜不到就告诉用户，绝不自建 |
-| 对主表执行写入操作 | POST 到主表新建学校、或 PATCH 修改主表记录 | 🚫 主表是只读参考数据源，任何写操作都是禁止的 |
-
----
+> 📎 本节全文已迁至 `references/verification-workflows.md`（含 6 个子节）。
 
 ## 小批次强制审核（搜索阶段强制执行）
 
@@ -1349,6 +606,11 @@ D. 排除规则执行审计：
    - 如果备注出现修正记录语言（职称修正/Vika写/已确认/已核实） → P0（元注释泄漏）
    - 如果备注出现外部链接（Google Scholar / ResearchGate / PubMed）且导师主页并非「信息极少」→ P0（应放导师主页列）
    - 如果备注出现方向偏向主观评价（方向偏X、没有非常符合的老师） → P1（语气不合格）
+   - 如果备注出现「建议先确认 XX」「套磁前建议先确认带博」「建议先邮件确认」「确认带生意愿」这类把核实责任推给学生的表述 → P0（监督资格不明类必须改为 `未明确表明监督资格，可以后放～`；退休/年龄类改为 `……但现在应该到退休年龄了，可以后放～`；一律用全角波浪号）
+   - **备注可追溯性审计（2026-09-17 新增）**：备注里出现的**事实性表述**——著作/论文/奖项、在研项目、招生或带生标注（"接受博士生""正在招收"）、以及"某页面把 XX 列为……"这类引述其他页面的说法——必须逐条在**该记录的三个链接页面**（`导师主页`/`博士申请信息`/`其他导师信息`）的正文里找到。**在三个链接里都找不到、又没有在备注里给出来源链接的 → P0**（学生打开链接会找不到，直接质疑整张表）。判断性表述（如"未明确表明监督资格，可以后放～"）不在此列
+   - **来源链接写法审计（2026-09-17 新增）**：给出处时写成 `（XX页可见：<url>）`、`XX学者库页（<url>）标注……`、`这个链接<url>标注其……` 这类**来源页名称+括号的批注式写法**，或让"页面/名录/学者库/项目页"当句子主语的（`页面标注接收博士生`）→ **P1（AI 腔，语气不合格）**，需改为 `可以看这个链接：<url>` + 直接陈述事实（`欢迎博士生`）
+   - **备选标识必须有理由（2026-09-28 新增，用户明确要求）**：备注写了 `可以备选一下呢～` / `可以往后放一放～` / `可以往XX方向靠～` 这类**优先级后缀，但同一句里没有写明"偏在哪"**（场景不对/方法不对/对象不对/不在体育交叉线上）→ **P0**。学生看到「明明写了能搭上，却让我后放」，会认为标注是随手加的，进而推翻整条记录（王灏案例：Kwon、Rouhani 两条被标备选但无理由，学生本人随后手动改成「优先套磁」）。修正＝补一句具体的偏离说明，保留后缀
+   - 若发现**人工已填 `选导意向` 的记录，其备注仍与学生的选择冲突**（如学生标了"优先套磁"、备注却写"可以后放～"）→ 报 P1 并**交由用户决定**，不要自行回改已有人工决策的记录
 
 输出格式：
 - 逐条输出检查结果（A/B/C/D 各项 PASS 或 FAIL + 原因）
@@ -1375,23 +637,11 @@ python3 scripts/audit.py [DATASHEET_ID] [VIKA_TOKEN]
 
 ## 链接健康审计（用户报"链接404/badcase"时，2026-08-04 新增）
 
-先全量审计再针对性修复，不要只修用户点名的几条：
+> 📎 本节全文已迁至 `references/verification-workflows.md`。
 
-```bash
-python3 scripts/link-audit.py [DATASHEET_ID] [VIKA_TOKEN]
-```
+## 🍁 加拿大批次专属陷阱（2026-09-24 王灏案例沉淀）
 
-脚本输出：每个 URL 状态码/字节数/title（独立临时文件避免并发污染）→ 按类型汇总 →
-待 WebFetch 穿透验证的存疑项清单（403 / 200 无 title / 疑似 WAF 壳）。
-
-**关键判断规则**：
-- `403`（尤其 CityU scholars）：**不能当作 WAF 正常现象直接放过**，必须 WebFetch 穿透看真实内容——
-  正常教授页面穿透后可见姓名/职称；离任教授穿透后显示 "The page does not exist" → 删除记录
-- `200 + 小字节无 title`：疑似 WAF JS 挑战壳，WebFetch 确认内容
-- 修复流程：搜索替代 URL → 逐条 WebFetch 验证 → `fieldKey="id"` PATCH → 回读验证
-- 各校 2026 年 URL 改版格式见「链接修复工作流 → 步骤 2」表格
-
----
+> 📎 本节全文已迁至 `references/school-strategies.md`（含 7 个子节）。
 
 ## 协作流程（"开始学生" / "结束学生"）
 
@@ -1400,6 +650,14 @@ python3 scripts/link-audit.py [DATASHEET_ID] [VIKA_TOKEN]
 **完整执行步骤见 `references/collaboration-workflow.md`。** 触发后按该文档的 11 步流程执行，无需用户懂 git。
 
 ---
+
+## 🔁「回归本源方向」型任务：审核要比常规更狠（2026-09-24 王鹏涛案例沉淀）
+
+> 📎 本节全文已迁至 `references/analysis-workflows.md`。
+
+## 🌐 抓取通道实测补充（2026-09-24）
+
+> 📎 本节全文已迁至 `references/access-channels.md`。
 
 ## 参考文献
 
@@ -1412,3 +670,29 @@ python3 scripts/link-audit.py [DATASHEET_ID] [VIKA_TOKEN]
 - SPA/API 发现技巧，见 `references/search-techniques.md`
 - Vika 完整 CRUD 操作 + API 代码模板，见 `references/vika-guide.md`
 - 协作流程（开始学生/结束学生），见 `references/collaboration-workflow.md`
+
+---
+
+## 港澳·澳新院校抓取通道情报（2026-09-24 王润泽第三轮沉淀）
+
+> 📎 本节全文已迁至 `references/access-channels.md`（含 8 个子节）。
+
+## 🔎 找院系页的最快通道：先读 sitemap.xml（2026-09-24 验证有效）
+
+> 📎 本节全文已迁至 `references/access-channels.md`（含 4 个子节）。
+
+## 🆕 2026-09 新版学生表结构（统一学校主表）· 2026-09-29 实测
+
+> 📎 本节全文已迁至 `references/vika-guide.md`（含 1 个子节）。
+
+## 🗺️ 院系名录页索引 + 覆盖度台账（2026-09-29 实测）
+
+> 📎 本节全文已迁至 `references/school-strategies.md`（含 4 个子节）。
+
+## ⚠️ 「备选」与「后放」是两套机制，别混，也别只写一种（2026-09-29 王润泽批次复盘）
+
+> 📎 本节全文已迁至 `references/notes-and-fields.md`。
+
+## 🔁 批量修订已有记录的备注（2026-09-29 实操，可直接复用）
+
+> 📎 本节全文已迁至 `references/vika-guide.md`（含 3 个子节）。

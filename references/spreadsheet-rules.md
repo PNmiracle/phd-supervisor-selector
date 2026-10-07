@@ -21,6 +21,14 @@ When starting work, decide the column structure:
 - `导师主页`: official profile page, team page, or official staff entry that visibly matches the person.
 - `导师联系方式`: supervisor contact email. **Mandatory for domestic (China mainland) schools.** Fill with the supervisor's email address. For non-domestic schools, fill when available but not required.
 - `博士申请信息`: official PhD/research degree/program application page.
+  - ⚠️ **必须是「该项目」自己的项目/申请页，不能填全校统一的研究生申请总入口**（2026-09-17 用户明确要求）。同一学校不同院系的导师，该列应分别指向各自院系的研究学位项目页；只有**同院系**导师才允许共用同一 URL。
+  - 反例（禁止）：`/study/postgraduate-research/how-to-apply`、`/postgraduate-research/how-to-apply/`、`/study/phd`、`/postgraduate/research/apply/` 这类 "How to apply" 总入口。
+  - 正例：`dance.ucr.edu/phd-program/`、`dance.osu.edu/prospective-students/about-phd`、KCL 的 `/study/postgraduate-research/areas/<dept>-research-mphil-phd`。
+  - 查找方法：先在学校 research degrees / course finder 列表页按院系找项目页；核对页面 H1 或 Key information 的 Award 与该项目对应，并实测 200。确实找不到项目页时，宁可留空或标注，也不要退回全校入口。
+  - **批量自检**：该列写完后统计 URL 出现次数——若同一 URL 在**不同院系**记录间大量重复（尤其排在全表高频 URL 前列），基本就是误填了全校入口，必须回头逐条改。
+  - ⚠️ **高发误填场景（2026-09-22 实测踩过）**：① 院系官网前端渲染、抓不到项目页 → 退回填了学院首页（如 `hss.cuhk.edu.cn/en`，该页根本没有入学信息）；② 项目页藏在**另一个子域**（如港中深人文社科学院的项目页在 `hsspg.cuhk.edu.cn`，不在 `hss.cuhk.edu.cn`）；③ 同一学校只抓到一个"看起来很正规"的列表页就全校通用。写完后务必按院系抽样打开确认页面 H1 是该项目名。
+- `导师研究领域`: **必填**。用英文、分号分隔的研究方向关键词，取自官方页面的 `Research Field` / `Research Fields` / `Research` 段原文。
+  - ⚠️ **易漏项**：批量写入时若某院系页面的字段标签与其他校不同（如港中深 SDS 用 `Research Field`、HSS 用 `Research`），提取脚本容易整批跳过而静默留空。**写入后必须跑一次空值扫描**（见下）。
 - `其他导师信息`: same department/school staff list or official supervisor list.
 - `备注`: short Chinese note based on profile content.
 - `待确认导师`: quality gate column. AI sets to `新加待check` when creating new records; cleared manually after human review. Records with `新加待check` are invisible to students.

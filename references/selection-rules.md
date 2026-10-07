@@ -67,6 +67,28 @@ Exclude from the main table unless strong contrary evidence exists:
 
 Fit can be strong even when keywords are indirect, if the supervisor's research methods, objects, or field can support the student's project.
 
+### ⚠️ 术语重合 ≠ 方向匹配：必须读「博导声明里的范围限缩」（2026-09-18 用户指出后确立）
+
+**教训**：曾把一位医学人类学者选进舞蹈方向学生的表里，理由是她的简介里出现 "phenomenological experiences, conceptions and theories of the body, labour and embodiment"——但那只是**理论词汇重合**：她的研究对象是南亚（印度）的癌症与疼痛医疗化，田野点在癌症医院。学生四份 RP 无一与医学、疾病或南亚相关。用户一眼看出问题并要求删除。
+
+**根因**：从「理论术语」而不是「研究对象 + 博导声明的适用范围」判断匹配。
+
+**规则**：
+1. **研究对象（研究谁/研究什么）优先级高于理论术语**。理论框架相同（都用现象学、都用具身理论、都用民族志）不足以构成可指导关系。
+2. **必须读主页博导声明的原文，识别是否含范围限缩**。常见限缩句式：
+   - `happy to supervise PhD projects ... related to my geographical and conceptual areas of expertise`
+   - `interested to supervise PhD students in the following areas: A; B; C`
+   - `welcomes PhD enquiries from candidates wishing to pursue projects in the above subject areas`
+3. 命中限缩句式时，**逐项把声明里的领域与学生的题目对照**：
+   - 反例（应删）：声明 = "我的地理与概念专长领域"，而地理 = 南亚、概念 = 医学人类学；学生题目 = 竞技国标舞 → 不覆盖 → 不进主表
+   - 正例（保留）：声明含 `diaspora`，学生题目含华裔离散 → 覆盖
+   - 正例（保留）：声明含 `Arts-based and post-qualitative educational research`，学生题目含创意舞蹈教育 → 覆盖
+4. 备注里**不得用理论词汇重合替代匹配结论**。若只是方法/理论层面沾边而对象不同，须写明对象差异（如"研究的是南亚癌症与疼痛的医学人类学，与你的题目在研究对象上不同"），不能一律以"和你的XX方向能搭上"收尾。
+
+**自检手法**（批量写完必做）：扫一遍所有主页，正则抓取博导声明句
+`(?:happy|welcome|welcomes|interested|keen)[^.]{0,90}(?:supervis|PhD|doctoral)[^.]{0,180}\.`
+逐条核对是否限缩、限缩项是否覆盖学生方向。
+
 **When to use `可以备选一下呢～` / `可以往XX方向靠～`** (only when both conditions are met):
 - Bottom line: supervisor's research does NOT touch anything the student absolutely won't consider
 - Trigger: research partially matches the student's direction but also diverges, worth letting the student consider
@@ -80,6 +102,23 @@ Correct usage:
 **Never use verdict labels** like `建议多看看`、`比较匹配`、`高度相关`、`很匹配`、`完美匹配`、`匹配度最高`、`匹配面最广`、`很契合`、`直接对话`、`很有交集`、`核心人选` — these are forbidden machine-scoring language. The remark should contain title, research direction, and optionally a direction-fit phrase or backup marker when the trigger condition is met. Let the student judge fit from the research description.
 
 Do not overfit by title alone. Check publications, projects, current research, supervised students, and program requirements where possible.
+
+### ⚠️ 用户要求「某方向全排除」时：**禁止用关键词机械匹配**（2026-10-07 实测）
+
+**场景**：写完表后用户说「XX 相关的全排除」（如"金融经济相关的全排除"）。
+
+**踩过的坑**：先用正则扫 `职称 + 导师研究领域` 里的 `financ|econom|investment|valuation|banking…`，命中 40 条——但其中大半是**误报**。
+
+**根因**：UCL `profiles.ucl.ac.uk` 个人页会附一段官方的 **`FIELDS OF RESEARCH` 分类标签**，`Banking, finance and investment`、`Applied economics` 是很常见的通用标签，会大面积误伤：
+- Mike Raco（城市治理）、John Tomaney（区域规划）、Jung Won Sonn（经济地理）、Dabo Guan、Kell Jones（建设采购）、Julia Stegemann（环境工程）等都被这条标签带出；
+- 反过来，**只扫英文会漏**：`Climate finance`、`Real estate economics` 常常只出现在**中文备注**或 `positions` 里（如 Xi Liang 的"气候金融、碳市场"、Roberto Cardinale 的"基建项目管理与金融"）。
+
+**正确做法（三步，别省第二步）**：
+1. **双通道召回**：英文正则扫 `职称 + 研究领域`，**同时**用中文正则扫 `备注 + 职称`（`金融|经济|投资|地产|估值|财政|财务|资本|融资|信贷|银行`）。两条并集才是候选池。
+2. **逐条读研究领域正文再定夺**——判据收紧为「**职称或研究领域核心落在该方向上**」。只做交叉学科应用的（如 AI 用于房地产、资产管理里的全生命周期成本）不排除。
+3. **把边界情形单独列给用户裁定**，不要自己默默留或默默删。报告里分三块：① 已剔除（含理由）② 边界保留（含理由）③ 校验结果。
+
+**删除前后必做**：删除后**回读全表**核对条数与"被剔姓名 0 残留"；本地 payload/预览页同步删掉同批记录，并断言 `线上集合 == 本地集合`（差集须为空）。删记录不丢数据——`payload.json` 里留着完整字段，随时可重新导入，报告里可以这样告知用户以降低其顾虑。
 
 ## Remarks Evidence
 
