@@ -115,13 +115,23 @@ If a profile has no public email but has a contact button, message form, or offi
 
 ## Remarks
 
+> 🔴 **本节曾与 `notes-and-fields.md` 冲突，2026-10-07 修正（张天钰批次返工）。**
+> 旧版本节无条件允许「方向关联描述」（`和你的XX方向能搭上`/`有交叉`/`与XX方向比较对口`）。
+> 实际规则是**有前提的**：只有**学生持有方向梳理**时才允许；**学生没有方向梳理（含"不知道会有什么方向"的学生）时一律禁止**，必须改为自包含写法。
+> 子代理只读本节、没读 `notes-and-fields.md`，于是给「不知道方向」的学生批量写了"很对口/高度对口/方向一致/可关注"，被用户当场发现。
+> **写备注前必须同时读 `notes-and-fields.md`，以那里为准。**
+
 Write `备注` from profile content, not generic claims. Use short Chinese phrases:
 
-`职称；研究关键词（可带主页原文出处）`
+`职称；研究方向（中文关键词）；风险/注意事项。`
 
-The first part should usually be title or eligibility status; the second part should be concrete research evidence (optionally with original quotes from the supervisor's homepage). Two optional endings are allowed:
-1. **Direction-fit phrase**: describe the overlap with the student's direction in an objective way (e.g. `和你的XX方向能搭上`, `和你的XX方向有交叉`, `与XX方向比较对口`) — helps the student decide whether to reach out. Use `你`, not `学生`.
-2. **Backup marker**: `可以备选一下呢～` or `可以往XX方向靠～` only when the supervisor's research partially matches but also diverges from the student's direction. Machine-scoring labels (`高度相关`/`很匹配`/`完美匹配`/`匹配度最高`/`匹配面最广`/`很契合`/`直接对话`/`很有交集`/`核心人选`) remain forbidden.
+无方向梳理时的**自包含**写法：只客观写「导师做什么方向 + 用什么方法 + 什么通道/招生信息」，学生不依赖任何外部文档就能看懂。
+
+允许的结尾（**仅有方向梳理时**）：
+1. **方向关联描述**：`和你的XX方向能搭上` / `和你的XX方向有交叉` / `与XX方向比较对口` —— ⚠️ 学生无方向梳理时**禁止使用**。用 `你`，不用 `学生`，且必须写出具体方向名。
+2. **备选标识**：`可以备选一下呢～` / `可以往XX方向靠～` / `可以往后放一放～` / `作为备选看看～` / `可以放后面一点～`，且**同一句里必须先写清"偏在哪"**，不得单独出现。⚠️ 同样以"学生有方向梳理"为前提。
+
+**无论何种情况都禁止的判定/关联套语**：`很对口` / `高度对口` / `比较对口` / `方向对口` / `能搭上` / `有交叉` / `方向一致` / `有交集` / `可对接` / `可衔接` / `可切入` / `可关注` / `很契合` / `高度契合` / `很匹配` / `高度相关` / `完美匹配` / `匹配度最高` / `匹配面最广` / `直接对话` / `很有交集` / `核心人选` / `建议多看看`。
 
 Allowed examples:
 
@@ -131,8 +141,7 @@ Allowed examples:
 - `讲师；空间叙事、城市遗产、视觉文化。`
 - `教授；环境风险、政策评估、气候金融；"research focuses on climate finance and policy evaluation"。`
 - `Reader；胃肠癌政策评估、健康经济学；有监督经验但名额需确认。`
-- `副教授；做心血管药物流行病学，但也有老年用药安全的方向；和你的药流方向能搭上，可以备选一下呢～`
-- `教授；心血管疾病流行病学，做亚临床动脉粥样硬化、肥胖和代谢综合征的人群研究；和慢病预防方向能搭上。`
+- （**仅当学生持有方向梳理时**）`副教授；做心血管药物流行病学，但也有老年用药安全的方向；和你的药流方向能搭上，可以备选一下呢～`
 
 Avoid:
 
@@ -238,3 +247,18 @@ Before final delivery:
 ```
 教授；自然语言处理、知识图谱；百度学者 https://xueshu.baidu.com/...
 ```
+
+---
+
+> 📎 自 SKILL.md 迁入（2026-10-07）。
+
+## Excel 模式（可选）
+
+当用户上传 `.xlsx` 文件而非 Vika 链接时，使用 Excel 模式。详见 `references/spreadsheet-rules.md`（列格式选择、列偏移检测、备注规则、质量检查）。
+
+**默认输出列**：`导师`, `Location`, `学校名字`, `QS排名`, `美国USNEWS排名`, `Department`, `导师主页`, `导师联系方式`, `博士申请信息`, `其他导师信息`, `备注`
+
+- `美国USNEWS排名`：仅当列表中有美国学校时包含此列
+- `导师联系方式`：**国内学校必填**（导师 email），海外学校选填
+
+---

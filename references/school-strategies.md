@@ -19,15 +19,22 @@ Living registry of which access layer to use for each university. Discipline-agn
 |---|---|---|
 | `school-registry-uk.md` | 英国院校注册表 | 目标校在英国 |
 | `school-registry-au-nz.md` | 澳大利亚 + 新西兰注册表，含 AU 访问层总表 | 目标校在澳 / 新 |
-| `school-registry-hk-mo-cn.md` | 中国香港 + 中国澳门 + 中外合办（含港城 / 港理 / 浸会口径） | 目标校在港澳或合办项目 |
+| `school-registry-hk-mo-cn.md` | **入口页** → 指向下面两册 | 先定位再进分册 |
+| `school-registry-hk.md` | 中国香港（含港城 / 港理 / 浸会三校口径、PolyU 院系重组） | 目标校在中国香港 |
+| `school-registry-mo-cn.md` | 中国澳门 + 内地中外合办（UNNC / XJTLU / CUHK-SZ / BNBU-UIC / DKU / NYU Shanghai / HKUST-GZ） | 目标校在中国澳门或合办项目 |
 | `school-registry-sg-eu.md` | 新加坡 + 欧洲院校注册表 | 目标校在新 / 欧 |
-| `school-registry-us-ca.md` | 美国 + 加拿大注册表，含加拿大批次专属陷阱 | 目标校在美 / 加 |
+| `school-registry-us-ca.md` | **入口页** → 指向下面三册 | 先定位再进分册 |
+| `school-registry-us.md` | 美国：博士项目筛选体系与口径总则 + 主要美国校 | 目标校在美国 |
+| `school-registry-ca.md` | 加拿大：批次专属陷阱七条 | 写加拿大批次前 |
+| `school-registry-us-backlog.md` | 美国：2026-08 批次补录 | 目标校属该批次 |
 | `access-framework.md` | 跨校通用：L0–L4 通道路径、PhD 项目 URL 模式速查、ORCID / HISinOne 模式、Dead-end 诊断、Vika 学校 ID | 找访问通道、判 URL 质量时 |
 | `school-updates-log.md` | **日志索引**（2026-10-07 起按月分册） | 先看索引再进对应月份 |
 | `school-updates-2026-08.md` / `-09.md` / `-10.md` | 各月的区域案例更新 | 排查「以前是否遇到过同类问题」 |
 
 > ⚠️ 拆分后本文件名**不变**，仍是唯一入口——`search-orchestrator.md`、`rules-write.md`、`search-techniques.md`、`SKILL.md` 中对 `school-strategies.md` 的引用依然有效。
+> 同理，`school-registry-hk-mo-cn.md` 与 `school-registry-us-ca.md` 拆成多册后**仍保留为入口页**，全仓既有引用无需改动。
 > 新增学校时：按地区写入对应注册表分册；跨地区的通用教训写入 `access-framework.md`；带日期的案例复盘追加到 `school-updates-log.md`（本文件只保留访问框架与协议）。
+> **查某校情报优先用脚本**：`python3 scripts/school-info.py <校名>` 直接返回单条（含来源文件与行号），不必手工 grep。
 
 ## Universal Access Framework (L0-SPA → L1 → L2 → L3 → L4)
 

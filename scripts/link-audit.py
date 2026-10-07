@@ -24,6 +24,11 @@
   "The page does not exist"）→ 存疑项必须 WebFetch 穿透验证
 - 离任导师检测：WebFetch 穿透 + CityU 学术目录（Visiting/Adjunct 标注）+ 系级教职员列表
 """
+"""
+【已弃用 2026-10-07】本脚本的功能已被 `audit-all.py` 吸收，请改用：
+    python3 audit-all.py <DATASHEET_ID> --only notes,fields,title
+保留本文件仅为兼容历史调用；新的一次性检查不要再基于它改写。
+"""
 
 import subprocess
 import sys

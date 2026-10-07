@@ -1,0 +1,1115 @@
+[
+ {
+  "name": "Auckland University of Technology (AUT)",
+  "rawHeading": "Auckland University of Technology (AUT)",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 42,
+  "lineEnd": 72,
+  "body": "- **Architecture**: 双站 —— 官网 `www.aut.ac.nz`（**curl 403 WAF，需 WebFetch**）+ 学者门户 `academics.aut.ac.nz`（Symplectic \"Discovery\" SPA，curl 只得 ~2KB 空壳）\n- **Layer**: L2\n- **⭐ 关键技巧：学者门户有公开 JSON API，不渲染就能批量核验**\n  - 个人档案：`https://academics.aut.ac.nz/api/users/<slug>` → 返回完整 JSON（~30KB）\n  - 有用字段：`firstNameLastName` / `title` / `positions[].position`(职称) / `positions[].department`(所属系) / `customFilterOne`(Faculty) / **`customFilterThree`(Availability，含 `\"Masters Research or PhD student supervision\"` 即明确博导资格证据)** / `emailAddress.address` / `otherEmailAddresses[]`(备用邮箱，部分人主字段为空) / `tabSummaryAbout.value`(简介原文) / `labels[]`(Fields of Research) / `discoveryUrlId`(URL slug)\n  - 用 curl 直接打 API，几十位候选一次核完，比逐个 WebFetch 渲染快一个数量级\n- **按系穷举教职员**：`https://academics.aut.ac.nz/search?by=department&type=user&v=<系名>`（实测可用：`Teacher Education`、`Art & Design`、`Communication Studies`、`Occupational Therapy`、`Sport Leadership & Management`、`Nursing`、`Mental Health & Wellbeing`、`School of Social Sciences & Humanities`、`Rehabilitation`）\n  - 陷阱：机构/研究中心名（如 `Health Rehabilitation Research Institute`）当系名查不到，改用所属系（如 `Rehabilitation`）\n  - 另一可用形式：`?by=text&type=user&v=<关键词>`（通用全文检索）\n  - ⚠️ **该 search 页是 SPA，且没有对应的公开 JSON 搜索端点（2026-09-18 实测）**：`/api/search`、`/api/users?by=…`、`/api/concepts`、`/api/groups`、`/api/users/search`、POST `/api/search` 一律 404；`/api/users/<任意字符串>` 会被当成 `discoveryUrlId` 查人，返回 `{\"message\":\"discoveryUrlId: xxx returned no results.\"}` 而不是搜索结果。**所以「按系穷举」这条路在脚本里走不通**——要么用浏览器渲染该页，要么用 WebSearch 补人名，再回 `/api/users/<slug>` 逐个核档案。**不要因为脚本查不到就判定「该校/该方向无人」。**\n- **个人页**：`https://academics.aut.ac.nz/<firstname.lastname>`（slug 可能带变体，从 API/检索结果取准确形式）\n  - **AUT 官方子站的信息要区分「现职」与「历史遗留」**：`sprinz.aut.ac.nz` 等子站的团队/项目页可能仍列着已离任人员并写明「supervises Postgraduate research」，**这类团队页既不能当「导师主页」列使用，也不能当在职证据**，只能用于了解研究方向。要判在职，走下面的「三线交叉法」。\n- **Key facts / pitfalls**:\n  - **AUT 现行教职员中没有以舞蹈为本体的学者（2026-09-18 结论）**。曾一度认为 Jennifer Nikolai（原副教授，Coaching & Youth Sport Development／School of Sport & Recreation；当代舞实践者与表演研究学者，研究 camera-dancer dyad、动作捕捉与 VR，与教育学院 Andrew Gibbons 合著幼儿「舞蹈与冒险性游戏」研究）在职，**但三项交叉证据显示她已离开 AUT**：① 最新论文 *Dancing to Wellness in the Studio*（Dance Education in Practice，2026-09-14）作者机构标注为 \"Independent Academic\" 而非 AUT；② 学者门户 `/api/users/jennifer.nikolai` 返回 404（在职教师基本都有档案）；③ AUT「艺术与设计学院教职工」名单、Sport Leadership & Management、Sport and Exercise Science 三处「Our people」均无其名，原 CYD 系已无公开页面。**按「已离任导师不入主表」不要收录**；若机构能确认她仍在职，再按现职单位官方页补录。\n  - **⭐ 离任检测「三线交叉法」（可推广到任何学校，2026-09-18 沉淀）**：第三方页面（会议站、期刊简介、聚合站、学校旧子站）会长期残留「某校教授」头衔，**不能作为在职证据**。判定是否仍在职，取以下三条独立证据交叉，≥2 条指向离任即可判离任：\n    1. **最新成果的作者机构**：Crossref `https://api.crossref.org/works/<DOI>` → `author[].affiliation[].name`；或 ORCID `https://pub.orcid.org/v3.0/<orcid>/record` 的最新作品。若已改成 \"Independent Academic\"／其他机构，高度可疑。\n    2. **官方院系「Our people」名单**：官网 department / academic-staff 页按系列出在职人员（AUT：`www.aut.ac.nz/research/academic-departments/<dept>`，或 `www.aut.ac.nz/study/study-options/<faculty>/academic-staff`）。⚠️ **先确认该系现在叫什么名字**——院系合并改名后旧系名页面会 404，容易误判成「该校没有这个系」。\n    3. **研究门户个人档案**：在职研究人员通常有自动生成的档案（AUT 的 `/api/users/<slug>`）。查无此人时结合 ①② 判断；注意少数在职人员确实没有档案（门户按姓名列出但无链接），故此项单独不具决定性。\n  - **Sharon Mazer 是 Professor Emerita of Theatre and Performance Studies → 按规则排除**（她方向最对口，勿误收）\n  - **Andrew Denton 已离开 AUT**：2024-07 起任 University of Saskatchewan 新设 School for the Arts 首任院长，勿再按 AUT 收录（其旧页仍在第三方站挂 AUT 头衔）\n  - **AUT 全校只有一个博士学位**：Doctor of Philosophy（code **AK3518**），**没有分院系的 PhD 项目页**。\n    - ⚠️ `博士申请信息` 的正确填法（**2026-09-18 用户明确要求后修正，此前填法已被否决**）：填**该导师所属学科的研究生项目页** `https://www.aut.ac.nz/study/study-options/<area>`——该页列出本学科全部研究生课程，含 Doctor of Philosophy 入口（如 `.../study-options/communication-studies` 内即列出 `Doctor of Philosophy`）。**不要**统一填 `https://www.aut.ac.nz/courses/doctor-of-philosophy`（用户视其为「全校统一入口」）；要避开的还有 `https://www.aut.ac.nz/study/applying`（申请总入口）。\n    - 学科 slug（AUT 官方 17 个分组）：`education`、`art-and-design`、`communication-studies`、`health-sciences`、`sport-and-recreation`、`social-sciences-and-public-policy`、`business`、`creative-technologies`、`engineering-computer-and-mathematical-sciences`、`hospitality-tourism-and-events`、`language-and-culture`、`law`、`science`、`architecture-and-built-environment`、`te-ara-poutama-maori-and-indigenous-development`\n    - 判断依据（已实测）：AUT 官方研究生课程页 `/research/postgraduate-study-and-research/postgraduate-programmes` 按 17 学科分组，**PhD 链接在所有分组里完全相同**；`/study/study-options/education/courses/doctor-of-philosophy` → **404**；AUT 自己的博士链接带学科标记参数 `?source=%2F<area>`，但落地页仍是同一个\n    - **唯一两个学科专属博士**：**Doctor of Education**（仅 Education 学科，`/study/study-options/education/courses/doctor-of-education`，code AK3685，**不对国际学生开放**）、**Doctor of Health Science**（仅 Health sciences，`/study/study-options/health-sciences/courses/doctor-of-health-science`）。给国际申请者填链接时**不要**用这两个。\n  - 院系归属：Faculty of Design & Creative Technologies（Art & Design / Communication Studies / Future Environments / ECMS）、Faculty of Culture and Society（School of Education / Social Sciences & Humanities / Te Ara Poutama / Hospitality & Tourism）、Faculty of Health and Environmental Sciences（Sport & Recreation / Clinical Sciences / Public Health）、Faculty of Business, Economics and Law\n  - School of Social Sciences and **Public Policy 已更名为 School of Social Sciences and Humanities**\n  - 健康科学学部**没有 arts therapy / dance movement therapy 师资**；艺术与健康方向最近的是 Mental Health & Wellbeing 的 Keith Tudor（生态治疗）与 Nursing 的 Mandie Foster（儿童艺术参与）\n- **匹配度复核要点（2026-09-18）**：判定「方向是否对口」前先看该导师所属**学院是否落在任务给定范围内**。本次任务的指定学院是「戏剧/舞蹈/社会学/教育学/文化研究」+「人类学/传媒」，而 AUT 实际能对上的只有 School of Education、School of Social Sciences & Humanities、School of Communication Studies 三个单位；Art & Design、Sport、Nursing、Occupational Therapy、Rehabilitation、Mental Health 的人员**全部属于范围外**，只能按「方法层面相近」记录，备注里要写明研究对象偏离，不要写成方向对口。\n- **Last verified**: 2026-09-18",
+  "aliases": [
+   "AUT"
+  ]
+ },
+ {
+  "name": "Austria",
+  "rawHeading": "🇦🇹 Austria",
+  "section": "Europe",
+  "region": "sg-eu",
+  "source": "school-registry-sg-eu.md",
+  "lineStart": 59,
+  "lineEnd": 75,
+  "body": "##### University of Vienna\n- **Architecture**: German site (doktorat.univie.ac.at) works well; English redirects often 404. UCRIS Pure portal on separate subdomain (behind Cloudflare). u:find JS SPA at ufind.univie.ac.at.\n- **Layer**: L2→L3 (UCRIS Pure Portal + DE site works, EN 404s)\n- **Access (PhD info)**: Navigate from https://www.univie.ac.at/studium/ → \"PhD / Doktorat\" → \"Zulassung zu Doktorats- und PhD-Studien\" → https://doktorat.univie.ac.at/doktoratunivie/zulassung/\n- **Access (individual profiles)**: Search Google for \"[Name] University Vienna u:find\" → find person ID → use `ufind.univie.ac.at/en/person.html?id=XXXX`. Check \"Currently not an active member of staff\" status on the profile.\n- **Key endpoint**: https://doktorat.univie.ac.at/ (DE version) / https://ufind.univie.ac.at/en/person.html?id={numeric_id}\n- **Language requirements**: Deutsch- und/oder Englischkenntnisse auf Niveau C1. \"Abschlusszeugnisse und optionaler Sprachnachweis\" — language certificate is optional, depends on department. For Bildungswissenschaft (Education), English C1 likely sufficient.\n- **Failed**: ufind search.html URLs don't work; need direct person ID; UCRIS blocked by Cloudflare; curl 403, browser also blocked by Cloudflare challenge\n- **Last verified**: 2026-06-29\n\n##### University of Innsbruck\n- **Architecture**: IEZW site protected by Anubis web firewall (v1.25.0)\n- **Layer**: L3 (Anubis anti-bot)\n- **Access**: Not accessible via automated tools. Manual search needed.\n- **Failed**: curl 404 on team pages; browser blocked by Anubis; FODOK search returns 410\n- **Last verified**: 2026-06-29",
+  "aliases": []
+ },
+ {
+  "name": "Birkbeck, University of London",
+  "rawHeading": "Birkbeck, University of London",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 215,
+  "lineEnd": 220,
+  "body": "- **Architecture**: Static HTML + numeric profile IDs\n- **Access**: https://www.bbk.ac.uk/our-staff/profile/{id}/{name}\n- **Key endpoint**: https://www.bbk.ac.uk/our-staff/profile/8009667/ulrike-hahn\n- **Failed**: Profile IDs can redirect to wrong person; verify the ID\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "BNBU / UIC (北师香港浸会大学, Zhuhai)",
+  "rawHeading": "BNBU / UIC (北师香港浸会大学, Zhuhai)",
+  "section": "Sino-foreign Joint Programs",
+  "region": "mo-cn",
+  "source": "school-registry-mo-cn.md",
+  "lineStart": 180,
+  "lineEnd": 196,
+  "body": "- **Architecture**: Static HTML (general) + Vue SPA (FHSS comm department)\n- **Layer**: L1 (general) / L3 (FHSS comm)\n- **Access**: 9 PhD programs exist but none in psychology. Applied Psychology is undergraduate-only. FHSS Communication department faculty page is hash-routed SPA.\n- **Key endpoint**: https://gs.uic.edu.cn/ (graduate school) / https://fhss.bnbu.edu.cn/comm_en/faculty/faculty.htm (comm faculty SPA)\n- **Profile URL**: https://fhss.bnbu.edu.cn/comm_en/faculty/faculty.htm#/{username}/en (hash fragment, SPA-rendered)\n- **Failed**: No psychology PhD program; behavioral decision research happens in math/stats depts but not a dedicated track; individual HTML pages don't exist for comm (all SPA hash-routed)\n- **⚠️ PhD supervision**: UIC is primarily a teaching institution. MPhil/PhD offered through HKBU co-supervision. Assistant Professors may have limited supervision capacity.\n- **Last verified**: 2026-07-01\n\n##### BNBU/UIC 环境/数据方向补充（2026-08-17 验证）\n- **研究型硕博专业仅 6 个**：计算机科学、概率论与数理统计、生物学、应用数学、传播学、会计学与企业管理（仅博士）。**无环境科学/公共政策独立专业**，环境方向需挂靠\"生物学\"（生命科学系），空间/统计方向挂靠\"概率论与数理统计\"。\n- 研究生院导师名录页（静态 HTML，含姓名/职称/研究方向/邮箱，可抓取）：\n  - `gs.bnbu.edu.cn/graduate/graduate1/yjxyjskc/Probability_and_Mathematical_Statistics.htm`（统计 PMS）\n  - 类似 `.../Biology.htm`、`.../Computer_Science.htm` 等\n- 教师个人页多为 SPA：`fst.bnbu.edu.cn/xxx/faculty/faculty.htm#/{username}/en`（hash 锚点，抓取只有导航栏）；`staff.uic.edu.cn/{username}/cn` 为旧域名遗留静态页（仍有效但内容为旧版）。写表时优先用 `gs.bnbu.edu.cn` 导师名录页，或 `staff.uic.edu.cn` 旧页 + 备注标注。\n- 申请系统 `rpgadmission.bnbu.edu.cn`。",
+  "aliases": []
+ },
+ {
+  "name": "Boston University — Questrom",
+  "rawHeading": "Boston University — Questrom",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 87,
+  "lineEnd": 92,
+  "body": "- **Architecture**: Static HTML\n- **Layer**: L1\n- **Access**: https://www.bu.edu/questrom/profile/{name}/\n- **Key endpoint**: https://www.bu.edu/questrom/profile/carey-morewedge/\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "Carnegie Mellon University — SDS",
+  "rawHeading": "Carnegie Mellon University — SDS",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 79,
+  "lineEnd": 85,
+  "body": "- **Architecture**: Static HTML\n- **Layer**: L1\n- **Access**: https://www.cmu.edu/dietrich/sds/people/faculty/{name}.html\n- **Key endpoint**: https://www.cmu.edu/dietrich/sds/people/faculty/daniel-oppenheimer.html\n- **Note**: Carey Morewedge moved from CMU → Boston University Questrom\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "Chinese University of Hong Kong (CUHK)",
+  "rawHeading": "Chinese University of Hong Kong (CUHK)",
+  "section": "Hong Kong",
+  "region": "hk",
+  "source": "school-registry-hk.md",
+  "lineStart": 19,
+  "lineEnd": 60,
+  "body": "**CRITICAL — Must follow this workflow for ALL CUHK departments:**\n\n1. **Always start from the staff listing page** (all are server-rendered static HTML, L1)\n2. **Extract every name + profile URL from the listing page** — do NOT construct URLs from memory or search snippets\n3. **Verify each person is still in the current listing** before writing to Vika\n\n| Department | Staff Listing URL | Individual Profile Pattern | Slug Format |\n|-----------|-------------------|---------------------------|-------------|\n| Psychology | `psy.cuhk.edu.hk/en/people/faculty.html` | `faculty-members/{slug}.html` | Firstname-lastname (e.g. `qian-wang`, `helene-fung`). Note: NO `prof-` prefix |\n| Social Work | `web.swk.cuhk.edu.hk/en-gb/people/full-time-teaching-staff` | `full-time-teaching-staff/{id}-prof-{slug}` | Numeric ID prefix (e.g. `144-prof-ngai-sek-yum-steven`) |\n| Educational Psychology | `fed.cuhk.edu.hk/eps/en/people/academic-staff/` | `eps/en/peoples/{slug}/` | `prof-{firstname}-{lastname}` (e.g. `prof-hawk-skyler`, `prof-chui-tsz-yeung-harold`) |\n| MAE (Engineering) | Uses `/peoples/` NOT `/people/` for individual profiles | `peoples/{slug}/` | Surname-first (e.g. `lau-darwin-tat-ming`) |\n| Statistics & Data Science | `sta.cuhk.edu.hk/pcat/faculty/` | `peoples/{slug}/` | Abbreviated slug (e.g. `jwang`, `hywong`, `bdai`, `ylin`, `ligen`, `tonysit`, `cyyau`, `ywei`, `jiachengzh`, `zxlin`) |\n\n**STA 特殊规则（2026-07-13 验证）：**\n- `/people/faculty/{name}/` 是 SPA 壳 — 所有自动化工具拿到相同首页 HTML（114KB），必须用 `/peoples/{slug}/` 替代\n- pcat/faculty 列表页是静态 HTML，可直接抓取获取正确 slug\n- 个人 `/peoples/` 页面为静态 HTML，包含完整研究方向信息\n\n**Common pitfalls (learned 2026-07):**\n- Psych dept changed slug format — removed `prof-` prefix from URLs (e.g. `prof-wang-qian` → `qian-wang`)\n- SWK dept completely rebuilt their site — old `/en/people/teaching-staff/` → new `/en-gb/people/full-time-teaching-staff/{ID}-{slug}`\n- Education dept moved from `/en/people/` → `/eps/en/peoples/`\n- Several professors listed on old sites had moved to other institutions (HKU, etc.) — always cross-check against current listing page\n- **Do NOT trust search engine snippets alone** — always open the listing page to confirm the person is still there\n\n**⚠️ 新闻与传播学院官网整体下线（2026-09-20 发现，重要）**\n- `www.com.cuhk.edu.hk` 与 `pg.com.cuhk.edu.hk` **整站处于 \"website is temporarily unavailable\" 状态**：根域返回 **167 字节**的占位页（`w_main.jpg` + alt 提示），所有 `/people/*`、`/?p=*` 路径统一 404 或返回同一占位页\n- ⚠️ **这是\"200 空壳\"陷阱**：`pg.com.cuhk.edu.hk/?p=45/` 返回 **HTTP 200**，但正文只有 167 字节 → **按状态码判定链接健康的脚本会漏掉它**。遇到同一学院的链接，必须**同时校验字节数**（<1KB 视为空壳）\n- ✅ **有效替代**：\n  - 个人页 → `https://research.cuhk.edu.hk/en/persons/{name-slug}`（如 `ying-him-anthony-fung`，含姓名+职称+学院）\n  - 学院人员/组织页 → `https://research.cuhk.edu.hk/en/organisations/school-of-journalism-and-communication/`\n  - 研究生项目/招生页 → `https://www.gs.cuhk.edu.hk/programmes`（研究生院项目总表；注意 `gs.cuhk.edu.hk/admissions/programme/{dept}`、`/programmes/social-science/mphil-phd-communication` 等具体路径均为 404）\n  - 全院教师名录（含职称与邮箱）→ `https://www.cpr.cuhk.edu.hk/tc/news-centre/experts-list/...`\n- 已在表中修复的实例：Anthony Y. H. Fung（馮應謙）三个链接全部迁移到上述替代页\n\n- **Architecture**: Static HTML (all 3 departments above) + JS-rendered (business school)\n- **Layer**: L1 (Psych, SWK, Edu Psych) / L2-L3 (Business)\n- **Failed**: Psych/SWK/Edu pages occasionally change URL patterns without redirect; always verify via listing page\n- **Last verified**: 2026-07-07\n-",
+  "aliases": [
+   "CUHK"
+  ]
+ },
+ {
+  "name": "City University of Hong Kong (CityU)",
+  "rawHeading": "City University of Hong Kong (CityU)",
+  "section": "Hong Kong",
+  "region": "hk",
+  "source": "school-registry-hk.md",
+  "lineStart": 72,
+  "lineEnd": 110,
+  "body": "- **Architecture**: Incapsula WAF (main domain + stfprofile) + Cloudflare WAF (scholars subdomain)\n- **Layer**: L3→L4 (Fully blocked from curl/WebFetch/urllib; search engine fallback required)\n- **WAF 现状（2026-07-13 验证）**:\n  - CityU 全站 Incapsula WAF，自动化工具（curl、Python urllib、WebFetch）**全部被拦截**\n  - stfprofile 页面：200 返回 Incapsula JS 挑战页（约 200-1000 字节），不是真正死链\n  - scholars.cityu.edu.hk：**403 Forbidden**（自动化访问），浏览器正常\n  - **自动化审计脚本检测 CityU 链接时必然全部报死链/SPA壳，这是已知的系统性问题**\n  - 链接有效性必须由人在浏览器中确认，不要因为 WAF 拦截就删除记录\n- **Primary workflow — Scholars Portal (ALL departments, mandatory)**:\n  1. 浏览器打开 https://scholars.cityu.edu.hk/en/persons/ — CityU 统一教师数据库\n  2. 搜索导师姓名\n  3. 打开个人页面，复制 URL（格式: `scholars.cityu.edu.hk/en/persons/{name}({uuid})`）\n  4. 写入 Vika 的 `导师主页` 列\n  5. **备用格式**: stfprofile 页面 `www.cityu.edu.hk/stfprofile/{slug}.htm`，优先级高于 scholars（因为至少返回 200 而非 403）\n- **写入后复验规则（WAF 调整版）**:\n  - WebFetch 验证 CityU 链接时，预期返回：stfprofile → 200 + ~200-1000字节（JS挑战）；scholars → 403\n  - 以上两种结果都不是死链信号，**不删除记录**\n  - **仅以下情况才删除**：Google/DDG 搜不到该导师、系页面已移除、或浏览器确认 404\n  - 交付前提示用户在浏览器中抽查 CityU 链接\n- **自动化审计的 CityU 豁免**：\n  - 计算链接通过率时，可将 CityU 记录从分母中扣除\n  - 例如：55 条中 15 条 CityU，非 CityU 40 条全通过 → 实际链接率 100%（而非 73%）\n  - WAF 拦截 ≠ 链接质量缺陷\n- **Subdomain probe results** (2026-07-13):\n  - www.cityu.edu.hk/stfprofile/*: Incapsula WAF（200 + 约 200-1000 字节 JS 挑战）\n  - scholars.cityu.edu.hk: 403 Forbidden（自动化工具）；浏览器正常\n  - www6.cityu.edu.hk: Incapsula\n  - www2/www3.cityu.edu.hk: SSL EOF\n  - sgs.cityu.edu.hk: SSL EOF\n  - cb.cityu.edu.hk/staff/: 可直接访问（商学院）\n- **ORCID Discovery Method** (when all search engines fail):\n  1. `curl \"https://pub.orcid.org/v3.0/search/?q=affiliation-org-name:%22City+University+of+Hong+Kong%22\"` → get ORCID IDs\n  2. `curl \"https://pub.orcid.org/v3.0/{orcid}/person\"` → get researcher names and details\n  3. Cross-reference found names with target department\n  4. Search found names on scholars.cityu.edu.hk for profile verification (in browser)\n  5. If profile found, write to Vika; if not, mark with note in 备注\n- **Failed**: 全部自动化方案对 CityU 主页/教师资料页无效；ssweb.cityu.edu.hk blocked by Incapsula\n- **Last verified**: 2026-07-13",
+  "aliases": [
+   "CityU"
+  ]
+ },
+ {
+  "name": "Columbia Business School",
+  "rawHeading": "Columbia Business School",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 56,
+  "lineEnd": 62,
+  "body": "- **Architecture**: Cloudflare WAF\n- **Layer**: L3\n- **Access**: Browser ONLY; business.columbia.edu/faculty/people/{name}\n- **Key endpoint**: https://business.columbia.edu/faculty/people/eric-johnson\n- **Failed**: curl → Cloudflare block\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "Columbia University — Engineering (APAM / IEOR)",
+  "rawHeading": "Columbia University — Engineering (APAM / IEOR)",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 102,
+  "lineEnd": 107,
+  "body": "- **Architecture**: Cloudflare challenge (\"Just a moment...\" JS page) on ALL Columbia web properties except `math.columbia.edu` — includes `apam/ieor.columbia.edu`, `engineering.columbia.edu`, and even `www.columbia.edu/~netid` personal pages\n- **Layer**: L3\n- **Access**: Browser ONLY; 403 challenge ≠ dead link. Verify live URLs via WebSearch (search engines index full content); confirm exact slug from search result URLs\n- **2026-07 consolidation**: Engineering profiles moved from department sites to the central directory `www.engineering.columbia.edu/faculty-staff/directory/{slug}` (alias: `engineering.columbia.edu/faculty/{slug}`). Old `apam.columbia.edu/people/{slug}`, `apam/ieor.columbia.edu/faculty/{slug}` 404 in browser. APAM also has new root-level profiles `apam.columbia.edu/{slug}` (e.g. `/liliana-borcea`); APAM directory: `apam.columbia.edu/directory`. Some IEOR profiles still live at `ieor.columbia.edu/faculty/{slug}` (Sigman, Xunyu Zhou, Dieker) — mixed state, prefer the central engineering directory\n- **Last verified**: 2026-07-17",
+  "aliases": []
+ },
+ {
+  "name": "Columbia University — Mathematics",
+  "rawHeading": "Columbia University — Mathematics",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 109,
+  "lineEnd": 114,
+  "body": "- **Architecture**: Static HTML (NO WAF — the only Columbia property directly accessible)\n- **Layer**: L1\n- **Access**: Profile pattern `https://www.math.columbia.edu/people/faculty-by-rank/name/{slug}/` (trailing slash; verified for Corwin/Dubedat/Knizel/Karatzas/Nutz)\n- **Note**: Old `/people/directory/name/{slug}` and `/people/directory/char/F/2` paths are dead/redirected. Faculty list: `/people/faculty-by-rank/`. Personal sites `math.columbia.edu/~{name}/` also work (no WAF)\n- **Last verified**: 2026-07-17",
+  "aliases": []
+ },
+ {
+  "name": "Cornell University — ORIE (Duffield Engineering)",
+  "rawHeading": "Cornell University — ORIE (Duffield Engineering)",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 116,
+  "lineEnd": 122,
+  "body": "- **Architecture**: Static HTML, site migrated mid-2026\n- **Layer**: L1\n- **Access**: `https://www.duffield.cornell.edu/people/{slug}/`\n- **Key endpoint**: https://www.duffield.cornell.edu/orie/faculty-staff/\n- **Note**: Old `orie.cornell.edu/people/{slug}` URLs all 404; old `/faculty-directory/{slug}` and `engineering.cornell.edu/faculty-directory/{slug}` redirect to duffield. Some slugs include middle name: `andreea-c-minca`, `robert-a-jarrow`, `david-alan-goldberg`. Faculty-staff list page doubles as title reference (Professor/Associate/Assistant).\n- **Last verified**: 2026-07-17",
+  "aliases": []
+ },
+ {
+  "name": "CUHK Shenzhen",
+  "rawHeading": "CUHK Shenzhen",
+  "section": "Sino-foreign Joint Programs",
+  "region": "mo-cn",
+  "source": "school-registry-mo-cn.md",
+  "lineStart": 30,
+  "lineEnd": 41,
+  "body": "- **Architecture**: Static HTML\n- **Layer**: L1\n- **Access**: hss.cuhk.edu.cn for Applied Psychology\n- **Key endpoint**: https://hss.cuhk.edu.cn/en/taxonomy/term/21\n- **Failed**: —\n- **Last verified**: 2026-06-26\n\n##### CUHK(SZ) 环境/双碳方向补充（2026-08-17 验证）\n- 理工学院 SSE `sse.cuhk.edu.cn/faculty/{slug}`、公共政策学院 SPP `spp.cuhk.edu.cn/teacher/{id}`、人文社科学院 HSS `hss.cuhk.edu.cn/teacher/{id}`、数据科学学院 SDS `sds.cuhk.edu.cn/teacher/{id}` 均为可抓取静态页；个人网站走 `myweb.cuhk.edu.cn/{slug}`。\n- 环境/能源/双碳/公共政策/空间数据相关院系：SSE（能源经济、智能电网）、SPP（能源政策、可持续转型）、HSS（计算可持续、城市学、地理空间分析）、SDS（时空统计）。\n- 研究生院 `gs.cuhk.edu.cn/page/16/`（研究型专业列表）、申请 `pgapply.cuhk.edu.cn`。",
+  "aliases": []
+ },
+ {
+  "name": "Curtin University",
+  "rawHeading": "Curtin University (2026-07-03 update — SPA CORRECTION)",
+  "section": "Australia",
+  "region": "au-nz",
+  "source": "school-registry-au-nz.md",
+  "lineStart": 126,
+  "lineEnd": 148,
+  "body": "⚠️ **Previous assessment was incorrect.** staffportal.curtin.edu.au is a **pure React SPA** — all profile pages return ~2KB empty HTML shells to WebFetch/curl, even though browsers render them fine. about/our-people also uses JS accordions with no static content.\n\n- **Architecture**: React SPA (staffportal) + WordPress (personal sites) + JS accordion (about pages)\n- **Layer**: L0-SPA (SPA Workaround — skip staffportal entirely, use ALTERNATIVE sources)\n- **Accessible** (WORKING):\n  - **Personal academic websites**: tamaleaver.net, wishcrys.com (WordPress, static HTML, full content)\n  - **Research center pages**: digitalchild.org.au/team-members/ (ARC Centre — server-rendered, full profiles)\n  - **ResearchGate**: profiles with publications, stats, research areas (server-rendered)\n  - **Google Scholar**: search snippets give research tags + citation counts\n  - **ORCID**: structured profile data\n- **Blocked**: staffportal.curtin.edu.au ALL pages (SPA shell, ~2KB, zero extractable content), about/our-people (JS accordion, no names visible)\n- **SPA Workaround Strategy** (L0):\n  1. WebSearch `\"[Name] Curtin University professor research\"` → find alternative domains\n  2. Prioritize: personal WordPress sites > research center pages > ResearchGate > Google Scholar\n  3. WebFetch alternative sources for detailed content\n  4. Combine data: personal site for research areas + ResearchGate for publications + Scholar for citations\n- **Verified examples**:\n  - Tama Leaver: tamaleaver.net (full profile, research, books, teaching awards) + digitalchild.org.au (CI role)\n  - Crystal Abidin: wishcrys.com (full profile, 250+ pubs, h-index 42, awards) + ierlab.com (lab director)\n  - Michele Willson: researchgate.net (43 pubs, Monash PhD, research areas) + ORCID\n  - Mike Kent: Google Scholar snippet (cited 2,517, Internet Studies/Disability Studies/eLearning) + ResearchGate\n- **Last verified**: 2026-07-03",
+  "aliases": []
+ },
+ {
+  "name": "De Montfort University",
+  "rawHeading": "De Montfort University",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 118,
+  "lineEnd": 124,
+  "body": "- **Architecture**: Static HTML (staff profile pages)\n- **Layer**: L1\n- **Access**: Direct URL access to academic staff pages at dmu.ac.uk/academic-staff/\n- **Key endpoint**: https://www.dmu.ac.uk/academic-staff/\n- **Failed**: —\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "Deakin University",
+  "rawHeading": "Deakin University",
+  "section": "Australia",
+  "region": "au-nz",
+  "source": "school-registry-au-nz.md",
+  "lineStart": 116,
+  "lineEnd": 124,
+  "body": "- **Architecture**: Pure Portal SPA (experts.deakin.edu.au) + Cloudflare WAF (deakin.edu.au CMS pages)\n- **Layer**: L3\n- **Access**: experts.deakin.edu.au/{slug} returns \"Discovery\" SPA shell (~2KB). Individual profiles require browser. deakin.edu.au/about-deakin/people blocked by Cloudflare.\n- **Key endpoint**: https://experts.deakin.edu.au/{slug}\n- **PhD application**: https://www.deakin.edu.au/study/find-a-course/research-degrees\n- **Note**: experts.deakin.edu.au is the consistent URL pattern.\n- **Failed**: deakin.edu.au/about-deakin/people/{name} → 403 Cloudflare\n- **Last verified**: 2026-07-01",
+  "aliases": []
+ },
+ {
+  "name": "Duke Kunshan University",
+  "rawHeading": "Duke Kunshan University",
+  "section": "Sino-foreign Joint Programs",
+  "region": "mo-cn",
+  "source": "school-registry-mo-cn.md",
+  "lineStart": 198,
+  "lineEnd": 204,
+  "body": "- **Architecture**: Static HTML\n- **Layer**: L1\n- **Access**: Masters-only institution; 5 Master's programs, zero PhD programs\n- **Key endpoint**: https://dukekunshan.edu.cn/en/academics/graduate\n- **Failed**: No PhD programs of any kind; Duke Durham has relevant programs but DKU does not\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "Education University of Hong Kong (EdUHK)",
+  "rawHeading": "Education University of Hong Kong (EdUHK)",
+  "section": "Hong Kong",
+  "region": "hk",
+  "source": "school-registry-hk.md",
+  "lineStart": 217,
+  "lineEnd": 224,
+  "body": "- **Architecture**: Static HTML\n- **Layer**: L1 (via browser)\n- **Access**: eduhk.hk/ps/en/ for Psychology dept; accessible via browser\n- **Key endpoint**: https://www.eduhk.hk/ps/en/aboutus.php?s=our_staff\n- **PhD link**: https://gs.eduhk.hk/prospective/rpg/ （⚠️ 2026-09-14 更新：旧记录 `eduhk.hk/gradsch/` 已不是招生页；`gs.eduhk.hk` **curl 会 SSL 握手失败，必须用 WebFetch**）\n- **Failed**: Previous attempt via network blocked; browser works\n- **Last verified**: 2026-06-26",
+  "aliases": [
+   "EdUHK"
+  ]
+ },
+ {
+  "name": "Germany",
+  "rawHeading": "🇩🇪 Germany",
+  "section": "Europe",
+  "region": "sg-eu",
+  "source": "school-registry-sg-eu.md",
+  "lineStart": 107,
+  "lineEnd": 143,
+  "body": "##### University of Hamburg\n- **Architecture**: Static HTML with complex navigation structure. Education faculty (Fakultät für Erziehungswissenschaft) has restructured website. Most English URLs return 404.\n- **Layer**: L3 (multiple 404s, navigation needed)\n- **Access**: Start from main site (https://www.uni-hamburg.de/) then navigate to \"Forschung → Karrierewege\". The \"Promovieren\" link leads to https://www.uni-hamburg.de/forschung/karrierewege.html. Admission requirements at https://www.uni-hamburg.de/campuscenter/bewerbung/promotion.html. Use university person search (Personensuche) from main site — German URLs work better than English.\n- **Key discovery path**: DE version works, EN version returns 404 on most sub-pages.\n- **Language requirements**: English B2 required; German C1/C2 only for German-language program.\n- **Failed**: /en/personal.html → 404; /personen/ → 404; most EW subpages broken\n- **Last verified**: 2026-06-29\n\n##### University of Tübingen\n- **Architecture**: WiSo Faculty → IfE → Static HTML for department personal pages\n- **Layer**: L1 (static Personal/Team pages)\n- **Access**: Navigate from https://uni-tuebingen.de/ → \"Fakultäten\" → \"Wirtschafts- und Sozialwissenschaftliche Fakultät\" → \"Fachbereich Sozialwissenschaften\" → \"Erziehungswissenschaft\" → \"Institut\". Key personal pages:\n  - Sozialpädagogik: .../abteilungen/sozialpaedagogik/personal/\n  - Allgemeine Pädagogik: .../abteilungen/allgemeine-paedagogik/personal/\n  - Individual profiles: .../institut/team/{name-slug}/\n- **Key discovery**: Old URL de/242 returns 404; new path through WiSo Fakultät navigation works. 15 professors across 4 departments.\n- **Failed**: Direct old URLs all 404; site completely restructured in 2025/2026\n- **Last verified**: 2026-06-29\n\n##### University of Cologne\n- **Architecture**: Static HTML. Individual profile pages use numeric IDs, NOT name slugs.\n- **Layer**: L1 (static HTML with numeric page IDs)\n- **Access**: Search main site (hf.uni-koeln.de/suche/) for professor name → find numeric page ID (e.g., 33878 for Herzmann, 33835 for Proske). Individual URLs: https://www.hf.uni-koeln.de/{numeric_id}\n- **Key discovery**: Name-slug URLs like /personen/petra-herzmann/ all return 404. Numeric IDs are the only working format.\n- **Failed**: /personen/ directory browsing; /personen/{name}/ all 404; site search returns no JavaScript results in this environment\n- **Last verified**: 2026-06-29\n\n##### University of Freiburg (2026-06-30 update)\n- **Architecture**: New uni-freiburg.de site (2025/2026 relaunch); old erzwiss domain returns 000/timeout\n- **Layer**: L3→L4 (HISinOne getter-protected, site restructured)\n- **Key discovery**: `uni-freiburg.link/personensuche` resolves to HISinOne Personensuche which loads publicly (\"ohne Anmeldung am System nur öffentlich sichtbare Personen\"). BUT: input fields are getter-protected — `Cannot set property value of [object Object] which has only a getter` — preventing any automated form manipulation. Same protection for Vorlesungsverzeichnis semester selector.\n- **Working URLs**: Main page (uni-freiburg.de), Personensuche HISinOne (loads), VVZ (loads), Fakultäten overview page (uni-freiburg.de/universitaet/fakultaeten/)\n- **Failed**: Erzwiss domain (timeout), search (0 results), philolfak domain (empty page), all faculty sub-pages (404), all form manipulation (getter-protected)\n- **German university pattern confirmed**: Personensuche → HISinOne/QIS system, all protected from external automation\n- **Last verified**: 2026-06-30",
+  "aliases": []
+ },
+ {
+  "name": "Harvard University — Psychology",
+  "rawHeading": "Harvard University — Psychology",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 72,
+  "lineEnd": 77,
+  "body": "- **Architecture**: Mixed; some profile URLs 404\n- **Layer**: L3\n- **Access**: Personal sites may be more reliable than dept pages\n- **Key endpoint**: https://www.joshua-greene.net/ (personal site; dept URL 404)\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "Heriot-Watt University",
+  "rawHeading": "Heriot-Watt University",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 158,
+  "lineEnd": 164,
+  "body": "- **Layer**: L2\n- **Architecture**: Pure Portal (researchportal) + Static HTML (hw.ac.uk)\n- **Best method**: Use hw.ac.uk profiles (not researchportal UUIDs). Format: `hw.ac.uk/profiles/uk/school/tex/faculty/{slug}`\n- **Key URL / endpoint**: `https://www.hw.ac.uk/profiles/uk/school/tex/faculty/{slug}`\n- **Failed**: researchportal.hw.ac.uk UUID-based URLs → 404\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "HKUST",
+  "rawHeading": "HKUST",
+  "section": "Hong Kong",
+  "region": "hk",
+  "source": "school-registry-hk.md",
+  "lineStart": 62,
+  "lineEnd": 70,
+  "body": "- **Architecture**: Static HTML\n- **Layer**: L2→L3\n- **Access**: Web accessible; no Psychology dept (only Division of Social Science). Target Business School Marketing dept.\n- **Key endpoint**: https://mark.hkust.edu.hk/faculty-and-staff/directory (Business School Marketing)\n- **Also**: https://bm.hkust.edu.hk/faculty (Business School general) — has \"Leadership and Behavioral Decision-making\" research area. Management dept may have additional behavioral faculty.\n- **PhD link**: https://prog-crs.ust.hk/pgprog/2022-23/mphil-phd-mark\n- **Failed**: No Psychology PhD\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "HKUST(GZ)",
+  "rawHeading": "HKUST(GZ)",
+  "section": "Sino-foreign Joint Programs",
+  "region": "mo-cn",
+  "source": "school-registry-mo-cn.md",
+  "lineStart": 51,
+  "lineEnd": 178,
+  "body": "- **Architecture**: Static HTML\n- **Layer**: L1\n- **Access**: Hub structure; Society Hub has 4 thrusts (CNCC, FTEC, IPE, UGOD). No behavioral/cognitive science thrust. No Psychology dept.\n- **Key endpoint**: https://soch.hkust-gz.edu.cn/\n- **Failed**: No psychology/behavioral science thrust area; no relevant department\n- **Last verified**: 2026-06-26\n\n##### HKUST(GZ) IPE 学域补充（2026-08-05 验证）\n- **IPE 学域教师列表（WordPress 可抓取）**: https://soch.hkust-gz.edu.cn/academics/ipe/faculty/ — 完整 26 人名单，含姓名/职称/邮箱/SPA 个人页链接\n- **官方博士招生手册 PDF**: `soch.hkust-gz.edu.cn/wp-content/uploads/2026/04/PhD-in-Innovation-Policy-and-Entrepreneurship_CN-2026-27-Intake-*.pdf` — 权威在招导师名单，与 faculty 列表有出入，优先以此交叉验证\n- **facultyprofiles.hkust-gz.edu.cn 全站 SPA**：`?id=X` 与 `/faculty-personal-page/NAME/slug` 两种格式均返回 1522B Loading 壳，WebFetch/curl 均无法确认内容 → 个人主页必须用替代来源\n- **替代主页来源（已验证可抓取）**：\n  - 官网人员页：`hkust-gz.edu.cn?p=6493/`（Ye Qi 格式）、`/people/slug/` 只覆盖高级管理人员（如 hui-xiong）\n  - 个人网站：luoyec.github.io（Luoye Chen）、qianping-ren.com（Qianping Ren）、seonaparklab.github.io（Seona Park CARE lab）、coreyxu.com（Cloudflare 403 但内容可 WebFetch）、personal.hkust-gz.edu.cn/dxie（Danyang Xie）\n  - HKUST 官方页：ppol.hkust.edu.hk/people/detail/（Corey Xu、Xun Wu）、aging.hkust.edu.hk（Corey Xu）\n  - 前任机构官方页：dbaswiss.ceibs.edu/he_jinyu（Jinyu He，CEIBS）、sece.xmu.edu.my/（Kok Sin Woon，厦大马校兼职）\n- **博士申请信息**: IPE 项目页 `pcc.hkust-gz.edu.cn/postgraduate/program-catalog/innovation-policy-and-entrepreneurship-5` + 申请系统 `fytgs.hkust-gz.edu.cn`（WebFetch 可渲染）\n- **Last verified**: 2026-08-05\n\n##### HKUST(GZ) 环境/双碳方向补充（2026-08-17 验证）\n- 社会枢纽 CNCC/UGOD 教师列表页（WordPress 可抓取，含姓名/职称/邮箱 + facultyprofiles ?id）：\n  - CNCC 碳中和与气候变化 `soch.hkust-gz.edu.cn/academics/cncc/faculty/`\n  - UGOD 城市治理与设计 `soch.hkust-gz.edu.cn/academics/ugod/faculty/`\n- 功能枢纽 SEE 教师页 `funh.hkust-gz.edu.cn/zh/academics/sustainable-energy-and-environment/faculty-members/` 为 SPA（正文 \"Loading\"），无法抓取名单；SEE 导师个人页可用 facultyprofiles `?id=X`（如郑君瑜 id=243）。\n- **facultyprofiles ?id 交叉核对方法**：直接 WebSearch `\"[导师名] facultyprofiles.hkust-gz.edu.cn\"` 可拿到含真实姓名/职称/邮箱的搜索结果摘要，比抓 SPA 壳可靠；再与 WordPress 学域列表核对 id。\n- 注意 UGOD 有同名双条目（Lingbo LIU id=737 与 id=740，仅 740 带邮箱），写表前核对 email 与 id 匹配。\n\n##### 🎯 HKUST(GZ) 研究方向 JSON 接口——SPA 破解（2026-09-21 验证，优先级最高）\n**这是目前拿到港科广研究方向原文最快、最权威的方法，应优先于上文的替代来源与 WebSearch。**\n\n```bash\n# slug = faculty-personal-page/<SLUG>/<slug> 的最后一段（如 season / ningningding / shuosun）\ncurl -s \"https://facultyprofiles.hkust-gz.edu.cn/api/itdcms-rpc/profile/primary/<slug>\"\n# 返回 JSON：data.profile.enName（姓名）+ data.resumes[resumeType=RESEARCH_INTEREST].detail[].content（研究方向原文）\n```\n- 前端调用方式见 `/js/app.237189e1.js`（`getFacultyByPrimaryKey`）。SPA 空壳页 + 此接口 = 完整个人资料。\n- **必须用 `data.profile.enName` 校验身份**：slug 命中失败时接口会返回一个 **150+ 条的聚合兜底列表**（内容是港科广全体研究方向的并集），看起来\"有数据\"但完全不属于本人。`enName` 为空 = 未命中，该 slug 作废。\n- slug 取自 WordPress 学域列表页里的个人页链接末段；DSA 用 `dsa.hkust-gz.edu.cn/faculty/`，社会枢纽 FTEC/IPE/UGOD 用 `soch.hkust-gz.edu.cn/academics/<thrust>/faculty/`（后者的名单是 JS 渲染，抓不到链接，见下）。\n- ⚠️ **`RESEARCH_INTEREST` 字段可能是陈旧数据，必须以 `overviews`（Biography）交叉校验**。实例：Sung Hun KIM 的结构化字段存的是\"程序员生产力／挖掘软件仓库／静态分析\"（他早年的软件工程方向），而同一接口的 Biography 写的是\"recommendation systems, neural search (NLP), source code generation\"（现任方向）。**两者冲突时以 Biography 为准，且不要只凭结构化字段下结论。**\n- 另外可用 `/api/itdcms-rpc/profile/primary/<slug>` 的 `person`/`jobs` 等字段核对职称与所在学域。\n\n##### 🎯 HKUST(GZ) 社会枢纽（FTEC/IPE/UGOD）师资名单 API（2026-09-21 验证）\nWordPress 站点，师资名单由 `ThrustFacultyData.js` 动态拉取，页面本身抓不到姓名。直接用其 REST 接口：\n```bash\ncurl -s \"https://soch.hkust-gz.edu.cn/wp-json/university/v1/getOfficialThrustList?affiliatedUnits=SOCIHUB&departmentPkCode=<code>\"\n# FTEC 金融科技        = 10011A10000000000H2S\n# IPE  创新创业与公共政策 = 10011A10000000000H2U\n# UGOD 城市治理与设计    = 10011A10000000000H2Y\n# CNCC 碳中和与气候变化  = 10011A100000000259HQ\n```\n返回 `CURRENT_FACULTY_ADVISORS`（当届在册师资）+ `ACTING_HEAD`，每条含 `enName`/`name`/`email`/`jobs[0].jobEnName`（职称）/`schoolName`（博士院校）/`majorEnName`（博士专业）/`website`，可据此区分 tenure-track / Adjunct / Professor of Practice。\n\n##### 🇭🇰 七校博士项目 GMAT/GRE 要求（2026-09-22 逐项目官方页面复核，可直接引用）\n\n**判定口径（务必区分）**：\n- **免 G** = 官方写 not required / optional；**或材料清单里根本不出现 GMAT/GRE**；**或 GMAT 仅作英语能力可选替代**（TOEFL/IELTS/GMAT 三选一）。\n- **要 G** = 官方明确要求提交，或列为必需。\n- 「考了加分」≠「必需」；「可用来顶英语成绩」≠「要考」。这两种都判免 G，但要在备注里写清口径。\n\n**逐校结论（本项目实测）**\n\n| 学校 | 校级页（发问时直接给这一页） | 结论 |\n|---|---|---|\n| HKU | `gradsch.hku.hk/prospective_students/application/admission_requirement` | 免 G，**仅两处例外**：Faculty of Business and Economics 要 GMAT/GRE；Psychology 系非心理学本科者要 GRE Subject Test in Psychology |\n| CUHK | `gs.cuhk.edu.hk/admissions/requirements` | 免 G。校级页里 GMAT 只出现在**英语能力测试**列表（`GMAT: Band 21 (Verbal)`），无全校统一 G 要求；商学院为项目专属要求 |\n| HKUST | `fytgs.hkust.edu.hk/admissions/Admission-to-Hong-Kong-Campus/submitting-an-application/admission-requirements` | 免 G。官方 RPg 指引原文：`Required only if there is a program-specific requirement on public examination achievements e.g. GMAT, GRE ... In general, only research programs in the School of Business and Management require GMAT/GRE` |\n| PolyU | `polyu.edu.hk/study/pg/research-postgraduate/2023/admission-requirements-rpg` | 免 G（统一页只有 General + English 两节）。⚠️ **但统一页不覆盖院系级要求**——理大商科项目页（如 `…/rpg/2027/mm`）硬性写 `Others GMAT Focus Edition/ GMAT/ GRE results are required.` |\n| CityU | `cityu.edu.hk/pg/research-degree-programmes/entrance-requirements` | 免 G。**唯一提 G 的地方是 College of Business 条目**：`A high score in GRE or GMAT with supporting proof will be an added advantage though this is not a mandatory requirement. Please note that individual Departments in the College may adopt a higher standard.` ⚠️ 商学院 Management 系页面用词更强（`strongly encouraged to take the GMAT or GRE`），仍非必需 |\n| HKUST(GZ) | `fytgs.hkust-gz.edu.cn/admissions/before-submitting-an-application/documents-required/` | 免 G。材料清单第 5 项：`Public Exam Score Reports — Required only if there is a Program-Specific Requirement on public examination achievements, e.g. GMAT, GRE`。四个学域（DSA/FTEC/IPE/UGOD）项目页入学要求都只有 General + English 两项 |\n| CUHK(SZ) | `gs.cuhk.edu.cn/en/page/26` | 免 G（GMAT 仅作英语三选一）。**但经管学院例外，见下** |\n\n**⚠️ 最关键的坑：港中大（深圳）经管学院 6 个 MPhil-PhD 里只有 Management 免 G**\n\n用同一个模板，肉眼比对「最低入学要求」末尾有没有这一条：\n```\n- Taken the GRE General Test or GMAT.\n```\n以及材料清单里有没有这一项：\n```\nGRE or GMAT score report\n```\n\n| 项目 | page id | 有无 \"Taken the GRE General Test or GMAT\" + 材料含 G | 判定 |\n|---|---|---|---|\n| Management | 3255 | ❌ 都没有 | **免 G** |\n| Economics | 1957 | ✅ 都有 | 要 G |\n| Finance | 1958 | ✅ 都有 | 要 G |\n| Accounting | 1959 | ✅ 都有 | 要 G |\n| Marketing | 2098 | ✅ 都有 | 要 G |\n| Information Management and Business Analytics | 2107 | ✅ 都有 | 要 G |\n\n**新增发现：港中大（深圳）人文社科学院有 5 个 MPhil-PhD 项目，均免 G**\n- 项目：Applied Psychology / Global Studies / Urban Studies / Computational Social Science / Sustainable Development（另 Translation Studies 已暂停招生）。\n- 官方站是**独立子域** `hsspg.cuhk.edu.cn`（不是 `hss.cuhk.edu.cn`），项目页 URL 规律：`hsspg.cuhk.edu.cn/en/<slug>/{requirements,application,phdadvisor}`，slug 为 `mphilphdap` / `mphilphdgs` / `mphilphdcss` / `mphilphdus` / `mphilphdsd`。\n- 入学要求页只有学位门槛 + 英语；英语测试列表含 `GMAT: Band 21 (Verbal)` 但**只作可选项**，全页 `GRE` 出现 0 次。→ 免 G。\n- **`phdadvisor` 页是前端渲染**，curl 拿不到导师姓名，需用 WebSearch 或各教师个人页（`myweb.cuhk.edu.cn/<slug>`）反查所属学部。\n\n**⚠️ 港中大（深圳）人文社科学院「学院首页 ≠ 项目页」的坑**：`hss.cuhk.edu.cn/en` 是学院首页，**完全没有入学信息**，也没有指向项目页的导航链接（导航只有 Division 层级）。写表时「博士申请信息」必须用 `hsspg.cuhk.edu.cn` 的项目页，不要用学院首页。\n\n##### 🎯 港中大（深圳）经管学院 SME 师资 JSON:API（2026-09-21 验证，含按学术领域筛选）\nSME 的师资检索页是 Drupal + JS 渲染，直接抓页面拿不到姓名，但 **JSON:API 全开**：\n```bash\n# 全部师资（分页，每页 50）\ncurl -s 'https://sme.cuhk.edu.cn/jsonapi/node/teacher?page%5Boffset%5D=0&page%5Blimit%5D=50'\n# 按学术领域筛选（academic_type 的 drupal_internal__target_id）\ncurl -s 'https://sme.cuhk.edu.cn/jsonapi/node/teacher?filter%5Bacademic_type.meta.drupal_internal__target_id%5D=31'\n```\n- **领域 term id**（取自 `/en/teacher-search` 的 Academic Field 下拉）：Accounting=161、**Economics=32**、Finance=33、**Management=31**、Marketing=34、**Information Systems & Operations Management=216**\n- 每条 `attributes` 里可直接用：`title`（中文名）、`school_post`（职称/职务）、`research_field`（研究方向原文）、`body.value`（简介）、`email`、`cuhk_website_link.uri`（`myweb.cuhk.edu.cn/<slug>` 个人站）、`path.alias`（`/teacher/<id>`）\n- **注意**：`academic_field` / `research_field` 在 `attributes` 里可能为 null，领域归属在 `relationships.academic_type`；`supervisor` 字段指的是**博士后的合作导师**，不是博士指导资格，别误读。\n- **教师页 `sme.cuhk.edu.cn/en/teacher/<id>` 是 JS 渲染**（HTML 里读不到研究领域）→ 写表时 `导师主页` 优先挂 `myweb.cuhk.edu.cn/<slug>` 个人站，研究领域在个人站可读可核。\n\n##### 港中大（深圳）经管学院管理学方向的实测结论（2026-09-21）\n- MPhil-PhD in **Management** 的 16 位官方师资（学术领域=Management）集中在**组织行为、战略管理、创新创业、人力资源管理**（企业社会责任、非市场化战略、组织吸引力、伦理决策…），与\"数据科学/机器学习/数据挖掘/金融量化\"几乎无交集；全学院唯一沾边的是做**计算社会科学**的潘歆乐。\n- 因此遇到\"学生想走港中深管理（因为免 G）\"的需求时，**先把这份名单和方向结论给学生看**，再决定是否收录，不要为了填满免 G 口子而把战略/OB 师资整批写入。\n- 参考：管理学博士课程为 Microeconomic Theory / Organizational Behavior / Strategic Management / Research Methods in Behavioral Studies & Strategic Management / Econometrics，本质是管理学实证训练。\n\n##### 港中大（深圳）与港城大 研究方向提取要点（2026-09-21 验证）\n- **CUHK-SZ SDS 教师页**（`sds.cuhk.edu.cn/en/teacher/<id>`）：结构固定为 `Education Background → Academic Area → Research Field → Personal Website`，**\"Research Field\" 字段就是研究方向原文**；用\"取 Biography 之前一段\"的方式提取最稳（先找 `Biography` 位置再回看前 700 字符）。\n- **CUHK-SZ HSS 教师页**：用 `Research Fields` 字段；教师个人站 `myweb.cuhk.edu.cn/<slug>`（部分页面 1KB 左右，够读 Education Background 与 Research）。\n- **CUHK STA/SOC 教师页**：内容块的字段名是单数 `Research Interest`；页面导航里也有 `Research Areas`，**优先匹配单数形式并取最后一次出现**，否则容易抓到导航菜单。\n- **CUHK-SZ 教师中文名不都在官网出现**（如 LI Yujie 页面只有英文名）→ 核不到中文名时用官方英文名，不要自行猜写中文。\n- **CityU**：`cb.cityu.edu.hk/dao/.../detail?eid=xxx` 的正文是 `{{{staffResearchAreas}}}` 模板占位符（JS 渲染），抓不到；改用 **CityU Scholars** `scholars.cityu.edu.hk/en/persons/<name-slug>`（含 `Research Interests/Areas` 字段，可 curl），slug 形如 `tze-kin-alan-wan`。营销/传播等系站也常返回 84B WAF 壳，需 WebFetch 穿透。\n\n##### 对抗审核的已知误报模式（2026-09-21 记录）\n- **把 WAF/SPA 拦截当死链**：`facultyprofiles.hkust-gz.edu.cn`（SPA 壳）、`web.socialwork.hku.hk` / `datascience.hku.hk` / `research.cuhk.edu.hk`（Cloudflare 403）、`saasweb.hku.hk`（curl 000）、`cityu.edu.hk/stfprofile`（Incapsula 壳）——这些在浏览器里都正常，**审核前必须把这份\"已知不可穿透清单\"连同穿透方式一起交给审核官**，否则会大量误报。\n- **把渲染截断当\"页面没有\"**：审核官用 WebFetch 读到的 markdown 可能丢掉 JS 标签页里的内容（如港大社会学 ABEL 的 \"I am happy to supervise doctoral students…\" 实际在页面源码里）。判定\"页面无此句\"前，必须用 curl + grep 原文复核一次。",
+  "aliases": [
+   "GZ"
+  ]
+ },
+ {
+  "name": "Hong Kong Baptist University (HKBU)",
+  "rawHeading": "Hong Kong Baptist University (HKBU)",
+  "section": "Hong Kong",
+  "region": "hk",
+  "source": "school-registry-hk.md",
+  "lineStart": 148,
+  "lineEnd": 160,
+  "body": "- **Architecture**: Adobe AEM (main domain) + Pure Portal SPA (scholars portal) + separate infra for comm subdomain\n- **Layer**: L3→L4 (Scholars portal blocked, comm subdomain network-unreachable)\n- **Access**: Psychology lives within Dept of Education and Psychology (educ.hkbu.edu.hk), NOT standalone psych dept. Also check Business School at busrpg.hkbu.edu.hk.\n- **Key endpoint**: https://educ.hkbu.edu.hk/?page_id=20398\n- **PhD link**: https://educ.hkbu.edu.hk/?page_id=20338\n- **PhD programme (Communication)**: gs.hkbu.edu.hk/programmes/doctor-of-philosophy-master-of-philosophy-school-of-communication\n- **Accessible**: gs.hkbu.edu.hk (Grad School), scholars.hkbu.edu.hk (Pure Portal, JS-only for people), hkbu.edu.hk (main domain, Adobe AEM — all guessed URLs return 63KB 404 templates)\n- **Blocked**: socsc.hkbu.edu.hk → connection refused; comm.hkbu.edu.hk (SSL timeout — all protocols); scholars portal API (403); scholars portal UUID-based person pages return 31-byte empty shells\n- **Note**: HKBU has the strongest communication school in HK.\n- **Wayback Machine**: scholars organization page archived (235KB) but person data still JS-rendered in archive\n- **Failed**: socsc.hkbu.edu.hk connection refused; browser attempt failed; comm.hkbu.edu.hk SSL timeout\n- **Last verified**: 2026-07-01",
+  "aliases": [
+   "HKBU"
+  ]
+ },
+ {
+  "name": "Hong Kong Polytechnic University (PolyU)",
+  "rawHeading": "Hong Kong Polytechnic University (PolyU)",
+  "section": "Hong Kong",
+  "region": "hk",
+  "source": "school-registry-hk.md",
+  "lineStart": 112,
+  "lineEnd": 120,
+  "body": "- **Architecture**: JS-rendered\n- **Layer**: L3\n- **Access**: polyu.edu.hk/apss/ for Applied Social Sciences; polyu.edu.hk/mm/ for Marketing\n- **Key endpoint**: https://www.polyu.edu.hk/apss/people/academic-staff/\n- **PhD link**: https://www.polyu.edu.hk/apss/study/research-postgraduate-programme/\n- **Individual profile pattern**: `polyu.edu.hk/apss/people/academic-staff/prof-{slug}/`\n- **Note**: Recently posted JDM faculty job on SJDM, confirms active JDM research presence\n- **Failed**: JS-rendered needs browser",
+  "aliases": [
+   "PolyU"
+  ]
+ },
+ {
+  "name": "King's College London (KCL)",
+  "rawHeading": "King's College London (KCL)",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 22,
+  "lineEnd": 40,
+  "body": "- **Architecture**: 双站并存 —— 官网 `www.kcl.ac.uk`（静态 HTML，curl 可抓）+ 研究门户 `kclpure.kcl.ac.uk`（Pure Portal，**JS 壳，curl 只拿到 ~6KB 空壳，必须用 WebFetch**）\n- **Layer**: L1（官网个人页）/ L2（Pure）\n- **Best method**:\n  1. 按院系穷举教职员：`https://www.kcl.ac.uk/<dept>/about/people`（cmci / english / ecs / ghsm / ddh / music 等，支持 `?page=N`），页面直接给出「姓名 + 职称 + `/people/<slug>` 链接」三件套，是**最优入口**\n  2. Pure 按机构列人（WebFetch）：`https://kclpure.kcl.ac.uk/portal/en/organisations/<slug>/persons/`（slug 如 `culture-media-creative-industries`、`digital-humanities`、`film-studies`），可翻页穷举，且标注 Person: Academic / Emeritus / Research，便于批量排除\n  3. 个人页：`https://www.kcl.ac.uk/people/<slug>`\n- **Key facts / pitfalls**:\n  - **KCL 没有独立的舞蹈院系**，也没有专职 dance studies / 舞蹈教育 / Laban 动作分析的教研人员；舞蹈相关学者散落在 CMCI（Performing Arts）、English（Theatre & Performance Studies）、DDH、ECS。唯一做 dance anthropology 的 Ann R David 是 **Visiting Professor**（按规则排除）\n  - **KCL 没有独立的 Department of Sociology**；社会学取向学者主要在 ECS（教育社会学/社会正义）与 GHSM（GHSM 自称 UK Sociology 前十）\n  - **KCL 没有独立的 Department of Anthropology**；人类学学者分属 DID（国际发展，职称含 Anthropology）、GHSM（medical anthropology）、DDH（digital anthropology）\n  - 职称提取：个人页脱标签文本中 `Contact details` 之前的最后一段即「姓名 + 职称」（如 `Dr Carla Finesilver Reader in Mathematics Education and Inclusion`）\n  - **slug 变体要探测**：`/people/zeena-feldman` 404 → 正确 `/people/dr-zeena-feldman`；`/people/jamie-woodcock` 404 且官网无个人页 → 改用 `https://kclpure.kcl.ac.uk/portal/en/persons/jamie.woodcock/`（Pure 个人页亦属官方，可用作 导师主页）\n  - **429 限流**：对 `www.kcl.ac.uk` 并发抓取超过约 10 路会触发 429，且**持续数分钟不恢复**（不是死链）。批量核验用串行 + 1.2 秒间隔，或改用 WebFetch 复核；不要据 429 判死\n  - **`/people` 目录页**（`https://www.kcl.ac.uk/people`）为壳，不用；按院系 people 页更可靠\n- **入学/申请页**: `https://www.kcl.ac.uk/study/postgraduate-research/how-to-apply`（200 已验证）\n- **按院系的项目页**（`博士申请信息` 列用这个，不要用上面的申请总入口）: `https://www.kcl.ac.uk/study/postgraduate-research/areas/<dept>-research-mphil-phd`\n  - 已实测 200 的五个：`english-research-mphil-phd`、`culture-media-and-creative-industries-research-mphil-phd`、`education-research-mphil-phd`、`global-health-and-social-medicine-research-mphil-phd`、`digital-humanities-research-mphil-phd`\n- **Last verified**: 2026-09-16",
+  "aliases": [
+   "KCL"
+  ]
+ },
+ {
+  "name": "Kingston University",
+  "rawHeading": "Kingston University",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 110,
+  "lineEnd": 116,
+  "body": "- **Architecture**: —\n- **Layer**: —\n- **Access**: —\n- **Key endpoint**: —\n- **Failed**: —\n- **Last verified**: —",
+  "aliases": []
+ },
+ {
+  "name": "Lingnan University",
+  "rawHeading": "Lingnan University",
+  "section": "Hong Kong",
+  "region": "hk",
+  "source": "school-registry-hk.md",
+  "lineStart": 205,
+  "lineEnd": 215,
+  "body": "- **Architecture**: Static HTML (Cultural Studies department accessible; other subdomains may be blocked)\n- **Layer**: L1 (Cultural Studies) / L4 (other subdomains — all URLs return 234 bytes)\n- **Access (Psychology)**: ln.edu.hk/psy/ — fully accessible via browser; applied/counseling focus\n  - Key endpoint: https://www.ln.edu.hk/psy/about-us/people/academic-staff\n  - PhD link: https://www.ln.edu.hk/rpg/\n- **Access (Cultural Studies)**: ln.edu.hk/cultural/ — direct curl works\n  - Key endpoint: https://www.ln.edu.hk/cultural/people/faculty\n  - Profile URL: https://www.ln.edu.hk/cultural/people/faculty/prof-{name-slug}\n- **Blocked**: ln.edu.hk/daci, ln.edu.hk/visualstudies return 234 bytes; uni-directory returns 404; staffdir.htm too thin\n- **Last verified**: 2026-07-01",
+  "aliases": []
+ },
+ {
+  "name": "Macau University of Science and Technology (MUST)",
+  "rawHeading": "Macau University of Science and Technology (MUST)",
+  "section": "Macau",
+  "region": "mo-cn",
+  "source": "school-registry-mo-cn.md",
+  "lineStart": 19,
+  "lineEnd": 25,
+  "body": "- **Architecture**: Cloudflare WAF\n- **Layer**: L3\n- **Access**: BLOCKED all automated attempts. No psychology department exists — psych coursework embedded in FHSS.\n- **Key endpoint**: —\n- **Failed**: curl → 403 (Cloudflare); browser blocked; Google Scholar shows engineering-only decision-making research; Chinese search yields no psych JDM faculty\n- **Last verified**: 2026-06-26",
+  "aliases": [
+   "MUST"
+  ]
+ },
+ {
+  "name": "Macquarie University",
+  "rawHeading": "Macquarie University",
+  "section": "Australia",
+  "region": "au-nz",
+  "source": "school-registry-au-nz.md",
+  "lineStart": 95,
+  "lineEnd": 99,
+  "body": "- **Architecture**: Pure research portal (researchers.mq.edu.au)\n- **Access**: https://researchers.mq.edu.au/en/persons/{name}/\n- **Key endpoint**: https://researchers.mq.edu.au/en/persons/abas-mirzaei/\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "McGill University — Mathematics & Statistics",
+  "rawHeading": "McGill University — Mathematics & Statistics",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 145,
+  "lineEnd": 149,
+  "body": "- **Architecture**: Static HTML (mathstat site, unlike Psychology's Incapsula)\n- **Layer**: L1\n- **Access**: `https://www.mcgill.ca/mathstat/{slug}` — slug may include middle initial (e.g. `eric-d-kolaczyk`); bare `firstname-lastname` 404s\n- **Last verified**: 2026-07-17",
+  "aliases": []
+ },
+ {
+  "name": "McGill University — Psychology",
+  "rawHeading": "McGill University — Psychology",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 94,
+  "lineEnd": 100,
+  "body": "- **Architecture**: Incapsula WAF (blocks all automated access)\n- **Layer**: L3\n- **Access**: Browser ONLY; mcgill.ca/psychology/{name}\n- **Key endpoint**: https://www.mcgill.ca/psychology/ross-otto\n- **Failed**: All curl → 403; search blocked; faculty directory 403\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "Monash University",
+  "rawHeading": "Monash University (2026-09-20)",
+  "section": "Australia",
+  "region": "au-nz",
+  "source": "school-registry-au-nz.md",
+  "lineStart": 74,
+  "lineEnd": 85,
+  "body": "- **Architecture**: Pure Portal。**个人页 `research.monash.edu/en/persons/{slug}` 可直接 curl**（75-130KB，标题含姓名），且页面含 `Accepting PhD Students` 徽标 —— **这是判断招生意愿的现成依据**\n- **Layer**: L1\n- **Key endpoint**: `research.monash.edu/en/persons/{name-slug}/`\n- **PhD 项目页**: `www.monash.edu/arts/research/graduate-research`（curl 403，WebFetch 可读；`/arts/graduate-research` 会重定向到此）\n- **⚠️ 戏剧单位已更名**：原 `Centre for Theatre and Performance` 的 Pure 组织页已 302 到 **`research.monash.edu/en/organisations/critical-theatre-performance/`**（旧的 `centre-for-theatre-and-performance/persons/` 显示 0 results）→ 院系/组织页用新 slug；\n  - 但个人页上「所属组织」仍可能标注为 `Literary Studies` 或 `School of Languages, Literatures, Cultures and Linguistics` → **写 Department 时以个人页标注为准**\n  - 旧路径 `monash.edu/arts/theatre-performance/our-staff` 已跳 Okta 登录页，不可用\n- **⚠️ 职称字段值得核对**：页头（Pure 结构化字段）与简介自述可能不一致（实例 Anthony Moore 页头 Professor、简介自称 Associate Professor）→ **以页头字段为准**\n- **⚠️ 姓名署名可能简化**：实例 Stacy Holman Jones 在 Pure 页署名为 `Stacy Jones`（邮箱仍为 Stacy.HolmanJones@monash.edu）\n- **Failed**: `research.monash.edu/en/organisations/*/persons/` 与 `www.monash.edu/arts/*` curl 403（Cloudflare），但 WebFetch 可读全文\n- **Last verified**: 2026-09-20",
+  "aliases": []
+ },
+ {
+  "name": "Nanyang Technological University (NTU)",
+  "rawHeading": "Nanyang Technological University (NTU)",
+  "section": "Singapore",
+  "region": "sg-eu",
+  "source": "school-registry-sg-eu.md",
+  "lineStart": 23,
+  "lineEnd": 29,
+  "body": "- **Architecture**: Static HTML\n- **Layer**: L1\n- **Access**: ntu.edu.sg/sss for Psychology; ntu.edu.sg/business for NBS\n- **Key endpoint**: https://www.ntu.edu.sg/sss/about-us/our-people\n- **Failed**: —\n- **Last verified**: 2026-06-26",
+  "aliases": [
+   "NTU"
+  ]
+ },
+ {
+  "name": "National University of Singapore (NUS)",
+  "rawHeading": "National University of Singapore (NUS)",
+  "section": "Singapore",
+  "region": "sg-eu",
+  "source": "school-registry-sg-eu.md",
+  "lineStart": 14,
+  "lineEnd": 21,
+  "body": "- **Architecture**: Static HTML + custom profiles (fass.nus.edu.sg); Full SPA (cde.nus.edu.sg)\n- **Layer**: L1 (fass.nus.edu.sg) / L3 (cde.nus.edu.sg)\n- **Access**: fass.nus.edu.sg/psy for Psychology; bschool.nus.edu.sg for Business\n- **Key endpoint**: https://fass.nus.edu.sg/psy/people/\n- **NUS CDE (College of Design & Engineering)**: ALL cde.nus.edu.sg pages return SPA shells (212 chars). Use browser for individual profile verification. Individual staff pages accessible via /me/staff/{slug}/ (NOT /me/people/{slug}/). Example: cde.nus.edu.sg/me/staff/wang-hao-victor/ (slug: wang-hao-victor, NOT wang-hao). Discovery: DDG HTML search \"Wang Hao NUS mechanical engineering\".\n- **Failed**: All CDE subpages return SPA via curl; Bing search returns encrypted URLs\n- **Last verified**: 2026-06-30",
+  "aliases": [
+   "NUS"
+  ]
+ },
+ {
+  "name": "Nottingham Trent University (NTU)",
+  "rawHeading": "Nottingham Trent University (NTU)",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 150,
+  "lineEnd": 156,
+  "body": "- **Architecture**: —\n- **Layer**: —\n- **Access**: —\n- **Key endpoint**: —\n- **Failed**: —\n- **Last verified**: —",
+  "aliases": [
+   "NTU"
+  ]
+ },
+ {
+  "name": "NYU Shanghai",
+  "rawHeading": "NYU Shanghai",
+  "section": "Sino-foreign Joint Programs",
+  "region": "mo-cn",
+  "source": "school-registry-mo-cn.md",
+  "lineStart": 43,
+  "lineEnd": 49,
+  "body": "- **Architecture**: Static HTML\n- **Layer**: L1\n- **Access**: shanghai.nyu.edu for Psychology / Neural Science\n- **Key endpoint**: https://shanghai.nyu.edu/academics/graduate/phd-programs\n- **Failed**: —\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "Ohio State University — Department of Geography",
+  "rawHeading": "Ohio State University — Department of Geography",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 78,
+  "lineEnd": 84,
+  "body": "- **Architecture**: Static HTML / OSU Drupal CMS; faculty profiles and program pages directly readable.\n- **Layer**: L1, with WebSearch fallback for doctoral-supervision evidence.\n- **Access**: Use `geography.osu.edu` for program and faculty pages. Official FAQ page (`geography.osu.edu/grad/questions`) explicitly states \"We do not need to submit your GRE scores. We do not require GRE scores for application to our graduate programs.\" PhD has direct-to-PhD option (Bachelor's can apply); deadline November 15. Graduate Program page lists relevant faculty (Kendra McSweeney, Harvey Miller, Bryan Mark, Madhumita Dutta) but this list is incomplete for the full human geography faculty. Human Geography cluster covers Political Ecology, Feminist Political Ecology, Human-Environment Geography but specific faculty advisor pages needed.\n- **Key endpoints**: `https://geography.osu.edu/grad/questions` (FAQ, GRE); `https://geography.osu.edu/geography-graduate` (program overview); `https://geography.osu.edu/people/wainwright.11` (Joel Wainwright); `https://geography.osu.edu/people/mcsweeney.14` (Kendra McSweeney); `https://sexualitystudies.osu.edu/people/mansfield.32` (Becky Mansfield, Director of Graduate Studies).\n- **Failed / limits**: PhD requires Master's degree for direct admission (but Bachelor's can apply via direct-to-PhD track). No specific doctoral assistantship dollar amount published. Relevant Faculty list on grad page only shows 4 faculty, not the full human geography faculty. PhD admission criteria page (`geography.osu.edu/minimum-admission-criteria-phd-geography`) states Master's required for PhD admission — direct-to-PhD may be limited; verify with program. Becky Mansfield's main profile is at `sexualitystudies.osu.edu` (not geography.osu.edu).\n- **Last verified**: 2026-08-26",
+  "aliases": []
+ },
+ {
+  "name": "PolyU 建设及环境学院（FCE）2026-07-01 大重组 —— 旧系名已失效",
+  "rawHeading": "⚠️ PolyU 建设及环境学院（FCE）2026-07-01 大重组 —— 旧系名已失效（2026-10-07 实测）",
+  "section": "Hong Kong",
+  "region": "hk",
+  "source": "school-registry-hk.md",
+  "lineStart": 122,
+  "lineEnd": 145,
+  "body": "**这是检索港理工建设类方向必须先知道的事**：旧 `polyu.edu.hk/bre/` 与 `polyu.edu.hk/lsgi/` 会 301 跳转，按旧系名/旧路径检索会走空。\n\n| 变更前 | 变更后（2026-07-01 起） | 官网 |\n|---|---|---|\n| Department of Building and Real Estate (BRE) | **Department of Construction Management and Intelligence (CMI)** 建设管理及智能学系 | `https://www.polyu.edu.hk/cmi/` |\n| Department of Land Surveying and Geo-Informatics (LSGI) | **Department of Land Surveying and Geospatial Science (LSGS)** 土地测量及地理空间科学系 | `https://www.polyu.edu.hk/lsgs/` |\n| （新设） | **Department of Architecture (ARCH)** | `https://www.polyu.edu.hk/arch/` |\n| 不变 | CEE（土木及环境工程）、BEEE（建筑环境及能源工程） | `/cee/`、`/beee/` |\n\n- **公告来源**：`https://www.polyu.edu.hk/fce/news-and-events/news/2026/ebulletin-188-cs/`\n- **FCE 师资与博士页通用规律**（2026-10-07 实测，**curl 可直读，无需浏览器**）：\n  - 师资：`https://www.polyu.edu.hk/{dept}/people/academic-staff/`（**必须带尾部斜杠**；不带会 301）\n  - 个人页：`https://www.polyu.edu.hk/{dept}/people/academic-staff/{slug}/`\n  - 博士项目页路径**各系不统一**，实测：\n    - CMI：`/cmi/study/research-postgraduate-programme/`（**单数 programme**，复数 404）\n    - BEEE：`/beee/study/research-postgraduate-programme/`\n    - ARCH：`/arch/study/research-postgraduate-programme/`\n    - CEE：**不同路径** → `/cee/prospective-students/research-postgraduate-programme/`\n    - LSGS：**不同路径** → `/lsgs/study/rpg-scheme-item---research-postgraduate-programme/`\n- **研究领域提取**：CMI/BEEE/LSGS 等系个人页常**没有 Research 板块**，页面正文只有 `Research Overview`（有则优先）或 `Biography`；再没有就取该页链接的 **PolyU Scholars Hub**（`https://research.polyu.edu.hk/en/persons/<uuid>`）的 `Fingerprint` 关键词，并在字段里**注明来源**。⚠️ LSGS 个人页有 `Research Overview` 板块，但**列表页不显示研究领域**，必须逐个进个人页。\n- **Research Assistant Professor 要剔除**：PolyU 各系师资页把 RAP 与 Professor/Associate Professor/Assistant Professor 混排（CEE 一个系就有 47 位 RAP），职称字段只写 `Research Assistant Professor`，按规则不进主表。\n- **Last verified**: 2026-10-07\n- **Last verified**: 2026-06-26",
+  "aliases": [
+   "FCE"
+  ]
+ },
+ {
+  "name": "Princeton University",
+  "rawHeading": "Princeton University",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 64,
+  "lineEnd": 70,
+  "body": "- **Architecture**: Cloudflare WAF (psych.princeton.edu)\n- **Layer**: L3\n- **Access**: Browser ONLY\n- **Key endpoint**: https://psych.princeton.edu/people/elke-weber\n- **Note**: Elke Weber moved from Columbia → Princeton\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "Purdue University — EAPS and ESE PhD Programs (EXCLUDED)",
+  "rawHeading": "Purdue University — EAPS and ESE PhD Programs (EXCLUDED)",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 203,
+  "lineEnd": 207,
+  "body": "- **Finding**: EAPS PhD requires GRE minimum 300; ESE PhD requires GRE minimum 300 and is engineering/biology-focused; Geography department offers no PhD. Three hard exclusions.\n- **Layer**: L1 confirmed — GRE required + wrong sub-field.\n- **Action**: Do not add as candidate.\n- **Last verified**: 2026-08-26",
+  "aliases": [
+   "EXCLUDED"
+  ]
+ },
+ {
+  "name": "QUT",
+  "rawHeading": "QUT",
+  "section": "Australia",
+  "region": "au-nz",
+  "source": "school-registry-au-nz.md",
+  "lineStart": 87,
+  "lineEnd": 93,
+  "body": "- **Architecture**: Cloudflare WAF (全站)\n- **Layer**: L3\n- **Access**: BLOCKED — needs manual browser from user side\n- **Key endpoint**: https://www.qut.edu.au/research/our-people\n- **Failed**: curl + browser both blocked\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "RMIT University",
+  "rawHeading": "RMIT University",
+  "section": "Australia",
+  "region": "au-nz",
+  "source": "school-registry-au-nz.md",
+  "lineStart": 101,
+  "lineEnd": 107,
+  "body": "- **Architecture**: Pure Portal (academics) + Cloudflare WAF\n- **Layer**: L3\n- **Access**: Cloudflare WAF blocks all curl access; browser required\n- **Key endpoint**: https://www.rmit.edu.au/contact/staff-contacts/academic-staff/\n- **Profile URL pattern**: academics.rmit.edu.au/{name-slug} (SPA)\n- **Last verified**: 2026-07-01",
+  "aliases": []
+ },
+ {
+  "name": "Royal College of Art (RCA)",
+  "rawHeading": "Royal College of Art (RCA)",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 74,
+  "lineEnd": 80,
+  "body": "- **Architecture**: —\n- **Layer**: —\n- **Access**: —\n- **Key endpoint**: —\n- **Failed**: —\n- **Last verified**: —",
+  "aliases": [
+   "RCA"
+  ]
+ },
+ {
+  "name": "Singapore Management University (SMU)",
+  "rawHeading": "Singapore Management University (SMU)",
+  "section": "Singapore",
+  "region": "sg-eu",
+  "source": "school-registry-sg-eu.md",
+  "lineStart": 31,
+  "lineEnd": 37,
+  "body": "- **Architecture**: SITE RESTRUCTURED 2025-2026; old socsc.smu.edu.sg profiles broken. New platform at faculty.smu.edu.sg (JS-rendered, search required).\n- **Layer**: L1→L3 (old static → new JS-rendered)\n- **Access**: New platform at https://faculty.smu.edu.sg/ (JS-rendered, search required)\n- **Key endpoint**: https://faculty.smu.edu.sg/profile/david-chan (confirmed via Google)\n- **Failed**: All socsc.smu.edu.sg individual profile URLs now broken\n- **Last verified**: 2026-06-26",
+  "aliases": [
+   "SMU"
+  ]
+ },
+ {
+  "name": "South Dakota State University",
+  "rawHeading": "South Dakota State University",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 45,
+  "lineEnd": 51,
+  "body": "- **Architecture**: Static program and directory pages, catalog supplement, official news\n- **Layer**: L1\n- **Access**: Use `https://www.sdstate.edu/programs/graduate/animal-science-phd` for current program scope and `https://www.sdstate.edu/directory/philip-urso` for the official individual profile. The profile includes research areas, current appointment, graduate-relevant grants and publications. Official bison news confirms a current graduate-student team but not 2027 recruitment.\n- **Key endpoint**: https://www.sdstate.edu/directory/philip-urso\n- **Failed**: The official catalog page returned an empty 202 response in WebFetch; use the current program page plus the official personal profile instead. No public 2027 Fall recruitment or guaranteed assistantship was found.\n- **Last verified**: 2026-08-25",
+  "aliases": []
+ },
+ {
+  "name": "Stanford University — Mathematics / ICME / MS&E",
+  "rawHeading": "Stanford University — Mathematics / ICME / MS&E",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 138,
+  "lineEnd": 143,
+  "body": "- **Architecture**: Static HTML + Stanford Profiles (profiles.stanford.edu)\n- **Layer**: L1\n- **Access**: Faculty list `https://mathematics.stanford.edu/people/faculty-lecturers` (bare `/people` redirects to department-administration, wrong page)\n- **Warning**: `profiles.stanford.edu/{firstname-lastname}` matches SAME-NAME people in other departments — e.g. `profiles.stanford.edu/daniel-spielman` is a Radiology professor, NOT the Yale CS Spielman. Always verify the page's stated department before using.\n- **Last verified**: 2026-07-17",
+  "aliases": []
+ },
+ {
+  "name": "Sweden",
+  "rawHeading": "🇸🇪 Sweden",
+  "section": "Europe",
+  "region": "sg-eu",
+  "source": "school-registry-sg-eu.md",
+  "lineStart": 41,
+  "lineEnd": 56,
+  "body": "##### Linköping University (LiU)\n- **Architecture**: Employee ID system; JS-rendered profiles\n- **Layer**: L3\n- **Access**: https://liu.se/en/employee/{employee-id} (IDs are like danva85)\n- **Key endpoint**: https://liu.se/en/employee/danva85 (Daniel Västfjäll)\n- **Failed**: Employee search by name via URL doesn't work; ID guessing unreliable\n- **Last verified**: 2026-06-26\n\n##### Lund University\n- **Architecture**: Research portal (portal.research.lu.se) — 403 to curl\n- **Layer**: L3\n- **Access**: Browser; https://www.nek.lu.se/en/{name} for economics dept\n- **Key endpoint**: https://portal.research.lu.se/en/persons/erik-wengstrom\n- **Note**: Erik Wengström moved from QUT → Lund\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "Switzerland",
+  "rawHeading": "🇨🇭 Switzerland",
+  "section": "Europe",
+  "region": "sg-eu",
+  "source": "school-registry-sg-eu.md",
+  "lineStart": 78,
+  "lineEnd": 104,
+  "body": "##### University of Geneva (FPSE)\n- **Architecture**: Static HTML with JS enhancements\n- **Layer**: L1 (Static HTML for team pages)\n- **Access**: curl the SSED research groups page — contains all research group and professor listings in static HTML. Individual profile URLs need browser (JS-rendered).\n- **Key endpoint**: https://www.unige.ch/fapse/recherche/ssed\n- **Failed**: EN version URL has redirect loop; personal pages may be JS-rendered\n- **Last verified**: 2026-06-29\n\n##### University of Basel\n- **Architecture**: Static HTML, well-organized German site. English site sometimes 404. Main site (unibas.ch) works but education-specific subdomains (edu.unibas.ch) fail with SSL.\n- **Layer**: L1 (main site) + L3 (edu.unibas.ch SSL fails)\n- **Access (PhD info)**: Navigate from https://www.unibas.ch/de/Studium.html → \"Anmeldung & Zulassung → Zulassung → Doktorat\". Key URL: https://www.unibas.ch/de/Studium/Vor-dem-Studium/Bewerbung-Zulassung/Zulassung/Zulassung-zum-Doktorat.html\n- **Language requirements**: \"Die hauptsächlichen Unterrichtssprachen sind Deutsch und Englisch. Mindestens Niveau C1 gemäss Europäischem Referenzrahmen erwartet.\" For doctoral programs, specific requirements in faculty Promotionsordnung.\n- **Key endpoint (language)**: https://www.unibas.ch/de/Studium/Vor-dem-Studium/Bewerbung-Zulassung/Zulassung/Sprachkenntnisse.html\n- **Failed**: curl SSL error on edu.unibas.ch, browser ERR_CONNECTION_CLOSED\n- **Last verified**: 2026-06-29\n\n##### University of Bern\n- **Architecture**: Static HTML + JS search interface for staff A-Z. Main site works; erz.unibe.ch blocked by browser policy.\n- **Layer**: L1-L2 (edu.unibe.ch works, erz.unibe.ch blocked)\n- **Access (PhD info)**: Navigate from https://www.unibe.ch/ → \"Studies → Doctorate\". Key admission page: https://www.unibe.ch/studies/prospective_students/application_and_admission/application_and_admission_for_doctoral_studies/index_eng.html\n- **Access (individual profiles)**: Use main site search (unibe.ch/suche/) to find individual professor pages. edu.unibe.ch/ueber_uns/personen_a___z/ has JS search interface (no static listing). Individual URLs at edu.unibe.ch/ueber_uns/personen_a___z/{dept}/prof_dr_{last}_{first}/\n- **Language requirements**: Bachelor requires German C1 certificate. Master programs may require English (if English-taught). For doctoral level, requirements specified in faculty Promotionsordnung. General rule: German and English are main languages.\n- **Key endpoint**: https://www.unibe.ch/unibe/portal/content/e1006/e15237/e1466586/Zulassungbedingungen_e_26-27_eng.pdf (admission PDF) / edu.unibe.ch/ueber_uns/personen_a___z/ (staff search)\n- **Failed**: erz.unibe.ch blocked by browser policy\n- **Last verified**: 2026-06-29",
+  "aliases": []
+ },
+ {
+  "name": "Texas Tech University",
+  "rawHeading": "Texas Tech University",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 21,
+  "lineEnd": 27,
+  "body": "- **Architecture**: Static HTML department pages with individual faculty pages; catalog pages supplement policy\n- **Layer**: L1\n- **Access**: Current PhD page and faculty directory are directly readable. Individual faculty pages provide title and research focus. Use the PhD page for deadlines, advisor requirement, concentrations and GRE wording.\n- **Key endpoint**: https://www.depts.ttu.edu/afs/programs/phd-animal-science.php\n- **Failed**: The current PhD page simultaneously lists a GRE score expectation and a COVID temporary waiver; no current page located here states that the waiver applies to 2027 Fall.\n- **Last verified**: 2026-08-25",
+  "aliases": []
+ },
+ {
+  "name": "The Australian National University (ANU)",
+  "rawHeading": "The Australian National University (ANU) (2026-09-20)",
+  "section": "Australia",
+  "region": "au-nz",
+  "source": "school-registry-au-nz.md",
+  "lineStart": 64,
+  "lineEnd": 72,
+  "body": "- **Architecture**: Pure Portal。`researchers.anu.edu.au/researchers/{slug}` 是 **React SPA 空壳**；**`researchportalplus.anu.edu.au/en/persons/{slug}` 可直接 curl**（100-450KB，标题含姓名）\n- **Layer**: L1（用 researchportalplus 域名绕开 SPA）\n- **Key endpoint**: `researchportalplus.anu.edu.au/en/persons/{name-slug}`；院系页 `slll.cass.anu.edu.au/people/academics`、`cpas.anu.edu.au/people`（均可 curl）\n- **PhD 项目页**: `cass.anu.edu.au/study/higher-degree-research/applications`\n- **⚠️ 个人页含 `Registered to supervise` 字段**，是判断带博资格的现成依据\n- ❌ `soad.cass.anu.edu.au/people`、`/people/staff`、`/about-us/people` 全部 404 → School of Art & Design 只能用学院首页 `soad.cass.anu.edu.au/` 当院系页\n- **Failed**: `researchportalplus.anu.edu.au/en/organisations/*/persons/` 被 Cloudflare 拦（403）；School of Art & Design 无公开人员列表页\n- **Last verified**: 2026-09-20",
+  "aliases": [
+   "ANU"
+  ]
+ },
+ {
+  "name": "UCL 建成环境（The Bartlett）—— 院系与链接速查",
+  "rawHeading": "UCL 建成环境（The Bartlett）—— 院系与链接速查（2026-10-07 实测）",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 197,
+  "lineEnd": 212,
+  "body": "| 单位 | 师资名录页（→`其他导师信息`） | 研究学位项目页（→`博士申请信息`） |\n|---|---|---|\n| The Bartlett School of Sustainable Construction (BSSC) | `/bartlett/construction/people/academics` | `/prospective-students/graduate/research-degrees/sustainable-construction-mphil-phd` |\n| Bartlett School of Planning | `/bartlett/planning/people/academics` | `…/research-degrees/planning-mphil-phd` |\n| Institute for Environmental Design and Engineering (IEDE) | `/bartlett/environment-energy-resources/environmental-design/people-institute-environmental-design-and-engineering` | `…/research-degrees/environmental-design-and-engineering-mphil-phd` |\n| UCL Energy Institute | `/bartlett/environment-energy-resources/energy/people-ucl-energy-institute` | `…/research-degrees/ucl-energy-institute-mphil-phd` |\n| Civil, Environmental and Geomatic Engineering (CEGE) | `/engineering/civil-environmental-geomatic-engineering/people/academic-staff` | `…/research-degrees/civil-environmental-and-geomatic-engineering-mphil-phd` |\n| STEaPP | `/steapp/people` | `…/research-degrees/science-technology-engineering-and-public-policy-mphil-phd` |\n\n（前缀统一为 `https://www.ucl.ac.uk`；`…/research-degrees/` = `https://www.ucl.ac.uk/prospective-students/graduate/research-degrees/`）\n\n- **BSSC 带博证据的免费来源**：`https://www.ucl.ac.uk/bartlett/construction/people/phd-students` 逐个列出在读博士生及其 **supervisory team**——出现在这里的老师就是有实际带博记录，可直接写进备注的带博证据，不必依赖 `AVAILABILITY` 字段。\n- **⚠️ 该页有滞后**：名单里会出现已离开 BSSC 的导师（如 Jacqui Glass、Jennifer Rode、Andrew/Andre Edkins、Eleni Papadonikolaki、Ling Ma）。**是否在职以 `people/academics` 名录页为准**，PhD students 页只用来补充\"曾/正在带博\"这一事实。\n- **名录页 ≠ profiles 页**：职称以**名录页**为准（更细，如 `Professor of Facility Management Innovation`）；profiles 的 `positions` 用于复核等级。实测名录页把 Michael Pitt 标成 `Director of Teaching and Learning`（行政角色），会导致按\"教学岗\"被误剔——**行政头衔与教授头衔并存时，以教授头衔收录**。\n- **Last verified**: 2026-10-07",
+  "aliases": [
+   "The Bartlett"
+  ]
+ },
+ {
+  "name": "UCLA — Mathematics",
+  "rawHeading": "UCLA — Mathematics",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 151,
+  "lineEnd": 158,
+  "body": "- **Architecture**: Static HTML, NO WAF\n- **Layer**: L1\n- **Access**: Personal pages `https://www.math.ucla.edu/~{name}/`\n- **Trap**: `www.math.ucla.edu/people/ladder/{slug}` profile pages are **soft-404 empty shells** — all return the same ~12KB generic department template (title \"UCLA Department of Mathematics\", zero personal content) for every slug, real or not. 200 status means nothing here; check page content. Verified shells: cucuringu, andrea-bertozzi, shlyakhtenko, gangbo, killip. Working personal pages: `~mihai/`, `~bertozzi/`, `~shlyakht/` (Shlyakhtenko), `~wgangbo/` (Gangbo), `~killip/`, `~deanna/` (Needell), `seas.ucla.edu/~vandenbe` (Vandenberghe)\n- **Last verified**: 2026-07-17\n\n---",
+  "aliases": []
+ },
+ {
+  "name": "University College London (UCL) — Psychology",
+  "rawHeading": "University College London (UCL) — Psychology",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 166,
+  "lineEnd": 171,
+  "body": "- **Architecture**: profiles.ucl.ac.uk numeric ID system (RESTRUCTURED 2025-2026)\n- **Access**: Old PALS URLs 404 → new system https://profiles.ucl.ac.uk/{numeric-id}-{name}\n- **Key endpoint**: https://profiles.ucl.ac.uk/2667-david-shanks\n- **Failed**: All old pals.ucl.ac.uk URLs broken\n- **Last verified**: 2026-06-26",
+  "aliases": [
+   "UCL"
+  ]
+ },
+ {
+  "name": "University of Arkansas — Geosciences PhD (EXCLUDED)",
+  "rawHeading": "University of Arkansas — Geosciences PhD (EXCLUDED)",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 284,
+  "lineEnd": 288,
+  "body": "- **Finding**: catalog.uark.edu explicitly states \"GRE (Verbal, Quantitative, and Writing) will be reviewed on a competitive basis\" and Graduate School page states \"satisfactory scores on the Graduate Record Examination (GRE)\" — GRE required. Hard exclusion rule: GRE required → exclude.\n- **Key endpoints**: `https://catalog.uark.edu/graduate/catalog/`\n- **Failed / limits**: —\n- **Last verified**: 2026-08-26",
+  "aliases": [
+   "EXCLUDED"
+  ]
+ },
+ {
+  "name": "University of Auckland",
+  "rawHeading": "University of Auckland",
+  "section": "New Zealand",
+  "region": "au-nz",
+  "source": "school-registry-au-nz.md",
+  "lineStart": 153,
+  "lineEnd": 164,
+  "body": "- **Architecture**: Adobe AEM (www subdomain) + React SPA (profiles subdomain) + Imperva/Incapsula WAF\n- **Layer**: L3→L4 (Mostly blocked; dead end for Communication/Advertising/Brand)\n- **Media and Screen Studies**: 9 staff found via contact page, ALL film/TV/media studies focus — NOT communication/advertising/brand. Auckland has NO dedicated Communication/Advertising/Brand programme.\n- **Accessible**: calendar.auckland.ac.nz (249KB), researchspace.auckland.ac.nz (203KB), arts about/contact page (290-325KB, accessible via curl but names in SPA)\n- **Blocked**: profiles.auckland.ac.nz (JS shell 2122B), unidirectory.auckland.ac.nz (0B/SSL error), business school marketing dept (406/Imperva), most dept pages (403/406), all /our-people/ and /staff/ paths (406)\n- **ORCID Discovery Method**: Found 16+ Auckland researchers via ORCID keyword search but employment data incomplete. Cross-reference with Google Scholar for verification.\n  - `curl \"https://pub.orcid.org/v3.0/search/?q=affiliation-org-name:%22University+of+Auckland%22+AND+(keyword:media+OR+keyword:film+OR+keyword:screen)\"`\n- **Best method**: None working for staff profiles. ORCID fallback yields names but incomplete data.\n- **Manual URL** (last resort): https://www.auckland.ac.nz/en/arts/about-the-faculty/school-of-humanities/our-people/contact-an-academic/contact-an-academic-in-media-and-screen-studies.html\n- **Failed**: All curl, browser, and search engine approaches exhausted; individual profile pages (SPA shells); GraphQL API; profiles search API\n- **Last verified**: 2026-07-01",
+  "aliases": []
+ },
+ {
+  "name": "University of Brighton",
+  "rawHeading": "University of Brighton",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 142,
+  "lineEnd": 148,
+  "body": "- **Architecture**: Pure Portal (research.brighton.ac.uk)\n- **Layer**: L2\n- **Access**: Pure Portal JSON API → parse researcher profiles\n- **Key endpoint**: https://research.brighton.ac.uk/persons/\n- **Failed**: —\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "University of Bristol",
+  "rawHeading": "University of Bristol",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 222,
+  "lineEnd": 227,
+  "body": "- **Architecture**: Main dept pages redirect to generic homepage; use RIS portal\n- **Access**: https://research-information.bris.ac.uk/en/persons/{name}\n- **Key endpoint**: https://research-information.bris.ac.uk/en/persons/stephan-lewandowsky\n- **Failed**: All bristol.ac.uk/psychology people pages redirect to dept homepage\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "University of Canterbury",
+  "rawHeading": "University of Canterbury",
+  "section": "New Zealand",
+  "region": "au-nz",
+  "source": "school-registry-au-nz.md",
+  "lineStart": 192,
+  "lineEnd": 197,
+  "body": "- **Architecture**: Modern SPA with redirects\n- **Layer**: L1→L3 (redirects to generic study page)\n- **Access**: Navigate from main site https://www.canterbury.ac.nz/ then find Education staff links\n- **Failed**: Direct URLs redirect to generic study information pages; academic staff page 404; all staff-related URLs dead\n- **Last verified**: 2026-06-29",
+  "aliases": []
+ },
+ {
+  "name": "University of Chicago — Statistics vs Mathematics",
+  "rawHeading": "University of Chicago — Statistics vs Mathematics",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 131,
+  "lineEnd": 136,
+  "body": "- **Architecture**: Static HTML\n- **Layer**: L1\n- **Access**: `https://stat.uchicago.edu/people/profile/{slug}/` for Stats appointments ONLY — Math-only faculty (Lawler, Souganidis) 404 there\n- **Note**: Math dept personal pages live at `https://math.uchicago.edu/~{name}/` (small static sites, valid). Joint appointments (Gwynne) have stat profiles. `mathematics.uchicago.edu/people/faculty/` is 404 — do not guess it. CAM program: `cam.uchicago.edu` (occasional SSL flakiness, retry).\n- **Last verified**: 2026-07-17",
+  "aliases": []
+ },
+ {
+  "name": "University of Colorado Boulder — Department of Geography",
+  "rawHeading": "University of Colorado Boulder — Department of Geography",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 61,
+  "lineEnd": 68,
+  "body": "- **Architecture**: Static HTML / Colorado.edu CMS; faculty profiles and program pages directly readable.\n- **Layer**: L1, with WebSearch fallback for doctoral-supervision evidence.\n- **Access**: Use `colorado.edu/geography` for program pages and faculty profiles. Graduate admissions page confirms no GRE required since 2021. PhD requires Master's degree. Application requires listing at least one faculty advisor (up to 4); applicants must contact potential advisors before deadline (December 1). Department reviews applications then remaining faculty provide advisor matching input; faculty must agree to serve as advisor before admission is granted.\n- **Key endpoints**: `https://colorado.edu/geography/node/2026` (admissions domestic); `https://www.colorado.edu/geography-ma-phd` (degrees overview); `https://colorado.edu/geography/grad-program/graduate-curriculum/graduate-admissions` (admissions criteria); `https://catalog.colorado.edu/graduate/colleges-schools/arts-sciences/programs-study/geography/geography-doctor-philosophy-phd/` (catalog).\n- **Faculty profiles**: Emily Yeh (`https://www.colorado.edu/geography/emily-yeh-0`); Mara Goldman (`https://www.colorado.edu/geography/mara-goldman-0`).\n- **Failed / limits**: Department does not publish specific doctoral assistantship dollar amount. Funding page references assistantships but no fixed stipend figure. PhD requires 6 semesters residence (4 at CU). Language requirement: one foreign language.\n- **Last verified**: 2026-08-26",
+  "aliases": []
+ },
+ {
+  "name": "University of Edinburgh",
+  "rawHeading": "University of Edinburgh",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 126,
+  "lineEnd": 132,
+  "body": "- **Architecture**: JS-rendered profile directory (edwebprofiles.ed.ac.uk)\n- **Layer**: L3\n- **Access**: https://www.ed.ac.uk/profile/{name} → redirects to JS profile\n- **Key endpoint**: https://www.ed.ac.uk/profile/alison-lenton\n- **Failed**: —\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "University of Georgia — Department of Geography",
+  "rawHeading": "University of Georgia — Department of Geography",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 86,
+  "lineEnd": 92,
+  "body": "- **Architecture**: Static HTML / UGA Drupal CMS; faculty directory and program pages directly readable. Student directory pages also directly accessible.\n- **Layer**: L1, with WebSearch fallback for doctoral-supervision evidence.\n- **Access**: Use `geography.uga.edu` for program and faculty pages. Official prospective students page explicitly states \"The Department of Geography is not currently requiring the GRE.\" GIS applicants are encouraged to add GRE. Fall deadline December 1. ICON PhD requires GRE separately (separate from regular Geography PhD). Department covers climate studies, environmental change, food systems, social movements for climate and racial justice, environmental justice.\n- **Key endpoints**: `https://geography.uga.edu/prospective-students` (admissions, GRE policy); `https://www.geography.uga.edu/directory` (full faculty directory); `https://www.geography.uga.edu/directory/people/nik-heynen` (Nik Heynen, Distinguished Research Professor); `https://www.geography.uga.edu/directory/people/steve-holloway` (Steve Holloway); `https://www.geography.uga.edu/directory/people/amy-trauger` (Amy Trauger — verify current status, external info suggests moved to University of Guelph).\n- **Failed / limits**: No specific doctoral assistantship dollar amount published. Amy Trauger's external profile suggests she may have moved to University of Guelph as Canada Research Chair; verify before listing as UGA advisor. Marshall Shepherd is primarily atmospheric sciences / meteorology.\n- **Last verified**: 2026-08-26",
+  "aliases": []
+ },
+ {
+  "name": "University of Glasgow",
+  "rawHeading": "University of Glasgow",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 134,
+  "lineEnd": 140,
+  "body": "- **Architecture**: —\n- **Layer**: —\n- **Access**: —\n- **Key endpoint**: —\n- **Failed**: —\n- **Last verified**: —",
+  "aliases": []
+ },
+ {
+  "name": "University of Hong Kong (HKU)",
+  "rawHeading": "University of Hong Kong (HKU)",
+  "section": "Hong Kong",
+  "region": "hk",
+  "source": "school-registry-hk.md",
+  "lineStart": 11,
+  "lineEnd": 17,
+  "body": "- **Architecture**: Static HTML\n- **Layer**: L1\n- **Access**: browser → psychology.hku.hk faculty page; business school via hkubs.hku.hk\n- **Key endpoint**: https://psychology.hku.hk/faculty-members/\n- **Failed**: —\n- **Last verified**: 2026-06-26",
+  "aliases": [
+   "HKU"
+  ]
+ },
+ {
+  "name": "University of Iowa — Department of Geography PhD (REVIEWED)",
+  "rawHeading": "University of Iowa — Department of Geography PhD (REVIEWED)",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 188,
+  "lineEnd": 195,
+  "body": "- **Architecture**: Static HTML / Iowa Drupal CMS; sees.uiowa.edu faculty profiles directly readable.\n- **Access**: Official grad.admissions.uiowa.edu page explicitly states \"GRE scores are not required for this program.\" Deadline December 31.\n- **Faculty**: Silvia Secchi (Associate Professor): climate adaptation + conservation policy + water sustainability + agricultural environmental impacts. PhD supervision alumni confirmed (McClain 2016, Bhattarai 2016, Teshager 2016). Uses integrated modeling methods (modeling component noted — needs tradeoff discussion with student). Heather Sander, Margaret Carrel, Matt Dannenberg, Jessica Meyer, Kate Tierney all excluded (ecosystem science, health disparities, remote sensing, hydrogeology).\n- **Failed / limits**: Secchi modeling component may conflict with student's qualitative preference. PhD supervision evidence is historical alumni, not current students. Fall 2027 admission not confirmed.\n- **Key endpoints**: `https://sees.uiowa.edu/people/silvia-secchi`; `https://grad.admissions.uiowa.edu/`\n- **Next step**: Verify Secchi current PhD student supervision and Fall 2027 admission status.\n- **Last verified**: 2026-08-26",
+  "aliases": [
+   "REVIEWED"
+  ]
+ },
+ {
+  "name": "University of Leeds",
+  "rawHeading": "University of Leeds",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 82,
+  "lineEnd": 88,
+  "body": "- **Architecture**: Static HTML (staff profile pages)\n- **Layer**: L1\n- **Access**: Direct URL access to staff profiles at ahc.leeds.ac.uk/design/staff/\n- **Key endpoint**: https://ahc.leeds.ac.uk/design/staff/\n- **Failed**: —\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "University of Macau (UM)",
+  "rawHeading": "University of Macau (UM)",
+  "section": "Macau",
+  "region": "mo-cn",
+  "source": "school-registry-mo-cn.md",
+  "lineStart": 11,
+  "lineEnd": 17,
+  "body": "- **Architecture**: Static HTML\n- **Layer**: L1\n- **Access**: fss.um.edu.mo for Psychology\n- **Key endpoint**: https://fss.um.edu.mo/\n- **Failed**: —\n- **Last verified**: 2026-06-26",
+  "aliases": [
+   "UM"
+  ]
+ },
+ {
+  "name": "University of Melbourne",
+  "rawHeading": "University of Melbourne",
+  "section": "Australia",
+  "region": "au-nz",
+  "source": "school-registry-au-nz.md",
+  "lineStart": 14,
+  "lineEnd": 31,
+  "body": "- **Architecture**: findanexpert SPA (Pure Portal variant) — /display/person-* returns same SPA shell for all slugs ⚠️; /profile/{id}/{slug} has unique individual profile IDs but still 0-byte SPA via curl\n- **Layer**: L3 (curl useless for content; browser required)\n- **Access**: curl returns 200 with 0 bytes (SPA shell). MSD pages (msd.unimelb.edu.au) return 403 via curl. Browser renders findanexpert correctly.\n- **Key endpoint**: `https://findanexpert.unimelb.edu.au/profile/{id}/{slug}` — individual profile pages with unique IDs\n- **Individual profile URL pattern**: `https://findanexpert.unimelb.edu.au/profile/{numeric_id}/{name-slug}`\n- **Staff directory**: `https://findanexpert.unimelb.edu.au/college/1/faculty-of-architecture-building-and-planning`\n- **PhD info**: `https://study.unimelb.edu.au/find/study-areas/architecture-building-and-planning/`\n- **⚠️ CRITICAL**: /display/person-* endpoint matches ANY slug with same SPA shell → DO NOT use to verify affiliation. Use /profile/{id} format or browser verification.\n- **⚠️ David Beynon lesson**: findanexpert returned 200 for \"person-david-beynon\" but he was actually at UTAS. Always browser-verify or use /profile/{id} format.\n- **Failed**: /display/ endpoint is unreliable; MSD direct pages 403\n- **Last verified**: 2026-06-30\n- **⚠️ 2026-09-20 实测修正**：\n  - `findanexpert.unimelb.edu.au/profile/{数字ID}`（**不带 slug 也可以**）**WebFetch 可读**，能拿到姓名/职称/Research Interests 标签；curl 仍被 Cloudflare 拦（返回 6183B \"Pardon Our Interruption\"，所有 URL 字节数完全相同 → 典型拦截特征，不是死链）\n  - `profileprint/{id}` 也被拦（\"Pardon Our Interruption\"）\n  - 院系学术人员列表页 `arts.unimelb.edu.au/school-of-culture-and-communication/our-people/academic-staff` 与 `finearts-music.unimelb.edu.au/about-us/vca/academic-staff`：curl 403 \"Just a moment...\"，但**WebFetch 可读全文（含每人的电话与邮箱）**——找邮箱首选这两页\n  - **VCA 有非标准编目职称**：教学岗在名录上可能写成 `Specialist in Directing` / `Specialist in Movement` 这类（实例 Kat Henry / Colin Sneesby），而校方其他页面（如 study.unimelb 课程页）又称其为 Lecturer。**判职称时两者都要看，并在备注里按页面实际表述写**；这类岗位的 HDR 带博资格通常无公开字段，按「未明确表明监督资格，可以后放～」处理\n  - VCA 的 RHD 协调人在名录里写作 `Course Coordinator (Research Higher Degrees)`；影视系的研究生协调人写作 `Course Coordinator (Graduate Research)`",
+  "aliases": []
+ },
+ {
+  "name": "University of Memphis — Earth Sciences PhD (EXCLUDED)",
+  "rawHeading": "University of Memphis — Earth Sciences PhD (EXCLUDED)",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 278,
+  "lineEnd": 282,
+  "body": "- **Finding**: catalog.memphis.edu explicitly states \"The GRE (Graduate Record Exam) is not required\" (GRE not required confirmed). Fall Deadline Jan 31; Funding deadline Jan 1; requires 32 credit hours background knowledge in geology, geography, archaeology, or environmental sciences. However, faculty research areas are dominated by physical/earth sciences (hydrogeology, geomorphology, archaeology, seismology, biogeography). No faculty found in political ecology, environmental governance, environmental justice, rural development, or climate adaptation. Hard exclusion rule: no relevant human geography faculty → exclude.\n- **Key endpoints**: `https://www.memphis.edu/earthsciences/`; `https://www.memphis.edu/earthsciences/faculty_people/index.php`; `https://catalog.memphis.edu/content.php?catoid=25&coid=14485`\n- **Failed / limits**: faculty_people page URL changed (2026-08-26 site redesign); faculty list now at memphis.edu/earthsciences/faculty_people/index.php\n- **Last verified**: 2026-08-26",
+  "aliases": [
+   "EXCLUDED"
+  ]
+ },
+ {
+  "name": "University of Missouri",
+  "rawHeading": "University of Missouri",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 13,
+  "lineEnd": 19,
+  "body": "- **Architecture**: Custom CMS (CAFNR WordPress-style personal pages) + static Graduate Studies/Graduate School pages + catalog PDF\n- **Layer**: L1/L3\n- **Access**: Use `https://gradstudies.missouri.edu/degreecategory/animal-sciences` for current Animal Sciences PhD policy; use `https://gradschool.missouri.edu/funding/assistantships` for school-wide assistantship minimums; find individual CAFNR profiles through the official directory/search, with Amy Petry's verified personal page at `https://cafnr.missouri.edu/?p=84800`; supplement supervision with the official lab graduate-team page and the Animal Sciences catalog PDF's `Doctoral Faculty` marker\n- **Key endpoint**: `https://cafnr.missouri.edu/?p=84800`\n- **Failed**: `https://cafnr.missouri.edu/?p=80267` for Hong Jo Lee returns Page not found; do not treat an old `?p=` URL as valid without reading page content. School-wide assistantship amounts are minimum standards, not evidence of a specific faculty offer.\n- **Last verified**: 2026-08-25",
+  "aliases": []
+ },
+ {
+  "name": "University of Missouri — PhD in Natural Resources (EXCLUDED)",
+  "rawHeading": "University of Missouri — PhD in Natural Resources (EXCLUDED)",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 252,
+  "lineEnd": 256,
+  "body": "- **Finding**: Department of Geography at MU offers only M.A. (no PhD). PhD in Natural Resources exists with emphasis areas including Human Dimensions of Natural Resources and Water Resources. GRE recommended but not required. Human Dimensions area explicitly requires mixed methods (qualitative + quantitative). Water Resources area is explicitly natural science-oriented (hydrology, water quality, biogeochemistry). MU catalog does not list specific social-environmental faculty names for these emphasis areas. Insufficient evidence of relevant political ecology / environmental governance faculty to justify inclusion.\n- **Key endpoints**: `https://catalog.missouri.edu/collegeofagriculturefoodandnaturalresources/naturalresources/phd-natural-resources/`; `https://catalog.missouri.edu/collegeofagriculturefoodandnaturalresources/naturalresources/phd-natural-resources-emphasis-human-dimensions-natural-resources/`; `https://snr.missouri.edu/graduate-studies/`\n- **Failed / limits**: No PhD in Geography; relevant social-environmental faculty not identifiable from catalog pages.\n- **Last verified**: 2026-08-26",
+  "aliases": [
+   "EXCLUDED"
+  ]
+ },
+ {
+  "name": "University of Nevada Las Vegas — Geoscience PhD (EXCLUDED)",
+  "rawHeading": "University of Nevada Las Vegas — Geoscience PhD (EXCLUDED)",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 272,
+  "lineEnd": 276,
+  "body": "- **Finding**: catalog.unlv.edu explicitly states \"Satisfactory scores on the general Graduate Record Examination (GRE)\" — GRE required. Hard exclusion rule: GRE required → exclude.\n- **Key endpoints**: `https://catalog.unlv.edu/content.php?catoid=39&catoid=39&coid=162615`\n- **Failed / limits**: —\n- **Last verified**: 2026-08-26",
+  "aliases": [
+   "EXCLUDED"
+  ]
+ },
+ {
+  "name": "University of Nevada Reno — PhD in Geography (REVIEWED)",
+  "rawHeading": "University of Nevada Reno — PhD in Geography (REVIEWED)",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 258,
+  "lineEnd": 263,
+  "body": "- **Architecture**: Static HTML; faculty profiles at unr.edu/geography/{name-slug}.\n- **Access**: Official page geography.unr.edu confirms \"GRE Scores - recommended, not required\". Deadline December 15. Master's degree required. Assistantships include GTA/GRA + tuition waiver + health insurance. Applicants must contact potential advisors first.\n- **Faculty**: Jessie Clark (Associate Professor, Graduate Program Director): feminist geography + political geography + cultural geography + qualitative methods + Middle East; official page directly states \"Please contact me by email if you are interested in advising opportunities\". Kate Berry (Professor): water governance + Indigenous geographies + cultural politics of water + environmental justice + legal geographies + geographies of racialization; official page unr.edu/geography/kate-berry confirms research focus; publishes interdisciplinary water governance papers (Wiley WIREs Water). Both highly relevant to Guo.\n- **Key endpoints**: `https://geography.unr.edu/`; `https://geography.unm.edu/people/faculty/index.html`; `https://www.unr.edu/people/faculty/berry` (verified working as of 2026-08-26); `https://geography.unr.edu/people/faculty/jessie-clark`; `https://www.unr.edu/geography`\n- **Failed / limits**: Clark and Berry PhD supervision evidence not yet confirmed; Fall 2027 availability unknown.",
+  "aliases": [
+   "REVIEWED"
+  ]
+ },
+ {
+  "name": "University of Nevada, Reno",
+  "rawHeading": "University of Nevada, Reno",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 37,
+  "lineEnd": 43,
+  "body": "- **Architecture**: Static PhD page, graduate handbook and mixed static faculty profiles\n- **Layer**: L1/L3\n- **Access**: Use `https://www.unr.edu/degrees/animal-and-rangeland-science/phd` for the current ARS advisor list, Feb. 1 fall full-consideration deadline and GRE policy; use `https://www.unr.edu/avrs/graduates/handbook-x313496` for advisor-support and assistantship conditions; use NRES/EECB individual profiles for wildlife research. The current ARS advisor list does not include Kelley Stewart.\n- **Key endpoint**: https://www.unr.edu/degrees/animal-and-rangeland-science/phd\n- **Failed**: Kelley Stewart's official profile and lab evidence cannot substitute for ARS advisor-list membership; Paul Meiman's official profile does not state PhD supervision.\n- **Last verified**: 2026-08-25",
+  "aliases": []
+ },
+ {
+  "name": "University of Otago",
+  "rawHeading": "University of Otago",
+  "section": "New Zealand",
+  "region": "au-nz",
+  "source": "school-registry-au-nz.md",
+  "lineStart": 166,
+  "lineEnd": 172,
+  "body": "- **Architecture**: Static HTML behind Cloudflare WAF (curl returns 403)\n- **Layer**: L3\n- **Access**: In-app browser bypasses Cloudflare. Individual profile URLs follow https://www.otago.ac.nz/{dept}/staff/{name-slug} pattern.\n- **Key endpoint**: https://www.otago.ac.nz/education/staff (Education) / https://www.otago.ac.nz/marketing/staff (Business School)\n- **Failed**: All curl → Cloudflare 403\n- **Last verified**: 2026-06-29",
+  "aliases": []
+ },
+ {
+  "name": "University of South Carolina — PhD in Geography (REVIEWED)",
+  "rawHeading": "University of South Carolina — PhD in Geography (REVIEWED)",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 265,
+  "lineEnd": 270,
+  "body": "- **Architecture**: Static HTML on sc.edu; faculty profiles at sc.edu/study/colleges_schools/artsandsciences/earth_ocean_and_environment/our_people/directory/{name}.php and sc.edu/study/colleges_schools/artsandsciences/geography/our_people/faculty/.\n- **Access**: Official application page explicitly states \"Please do not submit GRE scores; they will not be reviewed by the admissions committee\" (GRE not required). **Fall 2027 is formally open**, Deadline December 1, 2026. Master's degree required. TA/RA limited; PhD stipend $21,000/9 months covers tuition + health insurance.\n- **Faculty**: Dean Hardy (Assistant Professor, joint appointment Geography + SEOEO): environmental justice + political ecology + climate change + sea level rise + flood risk + mixed methods (spatial analyses, interviews, participant observation); official sc.edu page confirms research focus. SEOEO additional relevant faculty: David Fuente (water and sanitation policy, East Africa/Middle East/South Asia); Jessica Barnes (sustainable development, Columbia PhD background); Conor Harrison (political economy of energy). Geography department faculty (Kirstin Dow, Meredith DeBoom, Carl Dahlman) research areas not yet fully verified.\n- **Key endpoints**: `https://sc.edu/study/colleges_schools/artsandsciences/geography/our_people/`; `https://sc.edu/study/colleges_schools/artsandsciences/earth_ocean_and_environment/our_people/directory/hardy_dean.php` (verified working as of 2026-08-26); `https://sc.edu/study/colleges_schools/artsandsciences/earth_ocean_and_environment/our_people/`\n- **Failed / limits**: Hardy PhD supervision evidence not yet confirmed; Fall 2027 availability unknown; SEOEO faculty Geography PhD advisor eligibility unverified.",
+  "aliases": [
+   "REVIEWED"
+  ]
+ },
+ {
+  "name": "University of Southampton",
+  "rawHeading": "University of Southampton",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 102,
+  "lineEnd": 108,
+  "body": "- **Architecture**: —\n- **Layer**: —\n- **Access**: —\n- **Key endpoint**: —\n- **Failed**: —\n- **Last verified**: —",
+  "aliases": []
+ },
+ {
+  "name": "University of Sussex",
+  "rawHeading": "University of Sussex",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 90,
+  "lineEnd": 100,
+  "body": "- **Architecture**: Static HTML 个人页（`www.sussex.ac.uk/profiles/{id}`），可 curl 直接抓；个人页**不显示邮箱**\n- **Layer**: L1（抓个人页正文/研究方向）／L2（抓邮箱需走 vCard 接口）\n- **邮箱获取 —— vCard 接口（2026-09-14 验证）**：Sussex 个人页正文里没有 email，页面上的 \"What is this?\" 是一个 **vCard 下载二维码**，真实端点是\n  `https://www.sussex.ac.uk/profiles/vcard/download/{profileId}`（返回 `text/x-vcard`，文件名如 `Andy Medhurst.vcf`）。\n  vCard 内一定有 `EMAIL;PREF;INTERNET:` 和 `TEL;WORK;VOICE:` 两个字段——**但要先读内容再判断**：\n  - 字段有值 → 拿到官方邮箱\n  - 字段为空（如 `EMAIL;PREF;INTERNET:` 后面什么都没有）→ **说明学校自己就没有公开该教师的邮箱**，此时不要猜测地址（`a.medhurst@` / `am123@` 之类一律不可信），改为给学院/学部总邮箱 + 总机号\n- **案例（Andy Medhurst, profileId 1794）**：个人页 200、仍列 Senior Lecturer，但 vCard 的 EMAIL 与 TEL 均为空，且他已不在现 Faculty 名录页中 → 判定为**无公开邮箱**，只能经学院转达。这也印证该条备注「约 67-68 岁、退休年龄，建议先邮件确认是否仍收博士生」的风险提示\n- **院系重组坑**：Sussex 已把原来的 School of Media, Film and Music 并入 **Faculty of Media, Arts and Humanities**（`www.sussex.ac.uk/mfm/`），旧页面上的 `mfm@sussex.ac.uk`（01273 877538）为历史地址；现行总邮箱是 `media-arts-humanities@sussex.ac.uk`。注意 `wwwstage.sussex.ac.uk` 是**测试域名**，上面能查到大量联系人邮箱但**不能当作现行信息**直接写入\n- **Last verified**: 2026-09-14",
+  "aliases": []
+ },
+ {
+  "name": "University of Sydney",
+  "rawHeading": "University of Sydney",
+  "section": "Australia",
+  "region": "au-nz",
+  "source": "school-registry-au-nz.md",
+  "lineStart": 33,
+  "lineEnd": 44,
+  "body": "- **Architecture**: Symplectic Elements Discovery portal (profiles.sydney.edu.au). All individual profiles and group pages are pure SPAs (2118 bytes shell). CSS/JS loaded dynamically.\n- **Layer**: L3 (Symplectic Elements SPA)\n- **Best method**: Main education page (sydney.edu.au/arts/schools/sydney-school-of-education-and-social-work.html) returns 67KB with some profile links embedded. Individual profiles require browser verification.\n- **Key endpoint**: profiles.sydney.edu.au/{username} (SPA)\n- **Failed**: All API paths (v1/api/individuals, api/rest/v1, etc.), model.json feeds, JSON/RDF format parameters, print view\n- **Last verified**: 2026-06-30\n- **✅ 2026-09-20 实测修正**：`profiles.sydney.edu.au/{名}.{姓}` 用 curl 只得 **2118B \"Discovery\" SPA 空壳**，但 **WebFetch 能渲染出完整正文**（含 BIO、研究领域、Availability 段落，如 \"Research supervision\"）——**这类人必须用 WebFetch，不要因 curl 空壳就判死**\n  - 部分教师同时在 `sydney.edu.au/arts/about/our-people/academic-staff/{slug}.html` 有静态页，`sydney.edu.au/arts/staff/profiles/{名}.{姓}.php` 这类旧路径会被 WebFetch 自动跳转并渲染成功\n  - **页首常只显示行政职务**（`Chair of Discipline`、`Associate Dean`），**职级（Lecturer / Senior Lecturer / Associate Professor）可能在 `/teaching` 子页或学科页**——不要因页首没写职级就判定信息缺失；判断现任职务时**以个人主页为准**（学科主席这类职务会换人，过去式表述要当心）\n  - 学院级页面可 curl：`sydney.edu.au/arts/schools/school-of-art-communication-and-english/{film-studies|theatre-and-performance-studies}.html`、`.../sydney-college-of-the-arts.html`、`.../school-of-languages-and-cultures.html`（均 200/60-110KB）\n  - ❌ 不可用：`sydney.edu.au/arts/about/our-people/academic-staff.html`（SPA 空壳）、`.../sydney-college-of-the-arts/academic-staff.html`（SPA 空壳）",
+  "aliases": []
+ },
+ {
+  "name": "University of Technology Sydney (UTS)",
+  "rawHeading": "University of Technology Sydney (UTS)",
+  "section": "Australia",
+  "region": "au-nz",
+  "source": "school-registry-au-nz.md",
+  "lineStart": 109,
+  "lineEnd": 114,
+  "body": "- **Architecture**: UTS Profiles (SPA) + Cloudflare/Imperva\n- **Layer**: L3\n- **Access**: Cloudflare/Imperva blocks all curl access; browser required\n- **Key endpoint**: profiles.uts.edu.au/{Firstname}.{Lastname}/about (SPA shell)\n- **Last verified**: 2026-07-01",
+  "aliases": [
+   "UTS"
+  ]
+ },
+ {
+  "name": "University of Texas Arlington — No Geography PhD (EXCLUDED)",
+  "rawHeading": "University of Texas Arlington — No Geography PhD (EXCLUDED)",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 315,
+  "lineEnd": 319,
+  "body": "- **Finding**: UTA has History PhD (GRE not required) under the \"Department of History and Geography,\" but no doctoral program in Geography. The department offers only undergraduate Geography courses (GEOG 2301 Physical Geography, GEOG 2302 Human Geography, etc.) and a Geography minor. The 2021-2022 archived catalog confirms \"History, M.A.\" and \"History, Ph.D.\" as the only graduate Geography-related degrees. Hard exclusion rule: no PhD in Geography → exclude.\n- **Key endpoints**: `https://catalog.uta.edu/liberalarts/history` (current catalog); `https://www.uta.edu/academics/schools-colleges/liberal-arts/departments/history/study-with-us/graduate/phd/admissions` (History PhD admissions)\n- **Failed / limits**: —\n- **Last verified**: 2026-08-26",
+  "aliases": [
+   "EXCLUDED"
+  ]
+ },
+ {
+  "name": "University of the Arts London (UAL)",
+  "rawHeading": "University of the Arts London (UAL)",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 14,
+  "lineEnd": 20,
+  "body": "- **Architecture**: Pure Portal (JS-rendered)\n- **Layer**: L2\n- **Best method**: L3 — Google `site:researchers.arts.ac.uk \"{name}\"` → click first result in browser. Profile URL format: `researchers.arts.ac.uk/{id}-{slug}`.\n- **Key endpoint**: Profile URLs use format `https://researchers.arts.ac.uk/{numeric-id}-{slug}` (NOT `/en/persons/{slug}`)\n- **Failed**: `?format=json` does NOT work on UAL Pure; `/en/persons/{slug}` returns 404; `curl` alone cannot extract data\n- **Last verified**: 2026-06-26",
+  "aliases": [
+   "UAL"
+  ]
+ },
+ {
+  "name": "University of Waikato",
+  "rawHeading": "University of Waikato",
+  "section": "New Zealand",
+  "region": "au-nz",
+  "source": "school-registry-au-nz.md",
+  "lineStart": 184,
+  "lineEnd": 190,
+  "body": "- **Architecture**: Static HTML staff list + Symplectic/Elsevier JS SPA for individual profiles\n- **Layer**: L1 (staff directory) / L2 (Symplectic SPA for individuals)\n- **Access**: Get names from static staff page; open Symplectic profiles in browser to verify research content (JS renders research areas).\n- **Key endpoint**: https://www.waikato.ac.nz/about/faculties-schools/education/our-staff/\n- **Profile URL**: profiles.waikato.ac.nz/{username} (Symplectic SPA, needs browser)\n- **Last verified**: 2026-06-29",
+  "aliases": []
+ },
+ {
+  "name": "University of Warwick — Business School",
+  "rawHeading": "University of Warwick — Business School",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 229,
+  "lineEnd": 234,
+  "body": "- **Architecture**: Static HTML (WBS separate from main Warwick)\n- **Access**: https://www.wbs.ac.uk/about/person/{name}/\n- **Key endpoint**: https://www.wbs.ac.uk/about/person/neil-stewart/\n- **Failed**: Old warwick.ac.uk/fac/sci/psych/people URLs 404 for Stewart (moved to WBS)\n- **Last verified**: 2026-06-26",
+  "aliases": []
+ },
+ {
+  "name": "University of Washington — Department of Geography",
+  "rawHeading": "University of Washington — Department of Geography",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 94,
+  "lineEnd": 100,
+  "body": "- **Architecture**: Static HTML / UW Drupal CMS; faculty profiles and program pages directly readable. Department ranking US top 10.\n- **Layer**: L1, with WebSearch fallback for doctoral-supervision evidence.\n- **Access**: Use `geography.washington.edu` for program and faculty pages. Official admissions page and handbook both confirm \"GRE no longer required as of autumn 2020.\" PhD application requires listing at least two faculty members whose work aligns with the applicant's research interests. Deadline December 15 for Autumn Quarter admission. Funding: department awards 15–20 TAships per academic year with tuition waiver. Graduate program covers critical development and poverty studies, racial capitalism, labor geographies, political ecologies, feminist and queer geographies, carceral and abolition geographies, urban/social/political geographies.\n- **Key endpoints**: `https://geography.washington.edu/apply-graduate-program` (admissions, GRE policy, deadline); `https://geography.washington.edu/graduate-programs` (program overview, research areas); `https://geography.washington.edu/people` (full faculty directory); `https://geography.washington.edu/people/jen-rose-smith` (Jennifer Rose Smith, environmental justice, Indigenous geographies).\n- **Failed / limits**: No specific doctoral assistantship dollar amount published. PhD requires listing multiple faculty mentors — no single-advisor model. PhD applicants should contact potential advisors before December 15 deadline. Department research areas are broad; individual advisor fit must be verified per faculty page.\n- **Last verified**: 2026-08-26",
+  "aliases": []
+ },
+ {
+  "name": "UNNC (Nottingham Ningbo)",
+  "rawHeading": "UNNC (Nottingham Ningbo)",
+  "section": "Sino-foreign Joint Programs",
+  "region": "mo-cn",
+  "source": "school-registry-mo-cn.md",
+  "lineStart": 206,
+  "lineEnd": 237,
+  "body": "- **Architecture**: Static HTML\n- **Layer**: L1\n- **Access**: No Psychology dept. Business School (NUBS China) has ICBBR (behavioural business research centre).\n- **Key endpoint**: https://www.nottingham.edu.cn/en/business/\n- **PhD link**: NUBS China PhD available for behavioural economics/consumer behavior route\n- **Failed**: No psychology-specific PhD; business school only\n- **Last verified**: 2026-06-26\n\n##### UNNC 环境/地理/ESG 方向补充（2026-08-17 验证）\n- 理工科学院 FoSE 个人页格式：`nottingham.edu.cn/en/engineering/staffprofile/{slug}.aspx`、`nottingham.edu.cn/en/people/match.aspx?name={slug}`（均可抓取）。地理科学系、建筑与建筑环境系、化学与环境工程系在 FoSE 下。\n- 研究门户（Pure，可抓取）：`research.nottingham.edu.cn/en/persons/{slug}`。\n- NUBS China 个人页：`nottingham.edu.cn/en/Business/People/Profile.aspx?id={uuid}`。\n- 博士申请：`nottingham.edu.cn/en/study-with-us/postgraduate-research/`；申请系统 `oaas.nottingham.edu.cn`。\n\n##### UNNC 语言学/教育学方向补充（2026-09-01 验证，席天凌案例）\n- **人文社科学院 → School of Education and English（教育与英语学院）教师列表**：`nottingham.edu.cn/en/humanities-and-social-sciences/education-and-english/people/listing.aspx`（静态 HTML，L1，可 curl；共 3 页，用 `?STFPageIndex=N` 翻页；第 3 页为 Teaching Fellow 教学岗）。\n- **博士项目页**：`nottingham.edu.cn/en/course/PHD-FHSS-EES`（教育学/英语 PhD，研究方向含 Applied linguistics、SLA、Intercultural communication、World Englishes、TESOL、Multilingualism 等）。申请流程：先联系导师获同意再正式申请。\n- 关键导师（2026-09 在任）：Anwei Feng（Chair Professor 多语教育，明确欢迎博士申请）、Douglas Bell（Prof ESP/EAP/TESOL）、Robert Weekly（AP World Englishes/语言政策）、Derek Irwin（Prof SFL/跨语言）、Dan Shi（AP SFL 英语教育）。\n- **排除案例**：Yu Liu（SLA 但用眼动追踪/心理语言学方法 → 学生排除较强认知分析时不可用）；Curtis Green-Eneix（主页明确 \"not accepting any new PhD students\"）。\n\n##### UNNC 商学院 + 理工科人机交互方向补充（2026-09-10 验证，蒋元萍案例 — 创业/AI/幸福感/人机交互方向）\n- **NUBS China 全部学术教师一页表格（L1 静态，直接 curl 可解析 name→UUID）**：`nottingham.edu.cn/en/business/people/academic.aspx`（含三个系 EMM / FAE / IBM 的分组姓名+职称）。个人页统一为 `nottingham.edu.cn/en/Business/People/Profile.aspx?id={uuid}&language=en-GB`，curl 即返回 Pure 版完整简介（Research Interests + Personal profile + 邮箱），**无需浏览器**。\n- **中文个人页**：把 `/en/` 换成 `/cn/`（`nottingham.edu.cn/cn/People/Profile.aspx?id={uuid}`）→ 拿到中文姓名与中文职称（英文页没有中文名）。\n- **邮箱提取**：页面为防爬把 `@` 去掉，形如 `Email Haibo.Zhou nottingham.edu cn` → 正则还原为 `@nottingham.edu.cn`。另有 `/en/people/{slug}` 形式的短链（如 `/en/people/alain-chong`、`/en/people/lin-huang`）。\n- **博士申请页（商学院）**：`nottingham.edu.cn/en/business/programmes/phd-programme/phd-programme.aspx`（同目录下另有 `application-details.aspx` / `supervisors.aspx` / `programme-structure.aspx`）。要点：3 年制；**必须先联系导师并取得同意再申请**；IELTS 6.5(min 6.0)、TOEFL 87；中国本科均分 78–83；有全奖（cover 学费+保险+住宿+生活费）；NUBS 要求 9 月入学；入学前有导师+RKE 委员会面试。\n- **理工科学院（FoSE）个人页**：`nottingham.edu.cn/en/science-engineering/staffprofile/{slug}.aspx`（如 `xu-sun-.aspx`）或 `nottingham.edu.cn/en/info-hub/staff-profile.aspx?id={uuid}`。院系列表：`.../department/cs/people.aspx`、`.../department/mmme/people.aspx` 等（静态可解析）。\n- **UNNC 研究生（PhD）总入口**：`nottingham.edu.cn/en/study-with-us/postgraduate-research/home.aspx`（FoSE 等非商学院导师的「博士申请信息」用它，不要误填成商学院的 PhD 页）。\n- **⚠️ research.nottingham.edu.cn（Pure 门户）全站 Cloudflare Turnstile 验证码**，curl/WebFetch 均被拦（返回 ~1.4KB 挑战页）；但上面的 `www.nottingham.edu.cn/.../Profile.aspx?id=` 路径不设验证，可替代使用。\n- **⚠️ 职称陷阱**：UNNC 部分教师职称带 `(T&L)`（Teaching & Learning 教学轨，如 Xuan Feng、Feranita）——教学轨科研产出通常很少，**不宜作为博士生第一导师**，写入前须核对主页职称尾部标记。\n- **⚠️ 方向陷阱**：`理工科学院 = 只做工程不做行为实验` 是错误概括。FoSE 的计算机系与机械材料制造工程系**设有人机交互团队**（Boon Giin Lee 任 HCI Lab 副主任、主页明示持续招博士生；孙煦 Xu Sun 为拉夫堡大学人机交互博士、正指导 10 位博士生含 9 位第一导师），做 HCI / Human-AI Interaction / 情感与认知计算 / 人因。凡 RP 涉及人机交互、人因、用户实验者，必须扫 FoSE 这两系。\n- **Last verified**: 2026-09-10",
+  "aliases": []
+ },
+ {
+  "name": "UNSW Sydney",
+  "rawHeading": "UNSW Sydney",
+  "section": "Australia",
+  "region": "au-nz",
+  "source": "school-registry-au-nz.md",
+  "lineStart": 46,
+  "lineEnd": 62,
+  "body": "- **Architecture**: Adobe Experience Manager (AEM) SPA for listing pages. Individual staff profiles at unsw.edu.au/staff/{slug} return real content (100-500KB) with research data embedded in HTML. Research profile pages (research.unsw.edu.au/people/{slug}) also accessible. Main domain may trigger Cloudflare, but staff sub-pages consistently work with curl.\n- **Layer**: L2 (Adobe AEM SPA, staff profiles accessible)\n- **Best method**: Use known staff names to construct unsw.edu.au/staff/{slug} URLs. Parse HTML for research keywords, publications, grants. School of Education research strengths include \"Sociology of education.\" VERIFIED 2026-07-01 with 6 profiles.\n- **Key endpoint**: https://www.unsw.edu.au/staff/{slug}\n- **PhD application**: https://www.unsw.edu.au/study/research-degrees\n- **Note**: Ben Newell moved from UCL/others → UNSW; not at Carleton\n- **Failed**: AEM model.json returns minimal structure only; Our People listing page is SPA; newsroom expert finder API returns HTML only; newsroom.unsw.edu.au/find-an-expert redirects/times out; research.unsw.edu.au/people search returns SPA\n- **Last verified**: 2026-07-01\n- **✅ 2026-09-20 实测**：个人页两条路径**都能直接 curl**：`www.unsw.edu.au/staff/{slug}`（100-235KB，标题即 \"Associate Professor X\"）与 `www.arts.unsw.edu.au/our-people/{slug}`。院系统一人员页 `www.arts.unsw.edu.au/our-people/`（269KB）与 SAM 的 `unsw.edu.au/arts-design-architecture/our-schools/arts-media/about-us/meet-our-people`（472KB）均可 curl\n  - ❌ `unsw.edu.au/arts-design-architecture/our-schools/humanities-languages/about-us/meet-our-people` 为 404 → School of Humanities & Languages 的人改用 ADA 全院页 `arts.unsw.edu.au/our-people/`\n  - ⚠️ 少数人只在 `www.unsw.edu.au/staff/` 有页、在 `arts.unsw.edu.au/our-people/` 没有（如 Miska Mandic）——**两条路径都要试**\n  - ⚠️ **2026-09-20 重要发现：不要只扫 School of the Arts and Media，School of Art & Design（Paddington 校区）是独立的另一个学院**（含动画/VFX/沉浸式影像，以及 iCinema 互动电影研究中心），做影视/影像/动画方向时极易整体漏掉\n    - 该院人员页：`https://www.unsw.edu.au/arts-design-architecture/our-schools/art-design/about/our-people`（**带 \"Available to Supervise\" 筛选器**）\n    - 该院 HDR 导师登记册 PDF（含全部可带博导师）：`https://www.unsw.edu.au/content/dam/pdfs/ada/art-design/resources/2025-03-research/art-and-design-supervisor-register-november-2025.pdf`\n    - 个人页同样走 `www.unsw.edu.au/staff/{slug}`\n  - ⚠️ **`profile-available-to-supervise=1`** 是 UNSW 个人页上的带博资格标记，可作判定依据",
+  "aliases": []
+ },
+ {
+  "name": "UT Austin — Mathematics",
+  "rawHeading": "UT Austin — Mathematics",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 124,
+  "lineEnd": 129,
+  "body": "- **Architecture**: Static HTML, directory migrated\n- **Layer**: L1\n- **Access**: `https://math.utexas.edu/directory/{firstname-lastname}`\n- **Note**: Old `/people/faculty-directory/{slug}` redirects to generic `/directory` (soft-404 for individuals); old `www.ma.utexas.edu/component/cobalt/item/...` URLs redirect correctly but are outdated. Faculty list: `https://math.utexas.edu/directory`.\n- **Last verified**: 2026-07-17",
+  "aliases": []
+ },
+ {
+  "name": "Victoria University of Wellington (VUW)",
+  "rawHeading": "Victoria University of Wellington (VUW)",
+  "section": "New Zealand",
+  "region": "au-nz",
+  "source": "school-registry-au-nz.md",
+  "lineStart": 174,
+  "lineEnd": 182,
+  "body": "- **Architecture**: Hybrid — Squiz CMS for school pages (sim, sam, fhss) with server-rendered staff listings; Angular SPA for /explore/ and people.wgtn.ac.nz\n- **Layer**: L1 (static pages) / L3 (Angular SPA profiles)\n- **Best method**: School staff pages (e.g., /sam/about/staff) contain server-rendered staff data with data-cy email attributes. Extract emails via `grep -Eo 'data-cy=\"[^@]+@vuw\\.ac\\.nz\"' | sort -u`. HTML contains embedded JSON in `<script>` tags (`parsedEmails` key) with firstName, lastName, hrOrgUnitName, hrJobTitle, researchInterests, people.wgtn.ac.nz profile links. Use people.wgtn.ac.nz/{username} for individual profile URLs (JS-rendered, content not accessible via curl).\n- **Key endpoint**: `https://www.wgtn.ac.nz/sam/about/staff` (368KB server-rendered page) / `https://www.wgtn.ac.nz/fehps/about/our-people/school-of-education` (embedded JSON)\n- **Profile URL**: `https://people.wgtn.ac.nz/{email.username}` (e.g., people.wgtn.ac.nz/geoff.stahl) — SPA shell, 4150 bytes\n- **Note**: Communication school is under School of Communication, Journalism and Marketing within Wellington School of Business and Government. SoM staff page only shows management professors. Communication-specific page inaccessible (0 bytes). Wayback Machine: comm staff page not archived (2022-2024).\n- **Failed**: people.wgtn.ac.nz profiles all return 4150B JS shells; researchers subdomain 404; seftms 404; /communication-studies returns 404; /explore/ pages are Angular SPA\n- **Last verified**: 2026-07-01",
+  "aliases": [
+   "VUW"
+  ]
+ },
+ {
+  "name": "West Virginia University",
+  "rawHeading": "West Virginia University",
+  "section": "美国院校条目（2026-08 批次，自 au-nz 分册迁回）",
+  "region": "us-backlog",
+  "source": "school-registry-us-backlog.md",
+  "lineStart": 29,
+  "lineEnd": 35,
+  "body": "- **Architecture**: Static catalog plus Davis College CMS; some individual faculty pages are CloudFront-protected\n- **Layer**: L1/L3\n- **Access**: Use the current catalog page for 2027-28 admissions, GRE and research/funding mechanism. Use Davis College news for current faculty activity and doctoral supervision evidence. Joseph Moritz's individual profile URL is discoverable but WebFetch returned a CloudFront 403.\n- **Key endpoint**: http://catalog.wvu.edu/graduate/daviscollegeofagricultureandnaturalresources/afns\n- **Failed**: https://www.davis.wvu.edu/faculty-staff/directory/joseph-moritz returned a CloudFront 403; do not treat the 403 alone as proof of a valid page or use it as closed evidence.\n- **Last verified**: 2026-08-25",
+  "aliases": []
+ },
+ {
+  "name": "XJTLU (Xi'an Jiaotong-Liverpool)",
+  "rawHeading": "XJTLU (Xi'an Jiaotong-Liverpool)",
+  "section": "Sino-foreign Joint Programs",
+  "region": "mo-cn",
+  "source": "school-registry-mo-cn.md",
+  "lineStart": 239,
+  "lineEnd": 257,
+  "body": "- **Architecture**: Static HTML\n- **Layer**: L1\n- **Access**: No Psychology dept in HSS (only China Studies, International Studies, Media, Linguistics). IBSS offers PhD in Business.\n- **Key endpoint**: https://www.xjtlu.edu.cn/en/academics/schools/ibss\n- **Failed**: No psychology department; IBSS business PhD only\n- **Last verified**: 2026-06-26\n\n##### XJTLU 环境/城市规划/ESG 方向补充（2026-08-17 验证）\n- **研究门户（Pure，全校教师统一入口，可抓取，含研究方向/邮箱）**：`scholar.xjtlu.edu.cn/en/persons/{slug或uuid}`。这是写 XJTLU 导师主页的首选来源。\n- 相关院系：理学院健康与环境科学系 HES（大气/温室气体/全球变化）、设计学院城市规划与设计系 UPD（GIS/可持续城市）、IBSS（ESG/供应链/气候计量经济）、人文社科学院中国研究/国际研究（气候政策）。\n- 博士申请：`xjtlu.edu.cn/en/admissions/doctoral/how-to-apply`（全年开放，学费9.9万/年）。博士专业含环境科学、商学、城市规划与设计等。\n\n##### XJTLU 语言学/教育学方向补充（2026-09-01 验证，席天凌案例）\n- **应用语言学系（Department of Applied Linguistics）中文教研人员列表**：`xjtlu.edu.cn/zh/study/departments/academic-departments/department-of-applied-linguistics/department-staff/academic-staff`（含姓名/职称/研究方向/邮箱，可直接抓取）。⚠️ 英文版同路径为 SPA 壳（只有 \"Academic Staff\" 标题），用中文版。\n- **Pure slug 大小写敏感**：`scholar.xjtlu.edu.cn/en/persons/RiningWei/`、`/BinZou`、`/HongLiu/`、`/TanjunLiu`、`/stevejeaco`、`/zhoulinruan` 均有效；猜测 `binzou`/`hongliu` 小写会 404。\n- **博士项目**：`xjtlu.edu.cn/en/study/doctoral/english-culture-and-communication`（PhD English, Culture and Communication，含 applied linguistics、language pedagogy、TESOL、SLA；学位由 University of Liverpool 授予）；另有 `xjtlu.edu.cn/en/study/doctoral/phd-in-education`（PhD Education，由 Academy of Future Education 提供，偏教育管理/教育技术）。\n- 关键导师（2026-09 在任）：Rining Wei（副教授，双语教育/TESOL，明确博导+MA TESOL 主任）、Bin Zou（教授，AI语言教学/CALL）、Zhoulin Ruan（教授，SLA/学术写作，⚠️现任副校长，行政岗风险）、Stephen Jeaco（高级副教授 EAP/TESOL/语料库）、Hong Liu（副教授，双语/语码转换，社会+认知双维度）、Tanjun Liu（副教授，语料库，明确欢迎语料库博士）。\n- **排除案例**：Darcy Sperlich（心理语言学/形式语言学，主页明确不指导 general language learning and teaching）；Dawei Wei（语言习得+心理语言学 → 学生排除较强认知分析时不可用）；Esther Pascual（语言与认知）。",
+  "aliases": []
+ },
+ {
+  "name": "浸会 HKBU",
+  "rawHeading": "浸会 HKBU",
+  "section": "港城 / 港理 / 浸会 三校抓取口径（2026-09-24 黄肇启案例沉淀）（自 SKILL.md 迁入 2026-10-07）",
+  "region": "hk",
+  "source": "school-registry-hk.md",
+  "lineStart": 302,
+  "lineEnd": 307,
+  "body": "- `scholars.hkbu.edu.hk/en/persons/<ID>` 有 Research Interests，**但页面无邮箱**（`<ID>` 常为人名全大写或缩写，如 `DANIELLAI` / `CHITAT` / `VWPLEE`）。\n- **系级名单页信息更全**（含职称 + `Research Focus:`），适合做「其他导师信息」：`sowk.hkbu.edu.hk/en/people/academic-staff.html`、`speh.hkbu.edu.hk/en/people/academic_and_teaching_staff/`、`geog.hkbu.edu.hk/people/academic-and-teaching-staff/`。\n- 官方英文名注意：**Department of Sports and Health Sciences**（带 s，该系自身页面英文标题为准）。\n- 系级博士页：SHS `/en/programs_and_courses/research_post_graduate_study/`（页标题 \"Research Post-Graduate (Ph.D.)\"）；Geography `/postgraduate/mphil-phd.html`；SOWK `/en/programmes/doctor-of-philosophy-master-of-philosophy.html`。\n- **浸会没有公共卫生学院**：方向3 落地为 SHS（身体活动测量与流行病学、健康行为干预）、地理系（健康地理 · Geo-AI · 社会处方）、社工系（健康老龄化 · 长期照护 · 数字包容 · ICT 干预）。落到这些院系时，**必须在备注与交付报告里如实标注院系**，把边界交给用户裁定，不要假装它们属于公卫学院。",
+  "aliases": [
+   "CHITAT",
+   "DANIELLAI",
+   "VWPLEE"
+  ]
+ },
+ {
+  "name": "港城 CityU",
+  "rawHeading": "港城 CityU",
+  "section": "港城 / 港理 / 浸会 三校抓取口径（2026-09-24 黄肇启案例沉淀）（自 SKILL.md 迁入 2026-10-07）",
+  "region": "hk",
+  "source": "school-registry-hk.md",
+  "lineStart": 285,
+  "lineEnd": 294,
+  "body": "- 商学院各系 people 页路径**不统一**：`/is/people/academic-staff` ✅；`/MKT/about/people/` ✅（注意大写 MKT；`/mkt/people/` 404）；`/mgt/people/`、`/mgt/faculty` 一律 **400**；`/mgt/about-us/faculty-staff` 是 JS 空壳（无姓名）。`www.cb.cityu.edu.hk/sitemap.xml` 只收录 229 个 URL，不含各系 people 页。\n- **IS 名单页用 `data-eid` 属性给出 eid** → 个人页 = `https://www.cb.cityu.edu.hk/staff/<eid>/`，curl 可直接读到 `Research Areas` 原文（正文形如 `E-mail: … Research Areas <area1> <area2> … <bio>`）。\n- **管理系没有师资名单页** → 用 `https://www.cb.cityu.edu.hk/mgt/research/research-expertise`（含全部 18 位教师姓名 + 研究方向关键词），可作「其他导师信息」并在交付说明里注明。\n  - ⚠️ **更正（2026-09-24 复核）**：管理系**有**正式师资名录页 `https://www.cb.cityu.edu.hk/en/mgt/about-us/faculty-staff`（导航 About Us › Faculty & Staff，Drupal view `faculty_staff_listing_new-block_1`）。该页静态 HTML 里结果容器为空、curl 读不到姓名，但**真实浏览器渲染正常**（已用 `agent-browser open` + `snapshot` 确认：完整列出全部教师、职称与研究方向）。**`其他导师信息` 应填这个名录页，不要填 `research-expertise`**——审核会把它判为「研究专长页」不合格。JS 渲染页「curl 读不到」不等于坏链，用 agent-browser 判定，不要因为抓不到就换页。\n- 数据科学系 `https://www.ds.cityu.edu.hk/en/people/academic-staff` 只有名单 + `Research Interest:`，**无个人页**（`/people/academic-staff/<slug>` 均返回 Page Not Found）→ 个人页改挂 `scholars.cityu.edu.hk`。\n- 🔴 **scholars slug 撞名陷阱**：`scholars.cityu.edu.hk/en/persons/<slug>` 是 **curl 可读**的（只有 `/organisations/...` 与 `?search=` 会被 Cloudflare 403）。但同名者极多——`xinyue-li` 是物理系 PhD 学生，数据科学系副教授实际是 `xinyue-li-2`。**核验时必须断言页面里的院系字段**，只匹配姓名会写错人。\n- Incapsula 拦截（200 + ~850B 挑战页，curl 读不到正文）：`www.cityu.edu.hk/stfprofile/<eid>.htm`、`www.cityu.edu.hk/ph/staff/<slug>`、`www.cityu.edu.hk/ph/education/...` → 改用 WebFetch（可读到完整正文）。\n- 系级博士项目页（可直接连）：IS `/en/is/postgraduate-degrees/research-degrees/phd`；MGT `/en/mgt/programmes/research-degree`；MKT `/MKT/programmes/ResearchDegree/`；DS `www.ds.cityu.edu.hk/en/programmes/postgraduate-programmes/phd-programme-data-science`；PH `www.cityu.edu.hk/ph/education/research-degree-programme-phd`。\n- ⚠️ **IDPH（传染病与公共卫生系）本质是兽医学院下的系**：官方 PhD 项目页写明培养 \"specialist skills in the discipline of **veterinary medicine**\"，招生研究领域为动物福利 / 水产生产 / 畜禽与水产动物健康 / 保护与野生动物医学。做人类健康或组织数字化的学生慎入，写入前先读项目页的 Research Areas 列表。",
+  "aliases": []
+ },
+ {
+  "name": "港理 PolyU",
+  "rawHeading": "港理 PolyU",
+  "section": "港城 / 港理 / 浸会 三校抓取口径（2026-09-24 黄肇启案例沉淀）（自 SKILL.md 迁入 2026-10-07）",
+  "region": "hk",
+  "source": "school-registry-hk.md",
+  "lineStart": 296,
+  "lineEnd": 300,
+  "body": "- `polyu.edu.hk` 各系名单页 curl **带浏览器 UA** 可直读（无 UA 会 403 / 空壳）。\n- 个人页正文含 `Research Interests: <原文>`；职称在正文职称行——**导航栏与列表页里出现的 \"Professor\" 字样不算**，别拿它判职称。\n- 系级博士项目页：DSAI `/dsai/study/rpg/phd-and-mphil-in-data-science-and-artificial-intelligence/`；AMA `/ama/study/research-postgraduate-programme/`；HTI `/hti/study/programmes/research-postgraduate-studies/research-postgraduate-programme/`；RS `/rs/study/research-postgraduate-studies/phd-or-mphil/`；**SN 无院级 RPG 页** → 用 `/sn/teaching-and-learning/postgraduate-programmes/`（页内明列 MPhil / Doctor of Philosophy 53601）。\n- AMA 的「统计组」几乎全是高维 / 半参 / 统计机器学习**方法论**，其余是优化、PDE、金融数学；真正偏行业应用者极少。若学生明确排除纯方法论，AMA 很可能整系落空——如实报告，不要凑人。",
+  "aliases": []
+ }
+]

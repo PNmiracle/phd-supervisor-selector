@@ -1,0 +1,62 @@
+{
+ "schools": 95,
+ "updates": 14,
+ "sources": {
+  "school-registry-au-nz.md": {
+   "sha256": "8ae9e3f7dfafad12b727b3b02e446be64b50c298856b034452ec97ec7d44f095",
+   "bytes": 22467
+  },
+  "school-registry-ca.md": {
+   "sha256": "3cd666fde33530111c7a40c1890511f13dbd7c52d5975829fcc4ebd56933b3af",
+   "bytes": 6492
+  },
+  "school-registry-hk-mo-cn.md": {
+   "sha256": "3c89a29b1d3ab3434482dc030edf2f657911cc5d9c3af6b7d7e300df6a909d52",
+   "bytes": 875
+  },
+  "school-registry-hk.md": {
+   "sha256": "0fccf3b3752f05d2ced0c9bb00fe718ac892600d3df2f7323235bd7d33510998",
+   "bytes": 36784
+  },
+  "school-registry-mo-cn.md": {
+   "sha256": "8f58aaa2843982773834833ef37a731a40726a4207b2a7f27f8a73aef08e8bcd",
+   "bytes": 27854
+  },
+  "school-registry-sg-eu.md": {
+   "sha256": "df46aa3edee722281150b40dcffab6eb057b4f2862a8f370325c0a7a88c4b00d",
+   "bytes": 10998
+  },
+  "school-registry-uk.md": {
+   "sha256": "2430d96f978427b6cf96ed20ed44b0bf8a2f8242ff5bece286ed735d7324da25",
+   "bytes": 22447
+  },
+  "school-registry-us-backlog.md": {
+   "sha256": "b9a9b9312403aac3c07a1f197a005aee689997e2380944c272b5aaa72068b2f0",
+   "bytes": 55807
+  },
+  "school-registry-us-ca.md": {
+   "sha256": "040b432158f990a25ac0cc794d75ea9aa8d04581398ad862427365938d65e1f4",
+   "bytes": 920
+  },
+  "school-registry-us.md": {
+   "sha256": "613f342c30eec25302133d1b4975748340c8e5ce743b0791c3042acbf3f67331",
+   "bytes": 16342
+  },
+  "school-updates-2026-08.md": {
+   "sha256": "eed97f38cd0e24c9596b6d6c3ad325bb9e37462140a86191122487d110e2bef6",
+   "bytes": 26495
+  },
+  "school-updates-2026-09.md": {
+   "sha256": "5d230312e2ed9e91ee26e3fb33194a8a5756535b3d947b0584015c9082833515",
+   "bytes": 36117
+  },
+  "school-updates-2026-10.md": {
+   "sha256": "3c70ded9d2299f42315de4e5dad877a40a536ba030a7d3c3cab89e2de08138a0",
+   "bytes": 22308
+  },
+  "school-updates-log.md": {
+   "sha256": "c60ac11edbfa0fa27471925989141c23ae3009e9ed349a788a238c51d6a74f7a",
+   "bytes": 1021
+  }
+ }
+}
