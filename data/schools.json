@@ -29,8 +29,8 @@
   "section": "United Kingdom",
   "region": "uk",
   "source": "school-registry-uk.md",
-  "lineStart": 215,
-  "lineEnd": 220,
+  "lineStart": 229,
+  "lineEnd": 234,
   "body": "- **Architecture**: Static HTML + numeric profile IDs\n- **Access**: https://www.bbk.ac.uk/our-staff/profile/{id}/{name}\n- **Key endpoint**: https://www.bbk.ac.uk/our-staff/profile/8009667/ulrike-hahn\n- **Failed**: Profile IDs can redirect to wrong person; verify the ID\n- **Last verified**: 2026-06-26",
   "aliases": []
  },
@@ -165,8 +165,8 @@
   "section": "United Kingdom",
   "region": "uk",
   "source": "school-registry-uk.md",
-  "lineStart": 118,
-  "lineEnd": 124,
+  "lineStart": 132,
+  "lineEnd": 138,
   "body": "- **Architecture**: Static HTML (staff profile pages)\n- **Layer**: L1\n- **Access**: Direct URL access to academic staff pages at dmu.ac.uk/academic-staff/\n- **Key endpoint**: https://www.dmu.ac.uk/academic-staff/\n- **Failed**: —\n- **Last verified**: 2026-06-26",
   "aliases": []
  },
@@ -233,8 +233,8 @@
   "section": "United Kingdom",
   "region": "uk",
   "source": "school-registry-uk.md",
-  "lineStart": 158,
-  "lineEnd": 164,
+  "lineStart": 172,
+  "lineEnd": 178,
   "body": "- **Layer**: L2\n- **Architecture**: Pure Portal (researchportal) + Static HTML (hw.ac.uk)\n- **Best method**: Use hw.ac.uk profiles (not researchportal UUIDs). Format: `hw.ac.uk/profiles/uk/school/tex/faculty/{slug}`\n- **Key URL / endpoint**: `https://www.hw.ac.uk/profiles/uk/school/tex/faculty/{slug}`\n- **Failed**: researchportal.hw.ac.uk UUID-based URLs → 404\n- **Last verified**: 2026-06-26",
   "aliases": []
  },
@@ -307,8 +307,8 @@
   "section": "United Kingdom",
   "region": "uk",
   "source": "school-registry-uk.md",
-  "lineStart": 110,
-  "lineEnd": 116,
+  "lineStart": 124,
+  "lineEnd": 130,
   "body": "- **Architecture**: —\n- **Layer**: —\n- **Access**: —\n- **Key endpoint**: —\n- **Failed**: —\n- **Last verified**: —",
   "aliases": []
  },
@@ -412,8 +412,8 @@
   "section": "United Kingdom",
   "region": "uk",
   "source": "school-registry-uk.md",
-  "lineStart": 150,
-  "lineEnd": 156,
+  "lineStart": 164,
+  "lineEnd": 170,
   "body": "- **Architecture**: —\n- **Layer**: —\n- **Access**: —\n- **Key endpoint**: —\n- **Failed**: —\n- **Last verified**: —",
   "aliases": [
    "NTU"
@@ -600,8 +600,8 @@
   "section": "United Kingdom",
   "region": "uk",
   "source": "school-registry-uk.md",
-  "lineStart": 197,
-  "lineEnd": 212,
+  "lineStart": 211,
+  "lineEnd": 226,
   "body": "| 单位 | 师资名录页（→`其他导师信息`） | 研究学位项目页（→`博士申请信息`） |\n|---|---|---|\n| The Bartlett School of Sustainable Construction (BSSC) | `/bartlett/construction/people/academics` | `/prospective-students/graduate/research-degrees/sustainable-construction-mphil-phd` |\n| Bartlett School of Planning | `/bartlett/planning/people/academics` | `…/research-degrees/planning-mphil-phd` |\n| Institute for Environmental Design and Engineering (IEDE) | `/bartlett/environment-energy-resources/environmental-design/people-institute-environmental-design-and-engineering` | `…/research-degrees/environmental-design-and-engineering-mphil-phd` |\n| UCL Energy Institute | `/bartlett/environment-energy-resources/energy/people-ucl-energy-institute` | `…/research-degrees/ucl-energy-institute-mphil-phd` |\n| Civil, Environmental and Geomatic Engineering (CEGE) | `/engineering/civil-environmental-geomatic-engineering/people/academic-staff` | `…/research-degrees/civil-environmental-and-geomatic-engineering-mphil-phd` |\n| STEaPP | `/steapp/people` | `…/research-degrees/science-technology-engineering-and-public-policy-mphil-phd` |\n\n（前缀统一为 `https://www.ucl.ac.uk`；`…/research-degrees/` = `https://www.ucl.ac.uk/prospective-students/graduate/research-degrees/`）\n\n- **BSSC 带博证据的免费来源**：`https://www.ucl.ac.uk/bartlett/construction/people/phd-students` 逐个列出在读博士生及其 **supervisory team**——出现在这里的老师就是有实际带博记录，可直接写进备注的带博证据，不必依赖 `AVAILABILITY` 字段。\n- **⚠️ 该页有滞后**：名单里会出现已离开 BSSC 的导师（如 Jacqui Glass、Jennifer Rode、Andrew/Andre Edkins、Eleni Papadonikolaki、Ling Ma）。**是否在职以 `people/academics` 名录页为准**，PhD students 页只用来补充\"曾/正在带博\"这一事实。\n- **名录页 ≠ profiles 页**：职称以**名录页**为准（更细，如 `Professor of Facility Management Innovation`）；profiles 的 `positions` 用于复核等级。实测名录页把 Michael Pitt 标成 `Director of Teaching and Learning`（行政角色），会导致按\"教学岗\"被误剔——**行政头衔与教授头衔并存时，以教授头衔收录**。\n- **Last verified**: 2026-10-07",
   "aliases": [
    "The Bartlett"
@@ -624,8 +624,8 @@
   "section": "United Kingdom",
   "region": "uk",
   "source": "school-registry-uk.md",
-  "lineStart": 166,
-  "lineEnd": 171,
+  "lineStart": 180,
+  "lineEnd": 185,
   "body": "- **Architecture**: profiles.ucl.ac.uk numeric ID system (RESTRUCTURED 2025-2026)\n- **Access**: Old PALS URLs 404 → new system https://profiles.ucl.ac.uk/{numeric-id}-{name}\n- **Key endpoint**: https://profiles.ucl.ac.uk/2667-david-shanks\n- **Failed**: All old pals.ucl.ac.uk URLs broken\n- **Last verified**: 2026-06-26",
   "aliases": [
    "UCL"
@@ -661,8 +661,8 @@
   "section": "United Kingdom",
   "region": "uk",
   "source": "school-registry-uk.md",
-  "lineStart": 142,
-  "lineEnd": 148,
+  "lineStart": 156,
+  "lineEnd": 162,
   "body": "- **Architecture**: Pure Portal (research.brighton.ac.uk)\n- **Layer**: L2\n- **Access**: Pure Portal JSON API → parse researcher profiles\n- **Key endpoint**: https://research.brighton.ac.uk/persons/\n- **Failed**: —\n- **Last verified**: 2026-06-26",
   "aliases": []
  },
@@ -672,8 +672,8 @@
   "section": "United Kingdom",
   "region": "uk",
   "source": "school-registry-uk.md",
-  "lineStart": 222,
-  "lineEnd": 227,
+  "lineStart": 236,
+  "lineEnd": 241,
   "body": "- **Architecture**: Main dept pages redirect to generic homepage; use RIS portal\n- **Access**: https://research-information.bris.ac.uk/en/persons/{name}\n- **Key endpoint**: https://research-information.bris.ac.uk/en/persons/stephan-lewandowsky\n- **Failed**: All bristol.ac.uk/psychology people pages redirect to dept homepage\n- **Last verified**: 2026-06-26",
   "aliases": []
  },
@@ -716,8 +716,8 @@
   "section": "United Kingdom",
   "region": "uk",
   "source": "school-registry-uk.md",
-  "lineStart": 126,
-  "lineEnd": 132,
+  "lineStart": 140,
+  "lineEnd": 146,
   "body": "- **Architecture**: JS-rendered profile directory (edwebprofiles.ed.ac.uk)\n- **Layer**: L3\n- **Access**: https://www.ed.ac.uk/profile/{name} → redirects to JS profile\n- **Key endpoint**: https://www.ed.ac.uk/profile/alison-lenton\n- **Failed**: —\n- **Last verified**: 2026-06-26",
   "aliases": []
  },
@@ -738,8 +738,8 @@
   "section": "United Kingdom",
   "region": "uk",
   "source": "school-registry-uk.md",
-  "lineStart": 134,
-  "lineEnd": 140,
+  "lineStart": 148,
+  "lineEnd": 154,
   "body": "- **Architecture**: —\n- **Layer**: —\n- **Access**: —\n- **Key endpoint**: —\n- **Failed**: —\n- **Last verified**: —",
   "aliases": []
  },
@@ -909,9 +909,11 @@
   "region": "uk",
   "source": "school-registry-uk.md",
   "lineStart": 102,
-  "lineEnd": 108,
-  "body": "- **Architecture**: —\n- **Layer**: —\n- **Access**: —\n- **Key endpoint**: —\n- **Failed**: —\n- **Last verified**: —",
-  "aliases": []
+  "lineEnd": 122,
+  "body": "- **Architecture**: Drupal 10，服务端渲染（**不是 SPA**），但人员搜索组件是 JS\n- **Layer**: L1（可直接抓取）\n- **Access**: curl 可直连返回 200，**但必须解 gzip**——请求头带 `Accept-Encoding: gzip, deflate`，响应若 `Content-Encoding: gzip` 需 `gzip.decompress`，否则正则 0 命中会被误判成空壳\n- **Key endpoint**:\n  - 个人主页：`https://www.southampton.ac.uk/people/<6位id>/<name-slug>`（**id 必须从列表页抄，不能拼**）\n  - 院系人员列表：`https://<unit>/about/staff.page`（music / film / wsa / sociology 有效）\n  - 研究学位学科页：`https://www.southampton.ac.uk/study/postgraduate-research/<subject>`；学科名用 sitemap 一次性列全（`sitemap1.xml` + `sitemap2.xml`，约 7.7 万条 URL 中含 1068 条此类）\n  - 学科名实例：`education` / `psychology` / `film-studies` / `art-design-media-fashion` / `music` / `english` / `philosophy` / `gerontology` / `sociology-social-policy-criminology` / `modern-languages-linguistics` / `history` / `health-sciences`\n- **抽取技巧（重要）**：个人页的 **meta 标签是最好的字段来源**——\n  - `<meta name=\"description\">` 含职称完整原句（如 \"…is a Professor of Autism & Inclusion at the University of Southampton\"）\n  - `<meta name=\"school_metatag\">` 给学院、`<meta name=\"faculty_metatag\">` 给学部\n  - 正文出现 `Accepting applications from PhD students` = 明确招生意愿标记\n  - 比正则切正文可靠得多\n- **Failed / 坑**:\n  - `https://www.southampton.ac.uk/people?q=<关键词>` 搜索**不生效**，返回与 `/people` 同尺寸的 JS 壳（约 284920 字节）——不要用它穷举\n  - **`education/about/staff.page` 与 `psychology/about/staff.page` 也是同一个 JS 空壳**（同样约 284920 字节）。这两个学院改走研究中心人员页：教育学院用 `education/research/centres/centre-for-research-in-inclusion.page`，心理学院用 ACoRNS 人员页\n  - 判定空壳的可靠方法：**比对字节数**。多个不相关 URL 返回完全相同的字节数即为壳\n  - 串行抓取 48 个个人页会超过 120s 前台超时被 kill（exit 137），必须后台跑或改并发\n- **Dance/embodiment 现状（2026-10 实测）**：**南安没有舞蹈/编舞/动作分析/具身理论方向的正职学者，也没有舞动治疗、创意艺术治疗师资**；全站唯一舞蹈相关正职研究是健康科学学院已结项的 PD Dance（帕金森舞蹈，主持人 Ann Ashburn 已荣休）。舞蹈方向学生只能落到两条线：自闭症/融合教育（Education + Psychology，含 ACoRNS 网络）与华语文化/非遗/社群认同（Humanities + WSA）\n- **Last verified**: 2026-10-07",
+  "aliases": [
+   "给学院、"
+  ]
  },
  {
   "name": "University of Sussex",
@@ -991,8 +993,8 @@
   "section": "United Kingdom",
   "region": "uk",
   "source": "school-registry-uk.md",
-  "lineStart": 229,
-  "lineEnd": 234,
+  "lineStart": 243,
+  "lineEnd": 248,
   "body": "- **Architecture**: Static HTML (WBS separate from main Warwick)\n- **Access**: https://www.wbs.ac.uk/about/person/{name}/\n- **Key endpoint**: https://www.wbs.ac.uk/about/person/neil-stewart/\n- **Failed**: Old warwick.ac.uk/fac/sci/psych/people URLs 404 for Stewart (moved to WBS)\n- **Last verified**: 2026-06-26",
   "aliases": []
  },

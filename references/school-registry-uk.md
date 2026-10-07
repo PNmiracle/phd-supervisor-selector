@@ -100,12 +100,26 @@
 - **Last verified**: 2026-09-14
 
 #### University of Southampton
-- **Architecture**: —
-- **Layer**: —
-- **Access**: —
-- **Key endpoint**: —
-- **Failed**: —
-- **Last verified**: —
+- **Architecture**: Drupal 10，服务端渲染（**不是 SPA**），但人员搜索组件是 JS
+- **Layer**: L1（可直接抓取）
+- **Access**: curl 可直连返回 200，**但必须解 gzip**——请求头带 `Accept-Encoding: gzip, deflate`，响应若 `Content-Encoding: gzip` 需 `gzip.decompress`，否则正则 0 命中会被误判成空壳
+- **Key endpoint**:
+  - 个人主页：`https://www.southampton.ac.uk/people/<6位id>/<name-slug>`（**id 必须从列表页抄，不能拼**）
+  - 院系人员列表：`https://<unit>/about/staff.page`（music / film / wsa / sociology 有效）
+  - 研究学位学科页：`https://www.southampton.ac.uk/study/postgraduate-research/<subject>`；学科名用 sitemap 一次性列全（`sitemap1.xml` + `sitemap2.xml`，约 7.7 万条 URL 中含 1068 条此类）
+  - 学科名实例：`education` / `psychology` / `film-studies` / `art-design-media-fashion` / `music` / `english` / `philosophy` / `gerontology` / `sociology-social-policy-criminology` / `modern-languages-linguistics` / `history` / `health-sciences`
+- **抽取技巧（重要）**：个人页的 **meta 标签是最好的字段来源**——
+  - `<meta name="description">` 含职称完整原句（如 "…is a Professor of Autism & Inclusion at the University of Southampton"）
+  - `<meta name="school_metatag">` 给学院、`<meta name="faculty_metatag">` 给学部
+  - 正文出现 `Accepting applications from PhD students` = 明确招生意愿标记
+  - 比正则切正文可靠得多
+- **Failed / 坑**:
+  - `https://www.southampton.ac.uk/people?q=<关键词>` 搜索**不生效**，返回与 `/people` 同尺寸的 JS 壳（约 284920 字节）——不要用它穷举
+  - **`education/about/staff.page` 与 `psychology/about/staff.page` 也是同一个 JS 空壳**（同样约 284920 字节）。这两个学院改走研究中心人员页：教育学院用 `education/research/centres/centre-for-research-in-inclusion.page`，心理学院用 ACoRNS 人员页
+  - 判定空壳的可靠方法：**比对字节数**。多个不相关 URL 返回完全相同的字节数即为壳
+  - 串行抓取 48 个个人页会超过 120s 前台超时被 kill（exit 137），必须后台跑或改并发
+- **Dance/embodiment 现状（2026-10 实测）**：**南安没有舞蹈/编舞/动作分析/具身理论方向的正职学者，也没有舞动治疗、创意艺术治疗师资**；全站唯一舞蹈相关正职研究是健康科学学院已结项的 PD Dance（帕金森舞蹈，主持人 Ann Ashburn 已荣休）。舞蹈方向学生只能落到两条线：自闭症/融合教育（Education + Psychology，含 ACoRNS 网络）与华语文化/非遗/社群认同（Humanities + WSA）
+- **Last verified**: 2026-10-07
 
 #### Kingston University
 - **Architecture**: —

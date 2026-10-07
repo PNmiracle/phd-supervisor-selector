@@ -1,6 +1,6 @@
 {
  "schools": 95,
- "updates": 14,
+ "updates": 18,
  "sources": {
   "school-registry-au-nz.md": {
    "sha256": "8ae9e3f7dfafad12b727b3b02e446be64b50c298856b034452ec97ec7d44f095",
@@ -27,8 +27,8 @@
    "bytes": 10998
   },
   "school-registry-uk.md": {
-   "sha256": "2430d96f978427b6cf96ed20ed44b0bf8a2f8242ff5bece286ed735d7324da25",
-   "bytes": 22447
+   "sha256": "5ed537e43e3c238fc4f6292e948592b8f2532df4162f16db29c10e6fb5f01691",
+   "bytes": 25057
   },
   "school-registry-us-backlog.md": {
    "sha256": "b9a9b9312403aac3c07a1f197a005aee689997e2380944c272b5aaa72068b2f0",
@@ -51,8 +51,8 @@
    "bytes": 36117
   },
   "school-updates-2026-10.md": {
-   "sha256": "3c70ded9d2299f42315de4e5dad877a40a536ba030a7d3c3cab89e2de08138a0",
-   "bytes": 22308
+   "sha256": "854f763f6419a3f7b1beb052bac9b06fd3a98e81dc2ccb33f559f39766650062",
+   "bytes": 34933
   },
   "school-updates-log.md": {
    "sha256": "c60ac11edbfa0fa27471925989141c23ae3009e9ed349a788a238c51d6a74f7a",
