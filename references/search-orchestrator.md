@@ -100,6 +100,34 @@ Updated: {ISO timestamp}
 - Hard exclusions: {list}
 ```
 
+### ⚠️ state 是快照，不是日志（2026-10-07 焊死）
+
+实测 27 个 state 文件里最大的一个已到 **88 KB / 366 行**，其中一半是 `## Session ... 更新`、`## Batch N Final Results`、`### 待处理` 这类**过程日志**，同一个小标题重复出现多次；而上面规范要求的四段（`School Status` / `Known 404 URLs` / `Successful Strategies` / `Last Search Context`）它只有一段。
+
+**根因**：把 state 当成 append-only 的会话流水账在写。规范要的是**当前状态快照**——快照天然有界，日志会无限增长。
+
+**硬规则：**
+
+1. **改 state 用覆盖，不用追加。** 更新 `School Status` 的某一行是改那一行，不要再写一段「本轮更新」。
+2. **三类内容禁止写进 state**，各有更合适的落点：
+
+| 不写进 state 的内容 | 应该写到哪 |
+|---|---|
+| 会话过程日志（「本轮完成工作」「PATCH v3 已完成」「修复记录」） | 不需要留存；要溯源就看 Vika 表本身 |
+| 批次结果（「Batch 15 Final Results」） | 结论并入 `School Status` 的候选数一栏，明细不留 |
+| 待处理 / 待办清单 | 做完即删；跨轮遗留的并入 `school-updates-<YYYY-MM>.md` 当条 |
+| 跨校通用教训、新发现的通道 | `school-registry-<地区>.md` 或 `school-updates-<YYYY-MM>.md`（§8 本就要求「同时更新」） |
+
+3. **上限：单文件 ≤200 行 且 ≤20,000 字。** `scripts/skill-budget.py` 会检查并报 WARN。
+   **它不会自动清理**——state 里是学生记录，任何压缩/归档都必须逐个人工确认。
+4. **学生完成后冻结**：一位学生的选导任务结束（表已交付且 P0 清空）→ 把文件移到 `search-state/_closed/`，之后不再改。
+   **归档只搬不删**，且搬之前先做独立备份。
+
+> ⚠️ `search-state/` 已被 `.gitignore` 排除，**没有版本历史**。所以任何压缩/归档动作前必须先独立备份：
+> ```bash
+> tar -czf ~/.workbuddy/backups/<skill>-search-state-$(date +%Y%m%d-%H%M%S).tar.gz <skill>/search-state
+> ```
+
 ### Status Values
 
 | Status | Meaning |

@@ -33,7 +33,9 @@
 
 `{SKILL_DIR}/search-state/{student_name}.md`；存在则续传，不存在则新建并按状态枚举记录。
 
-→ 状态文件格式与状态枚举：`search-orchestrator.md` §1
+**state 是快照不是日志**：更新用覆盖，不要追加「本轮更新」段落；会话过程、批次明细、待办都不进 state。单文件 ≤200 行 / 20,000 字；学生完成后冻结到 `search-state/_closed/`。
+
+→ 状态文件格式、状态枚举、快照语义与上限：`search-orchestrator.md` §1「State File Format」
 
 ## 3. 项目底座（硬门，在派发任何子代理之前）
 

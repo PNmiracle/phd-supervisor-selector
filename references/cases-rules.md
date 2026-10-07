@@ -68,39 +68,20 @@
 - **CUHK STA（2026-07-13）**：`/people/faculty/{name}/` 所有 URL 返回完全相同的 114KB 首页 HTML（SPA 壳），浏览器 JS 加载后才显示个人内容。**正确格式是 `/peoples/{slug}/`**（静态 HTML，可直接验证研究方向）。详见 `school-registry-hk-mo-cn.md` CUHK 章节。
 - **HKUST(GZ)（2026-07-23）**：`facultyprofiles.hkust-gz.edu.cn` 全站 SPA，所有页面返回完全相同的 1522 字节 HTML 壳。URL 格式从 `?name=XXX` 查询参数改为 `/faculty-personal-page/NAME/shortname` 路径格式，但两种格式 SPA 行为一致。**自动化工具无法区分旧 URL 失效与新 URL 有效——200 ≠ 内容正确。** DSA 学域的替代来源为 `dsa.hkust-gz.edu.cn/blog/YYYY/MM/DD/name-slug`（WordPress 格式，可直接抓取内容）。
 
-### B3. CityU（港城）WAF 与离任导师检测
+### B3. CityU 离任导师被误判为「有效」的案例（2026-08-04）
 
-**WAF 防护（2026-07-13 验证；2026-08-04 修正）** — CityU 全站部署 Incapsula WAF，拦截所有来自自动化工具（curl、Python urllib、WebFetch）的请求。这是反爬机制，不是链接失效。
+> **本节的规则（WAF 现状 / 403 判读 / 离任三步检测 / 链接格式选择 / 写后复验 / 审计豁免）统一维护在
+> `school-registry-hk.md` 的 CityU 条目**——那里是执行搜索时按校名打开的第一落点。
+> 本节只留案例经过与旁证，不再重复规则。
 
-| 域名 | 自动化访问现象 | 浏览器访问 |
-|------|-------------|-----------|
-| `cityu.edu.hk/stfprofile/` | 200 返回 Incapsula JS 挑战页（200-1000 字节） | ✅ 正常 |
-| `scholars.cityu.edu.hk` | **403 Forbidden** | ✅ 正常 |
+**触发**：审计一笔 CityU 记录时，`scholars.cityu.edu.hk` 返回 403。当时的分册口径只写了「403 是 WAF 正常现象，不要删记录」，于是这条被放过。**实际该教授的页面已经被删除（已离任）**——403 在这里不是反爬，是页面不存在。
 
-**关键认知**：
-- 自动化审计脚本检测 CityU 链接时**可能全部报死链**（或 SPA 壳），这是已知的系统性问题。
-- **⚠️ 403 ≠ 必然有效（2026-08-04 修正）**：scholars 返回 403 有两种可能——① 正常教授页面被 WAF 拦截（有效）；② **离任/已离职教授的页面已删除**（WebFetch 穿透后显示 "The page does not exist"）。**必须用 WebFetch 穿透验证**，不能一律当作 WAF 正常现象放过。
-- 不要因为 WAF 拦截就删除有效链接，也**不要因为 403 就假设链接有效**。
+**发现方式**：三步交叉验证（穿透 WAF 看正文 → 查 CityU 学术人员目录 → 查系级现任教职员列表）。穿透后 `scholars` 页显示 "The page does not exist"；学术人员目录里该人被标为 **Visiting Professor**；系级现任教授/副教授/客座/兼任三组均无此人。
 
-**离任导师检测（2026-08-04，Maurice Benayoun 案例）** — 三步交叉验证：
-1. **WebFetch 穿透 WAF**：`WebFetch("https://scholars.cityu.edu.hk/en/persons/xxx")` — 若返回 "The page does not exist" / "Page not found"，该学者主页已删除，高度怀疑离任
-2. **查 CityU 学术人员目录**：`https://www.cityu.edu.hk/zh-hk/directories/people/academic?page=N` — 若标注 **Visiting Professor** / **Adjunct Professor**，通常是离任后保留的挂名身份
-3. **查系级现任教职员列表**：如 `https://www.scm.cityu.edu.hk/people` — 若现任教授/副教授/客座/兼任各分组均无此人，基本确认离任
+**旁证**：WebSearch 该导师姓名 + 原校，南京大学官网写明「原香港城市大学创意媒体学院教授（2012 年至 2024 年）」。
 
-**辅助手段**：WebSearch 搜 `"[导师名] [原校] 教授"` 看是否已转校（如南京大学官网注明"原香港城市大学创意媒体学院教授（2012年至2024年）"）。已离任导师**不进入主表**，已写入的需删除。
+**这次案例的产出**：分册里「403 一律当作 WAF 正常」的口径被作废——**状态码判不了这件事，必须穿透看正文**（具体规则见分册）。
 
-**链接格式策略** — CityU 有两种导师主页 URL：
-1. **stfprofile 格式（优先）**：`https://www.cityu.edu.hk/stfprofile/xxx.htm` — 部分旧版教授页面用此格式，自动化访问返回 Incapsula JS 挑战页（约 200-1000 字节）
-2. **scholars 格式**：`https://scholars.cityu.edu.hk/en/persons/xxx/` — Pure Portal 全校统一入口，信息更完整，自动化访问返回 403；**离任教授此页面会变成真实 404（穿透 WAF 可见）**
-
-选择策略：两种都可，stfprofile 优先级更高（至少不返回 403）。scholars 格式写入后必须 WebFetch 穿透验证内容。
-
-**写入后复验规则**（因 WAF 而调整）：
-1. 写入 Vika 后，用 WebFetch 或 urllib 快速检查
-2. **预期结果**：stfprofile 返回 200 + 约 200-1000 字节（JS 挑战）；scholars 返回 403
-3. 以上两种结果**不能直接判定链接有效**——必须 WebFetch 穿透 WAF 确认页面有该导师姓名/职称/院系内容（穿透后显示 "The page does not exist" 即已失效）
-4. **删除记录条件**：Google 搜不到该导师、系页面已删除、浏览器确认 404、或**官方目录已无此人（离任）**
-5. **交付前**：提示用户在浏览器中抽查 CityU 链接（特别是 scholars 格式）
 
 ### B4. CUHK(SZ) 教师 URL ID 不稳定（2026-07-23 验证）
 

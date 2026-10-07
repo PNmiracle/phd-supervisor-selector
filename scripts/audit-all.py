@@ -79,6 +79,7 @@ CHECKS = [
     ("title",    "7+9. 职称：备注首段必须是真实职称，且不低于地区门槛"),
     ("gates",    "8. 三硬门槛待核清单（GRE / 招生年份 / 停招，需人工读官网原文）"),
     ("coverage", "10. 项目与学校覆盖完整性（与总目录清单做差集）"),
+    ("evidence", "11. 证据链抽检（抽 3–5 条，看备注/研究领域能否在三个链接正文中找到出处）"),
 ]
 CHECK_IDS = [c[0] for c in CHECKS]
 
@@ -378,6 +379,114 @@ def scan_title(text):
     return None
 
 
+# ── 证据链抽检（第 11 项） ─────────────────────────────────────────────────────
+EVIDENCE_FIELDS = ("备注", "导师研究领域")
+STOP_PHRASES = ("可以备选一下呢", "可以往", "方向能搭上", "有交叉", "比较对口",
+                "未明确表明监督资格", "可以后放", "现在应该到退休年龄", "文章看这里")
+
+
+def extract_phrases(text, skip_first=False):
+    """把字段文本拆成「事实性短语」候选。
+
+    skip_first=True 用于 `备注`：它的首段是职称位，不是事实陈述。
+    含套话（关联句 / 备选标识 / 来源链接提示）的整段**整段丢弃**——
+    剥离套话后剩下的往往是「和你的设计史」这类残句，留着只会误报。
+    """
+    if not text:
+        return []
+    out = []
+    for i, seg in enumerate(re.split(r"[；;。\n]", text)):
+        s = seg.strip().strip("（）()　 ")
+        if skip_first and i == 0:
+            continue
+        if any(sp in s for sp in STOP_PHRASES):
+            continue
+        if len(s) < 4 or len(s) > 80:
+            continue
+        out.append(s)
+    return out
+
+
+def _cn(s):
+    return re.sub(r"[^\u4e00-\u9fa5]", "", s)
+
+
+def phrase_support(phrase, corpus):
+    """(是否有出处, 原因)。拉丁词要求整词命中；中文用 4-gram 覆盖率 ≥50%。"""
+    corpus_l, cn_corpus = corpus.lower(), _cn(corpus)
+    miss = [w for w in re.findall(r"[A-Za-z][A-Za-z0-9\-&.]{2,}", phrase)
+            if w.lower() not in corpus_l]
+    if miss:
+        return False, f"英文词未出现：{', '.join(miss[:3])}"
+    cn = _cn(phrase)
+    if not cn:
+        return True, ""
+    if len(cn) < 8:
+        return (True, "") if cn in cn_corpus else (False, f"短语未出现：{cn}")
+    grams = [cn[i:i + 4] for i in range(len(cn) - 3)]
+    ratio = sum(1 for g in grams if g in cn_corpus) / len(grams)
+    return (True, "") if ratio >= 0.5 else (False, f"中文 4-gram 覆盖率仅 {ratio:.0%}")
+
+
+def check_evidence(records, f, probes, url_meta, top):
+    """抽 N 条，验证备注与导师研究领域能否在三个链接正文中找到出处。
+
+    产出的是一份**候选清单，不等于错误**：反爬 / SPA 壳导致抓不到正文的记录会被跳过并标注，
+    而不是误报。人工/LLM 需按清单回原页复核。
+    """
+    picked = 0
+    for rec in records:
+        if picked >= top:
+            break
+        fl = rec.get("fields", {}) or {}
+        label = rec_label(fl, rec["recordId"])
+        urls = [u for u in url_meta if any(r == rec["recordId"] for _, _, r in url_meta[u])]
+        if not urls:
+            continue
+        corpora, home_healthy = [], False
+        home_url = field_url(fl.get("导师主页"))
+        for u in urls:
+            p = probes.get(u) or {}
+            corpora.append((p.get("title") or "") + " " + (p.get("body_head") or ""))
+            # 「首页是健康的」复用链接四关的判定，不另设阈值——避免两套标准漂移
+            if u == home_url:
+                sev, _ = classify_link(p, "", "")
+                if sev is None:
+                    home_healthy = True
+        corpus = "\n".join(corpora)
+        picked += 1
+        # 可用性判定看**总正文长度**，不能只看中文字数——英美校页面正文几乎全是英文
+        if len(re.sub(r"\s+", "", corpus)) < 800:
+            f.warn("evidence", label,
+                   "三个链接都没抓到足够正文（403 / SPA 壳 / 本机不通，或 <800 字符）→ "
+                   "无法机械判定，需人工打开核对")
+            continue
+        for fname in EVIDENCE_FIELDS:
+            # 只有「备注」有职称首段；「导师研究领域」整段都是事实
+            phrases = extract_phrases(field_text(fl.get(fname)), skip_first=(fname == "备注"))
+            if not phrases:
+                continue
+            bad = []                       # [(短语, 原因)]
+            for ph in phrases:
+                ok, why = phrase_support(ph, corpus)
+                if not ok:
+                    bad.append((ph, why))
+            if not bad:
+                f.info("evidence", label, f"{fname}：抽样短语均在链接正文中找到出处")
+                continue
+            for ph, why in bad:
+                if fname == "导师研究领域" and home_healthy:
+                    f.fail("evidence", label,
+                           f"{fname}：「{ph[:34]}」在首页正文中找不到出处（{why}）"
+                           f"——研究领域必须来自本人打开的官网原文，请回原页核对后改写或删除")
+                else:
+                    f.warn("evidence", label,
+                           f"{fname}：「{ph[:34]}」在三个链接正文中找不到出处（{why}）"
+                           f"——复审：可能是同义改写，也可能是照抄了别处的摘要")
+    if picked == 0:
+        f.info("evidence", "(抽检)", "没有命中链接探针的记录，本次未抽到样本")
+
+
 # ── 各项检查 ───────────────────────────────────────────────────────────────────
 def check_fields(records, required, f):
     for rec in records:
@@ -616,6 +725,32 @@ def self_test():
             print(f"  ❌ 落点判定错：{a} vs {b} 期望 {want}")
     print(f"  落点判定 {len(url_cases)} 条：{'全部正确' if not url_bad else '有错误'}")
 
+    # 证据链抽检的两个回归点（2026-10-07 各踩过一次）
+    ev = []
+    # ① 备注首段是职称位，必须跳过；但「导师研究领域」没有职称位，整段都要查
+    got = extract_phrases("副教授；设计史与物质文化。", skip_first=True)
+    if got != ["设计史与物质文化"]:
+        ev.append(f"备注首段未正确跳过：{got}")
+    got2 = extract_phrases("量子计算与拓扑绝缘体", skip_first=False)
+    if got2 != ["量子计算与拓扑绝缘体"]:
+        ev.append(f"研究领域被误当职称段丢弃：{got2}")
+    # ② 含套话的整段应整段丢弃，不能剥离套话后留下「和你的设计史」这类残句
+    got3 = extract_phrases("副教授；设计史与物质文化；和你的设计史方向能搭上，可以备选一下呢～",
+                           skip_first=True)
+    if got3 != ["设计史与物质文化"]:
+        ev.append(f"套话段未整段丢弃（期望只剩事实段，实得 {got3}）")
+    # ③ 出处判定
+    corpus = "Professor X. Her research focuses on design history and material culture. 设计史与物质文化。"
+    for ph, want in (("设计史与物质文化", True), ("量子计算与拓扑绝缘体", False),
+                     ("material culture", True), ("quantum computing", False)):
+        got_ok, _ = phrase_support(ph, corpus)
+        if got_ok != want:
+            ev.append(f"出处判定错：{ph} 期望 {want} 实得 {got_ok}")
+    for m in ev:
+        ok = False
+        print(f"  ❌ 证据链：{m}")
+    print(f"  证据链抽检回归 {len(ev)} 项失败（共 6 项检查）")
+
     print("\n" + ("KS_AUDIT_ALL_SELFTEST_OK" if ok else "KS_AUDIT_ALL_SELFTEST_FAIL"))
     return 0 if ok else 1
 
@@ -631,6 +766,8 @@ def main():
     ap.add_argument("--expected-programs")
     ap.add_argument("--fields")
     ap.add_argument("--max-urls", type=int, default=120)
+    ap.add_argument("--evidence-top", type=int, default=5,
+                    help="第 11 项抽检几条记录的证据链（默认 5，对应「抽 3–5 条」）")
     ap.add_argument("--json")
     ap.add_argument("--quiet", action="store_true")
     ap.add_argument("--no-fail", action="store_true")
@@ -681,9 +818,10 @@ def main():
         check_fields(records, required, f)
 
     # 链接与姓名、邮箱共用一次抓取
-    need_links = any(c in todo for c in ("links", "name", "email"))
+    probes = {}
+    url_meta = {}
+    need_links = any(c in todo for c in ("links", "name", "email", "evidence"))
     if need_links:
-        url_meta = {}
         for rec in records:
             fl = rec.get("fields", {}) or {}
             mentor = field_text(fl.get("导师"))
@@ -698,7 +836,6 @@ def main():
         print(f"去重 URL {len(url_meta)} 个，本轮检查 {len(urls)} 个\n")
 
         tmp_dir = tempfile.mkdtemp(prefix="audit_all_")
-        probes = {}
         for i, u in enumerate(urls):
             p = curl_probe(u, tmp_dir, i)
             p["url_original"] = u
@@ -732,6 +869,8 @@ def main():
         check_titles(records, f)
     if "school" in todo:
         check_school_link(records, f, args.main_table_id, token)
+    if "evidence" in todo:
+        check_evidence(records, f, probes, url_meta, args.evidence_top)
     if "gates" in todo:
         check_gates(records, f)
     if "coverage" in todo:

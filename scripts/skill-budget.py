@@ -40,6 +40,13 @@ BUDGET = {
     "required_read_lines":    200,      # 任何被标「必读/整读」的文件
     "reference_lines":        500,      # 任何 references 单文件（超了就拆）
     "read_aloud_files":         3,      # 每次任务需「整读」的文件数上限
+    # 运行态数据（search-state/）。**只监控、不自动清理**：
+    # state 是快照、会被 cat 进上下文，所以单文件行数必须控制；
+    # 但里面的内容属于学生记录，任何压缩/归档都需要人批，因此这里只报 WARN。
+    "state_per_file_lines":   200,
+    "state_per_file_chars": 20000,      # 也要限字数：行少但字密的文件照样吃上下文
+    "state_files":             40,
+    "state_total_lines":     4000,
 }
 
 # 每次调用技能都会被读到的（L0）
@@ -215,7 +222,43 @@ def main():
             if not ok:
                 fails.append("audit-all-selftest")
 
+    # 8. search-state 运行态监控（只 WARN，不自动清理——内容属学生记录，需人批）
+    state_dir = os.path.join(SKILL_DIR, "search-state")
+    state_warn, state_note = [], ""
+    if os.path.isdir(state_dir):
+        mds = [f for f in sorted(os.listdir(state_dir)) if f.endswith(".md")]
+        per, tot = [], 0
+        for fn in mds:
+            n, c = count(lines_of(os.path.join(state_dir, fn)))
+            tot += n
+            if n > BUDGET["state_per_file_lines"]:
+                per.append((f"{fn}（行数）", n, BUDGET["state_per_file_lines"]))
+            if c > BUDGET["state_per_file_chars"]:
+                per.append((f"{fn}（字数）", c, BUDGET["state_per_file_chars"]))
+        rows.append(("OK", "search-state 文件数", len(mds), BUDGET["state_files"],
+                     "" if len(mds) <= BUDGET["state_files"] else "已超出，建议归档已完成学生的 state"))
+        rows.append(("OK", "search-state 总行数", tot, BUDGET["state_total_lines"],
+                     "" if tot <= BUDGET["state_total_lines"] else "已超出"))
+        if len(mds) > BUDGET["state_files"] or tot > BUDGET["state_total_lines"] or per:
+            # 转成 WARN（可见但不阻塞）：state 属运行态数据，清理必须人工授权
+            rows[-2] = ("WARN" if len(mds) > BUDGET["state_files"] else "OK", *rows[-2][1:])
+            rows[-1] = ("WARN" if tot > BUDGET["state_total_lines"] else "OK", *rows[-1][1:])
+            for nm, got, bud in per[:30]:
+                rows.append(("WARN", f"search-state/{nm}", got, bud,
+                             "超上限——state 会被 cat 进上下文；压缩需人批"))
+                state_warn.append(nm)
+        if per:
+            state_note = (f"\n注：search-state 下有 {len({nm.split('（')[0] for nm, _, _ in per})} 个文件超上限"
+                          f"（单文件 ≤{BUDGET['state_per_file_lines']} 行 且 ≤{BUDGET['state_per_file_chars']} 字，"
+                          f"共 {len(per)} 项超标）。"
+                          f"\n    state 是快照不是日志（见 references/search-orchestrator.md「State File Format」）；"
+                          f"\n    压缩涉及学生记录，需逐个人工确认，本脚本不会自动处理。"
+                          f"\n    当前已有独立备份：~/.workbuddy/backups/phd-supervisor-selector-search-state-*.tar.gz")
+
     report(rows, args.quiet)
+
+    if state_note and not args.quiet:
+        print(state_note)
 
     if xref and not args.quiet:
         print("\n=== 失效引用清单（逐条修掉）===")

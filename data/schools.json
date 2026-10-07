@@ -87,8 +87,8 @@
   "region": "hk",
   "source": "school-registry-hk.md",
   "lineStart": 72,
-  "lineEnd": 110,
-  "body": "- **Architecture**: Incapsula WAF (main domain + stfprofile) + Cloudflare WAF (scholars subdomain)\n- **Layer**: L3→L4 (Fully blocked from curl/WebFetch/urllib; search engine fallback required)\n- **WAF 现状（2026-07-13 验证）**:\n  - CityU 全站 Incapsula WAF，自动化工具（curl、Python urllib、WebFetch）**全部被拦截**\n  - stfprofile 页面：200 返回 Incapsula JS 挑战页（约 200-1000 字节），不是真正死链\n  - scholars.cityu.edu.hk：**403 Forbidden**（自动化访问），浏览器正常\n  - **自动化审计脚本检测 CityU 链接时必然全部报死链/SPA壳，这是已知的系统性问题**\n  - 链接有效性必须由人在浏览器中确认，不要因为 WAF 拦截就删除记录\n- **Primary workflow — Scholars Portal (ALL departments, mandatory)**:\n  1. 浏览器打开 https://scholars.cityu.edu.hk/en/persons/ — CityU 统一教师数据库\n  2. 搜索导师姓名\n  3. 打开个人页面，复制 URL（格式: `scholars.cityu.edu.hk/en/persons/{name}({uuid})`）\n  4. 写入 Vika 的 `导师主页` 列\n  5. **备用格式**: stfprofile 页面 `www.cityu.edu.hk/stfprofile/{slug}.htm`，优先级高于 scholars（因为至少返回 200 而非 403）\n- **写入后复验规则（WAF 调整版）**:\n  - WebFetch 验证 CityU 链接时，预期返回：stfprofile → 200 + ~200-1000字节（JS挑战）；scholars → 403\n  - 以上两种结果都不是死链信号，**不删除记录**\n  - **仅以下情况才删除**：Google/DDG 搜不到该导师、系页面已移除、或浏览器确认 404\n  - 交付前提示用户在浏览器中抽查 CityU 链接\n- **自动化审计的 CityU 豁免**：\n  - 计算链接通过率时，可将 CityU 记录从分母中扣除\n  - 例如：55 条中 15 条 CityU，非 CityU 40 条全通过 → 实际链接率 100%（而非 73%）\n  - WAF 拦截 ≠ 链接质量缺陷\n- **Subdomain probe results** (2026-07-13):\n  - www.cityu.edu.hk/stfprofile/*: Incapsula WAF（200 + 约 200-1000 字节 JS 挑战）\n  - scholars.cityu.edu.hk: 403 Forbidden（自动化工具）；浏览器正常\n  - www6.cityu.edu.hk: Incapsula\n  - www2/www3.cityu.edu.hk: SSL EOF\n  - sgs.cityu.edu.hk: SSL EOF\n  - cb.cityu.edu.hk/staff/: 可直接访问（商学院）\n- **ORCID Discovery Method** (when all search engines fail):\n  1. `curl \"https://pub.orcid.org/v3.0/search/?q=affiliation-org-name:%22City+University+of+Hong+Kong%22\"` → get ORCID IDs\n  2. `curl \"https://pub.orcid.org/v3.0/{orcid}/person\"` → get researcher names and details\n  3. Cross-reference found names with target department\n  4. Search found names on scholars.cityu.edu.hk for profile verification (in browser)\n  5. If profile found, write to Vika; if not, mark with note in 备注\n- **Failed**: 全部自动化方案对 CityU 主页/教师资料页无效；ssweb.cityu.edu.hk blocked by Incapsula\n- **Last verified**: 2026-07-13",
+  "lineEnd": 122,
+  "body": "- **Architecture**: Incapsula WAF (main domain + stfprofile) + Cloudflare WAF (scholars subdomain)\n- **Layer**: L3→L4 (Fully blocked from curl/WebFetch/urllib; search engine fallback required)\n- **WAF 现状（2026-07-13 验证；2026-08-04 修正）**:\n  - CityU 全站 Incapsula WAF，自动化工具（curl、Python urllib、WebFetch）**全部被拦截**\n  - stfprofile 页面：200 返回 Incapsula JS 挑战页（约 200-1000 字节），不是真正死链\n  - scholars.cityu.edu.hk：**403 Forbidden**（自动化访问），浏览器正常\n  - **自动化审计脚本检测 CityU 链接时必然全部报死链/SPA壳，这是已知的系统性问题**\n  - 不要因为 WAF 拦截就删除记录；但也**不要因为 403 就假设链接有效**（见下条修正）\n- 🔴 **403 有两种可能（2026-08-04 修正，务必区分）**:\n  - ① 正常教授页面被 WAF 拦截 → **有效**\n  - ② **离任/已离职教授的页面已删除** → **失效**（WebFetch 穿透 WAF 后显示 \"The page does not exist\"）\n  - 因此「403 就放过」是错的：**必须用 WebFetch 穿透看正文**，不能用状态码下结论\n- 🔴 **离任导师检测三步（2026-08-04 沉淀，Maurice Benayoun 案例）**:\n  1. **WebFetch 穿透 WAF**：`WebFetch(\"https://scholars.cityu.edu.hk/en/persons/xxx\")` — 若返回 \"The page does not exist\" / \"Page not found\"，该学者主页已删除，高度怀疑离任\n  2. **查 CityU 学术人员目录**：`https://www.cityu.edu.hk/zh-hk/directories/people/academic?page=N` — 若标注 **Visiting Professor** / **Adjunct Professor**，通常是离任后保留的挂名身份\n  3. **查系级现任教职员列表**：如 `https://www.scm.cityu.edu.hk/people` — 若现任教授/副教授/客座/兼任各分组均无此人，基本确认离任\n  - **辅助手段**：WebSearch `\"[导师名] [原校] 教授\"` 看是否已转校。**已离任导师不进入主表，已写入的需删除。**\n  - 案例经过与旁证见 `cases-rules.md` B3\n- **Primary workflow — Scholars Portal (ALL departments, mandatory)**:\n  1. 浏览器打开 https://scholars.cityu.edu.hk/en/persons/ — CityU 统一教师数据库\n  2. 搜索导师姓名\n  3. 打开个人页面，复制 URL（格式: `scholars.cityu.edu.hk/en/persons/{name}({uuid})`）\n  4. 写入 Vika 的 `导师主页` 列\n  5. **备用格式**: stfprofile 页面 `www.cityu.edu.hk/stfprofile/{slug}.htm`，优先级高于 scholars（因为至少返回 200 而非 403）\n  - 两种格式的分工：**scholars** 是 Pure Portal 全校统一入口，信息更完整（评价、论文、任职史齐全），但自动化访问返回 403；**stfprofile** 是旧版院系页，信息较少但至少返回 200\n  - 选择策略：两种都能用，写入优先 stfprofile；用 scholars 的必须在写入后 WebFetch 穿透验证内容\n- **写入后复验规则（WAF 调整版）**:\n  - WebFetch 验证 CityU 链接时，预期返回：stfprofile → 200 + ~200-1000字节（JS挑战）；scholars → 403\n  - 以上两种结果**都不是死链信号，但也都不是「有效」的证据** → **必须 WebFetch 穿透 WAF 确认正文含该导师姓名/职称/院系**\n  - **删除记录条件**：Google/DDG 搜不到该导师、系页面已移除、浏览器确认 404、**或官方目录已无此人（离任）**\n  - 交付前提示用户在浏览器中抽查 CityU 链接（特别是 scholars 格式）\n- **自动化审计的 CityU 豁免**：\n  - 计算链接通过率时，可将 CityU 记录从分母中扣除\n  - 例如：55 条中 15 条 CityU，非 CityU 40 条全通过 → 实际链接率 100%（而非 73%）\n  - WAF 拦截 ≠ 链接质量缺陷；但**豁免只针对状态码，不豁免离任检测**\n- **Subdomain probe results** (2026-07-13):\n  - www.cityu.edu.hk/stfprofile/*: Incapsula WAF（200 + 约 200-1000 字节 JS 挑战）\n  - scholars.cityu.edu.hk: 403 Forbidden（自动化工具）；浏览器正常\n  - www6.cityu.edu.hk: Incapsula\n  - www2/www3.cityu.edu.hk: SSL EOF\n  - sgs.cityu.edu.hk: SSL EOF\n  - cb.cityu.edu.hk/staff/: 可直接访问（商学院）\n- **ORCID Discovery Method** (when all search engines fail):\n  1. `curl \"https://pub.orcid.org/v3.0/search/?q=affiliation-org-name:%22City+University+of+Hong+Kong%22\"` → get ORCID IDs\n  2. `curl \"https://pub.orcid.org/v3.0/{orcid}/person\"` → get researcher names and details\n  3. Cross-reference found names with target department\n  4. Search found names on scholars.cityu.edu.hk for profile verification (in browser)\n  5. If profile found, write to Vika; if not, mark with note in 备注\n- **Failed**: 全部自动化方案对 CityU 主页/教师资料页无效；ssweb.cityu.edu.hk blocked by Incapsula\n- **Last verified**: 2026-07-13",
   "aliases": [
    "CityU"
   ]
@@ -198,8 +198,8 @@
   "section": "Hong Kong",
   "region": "hk",
   "source": "school-registry-hk.md",
-  "lineStart": 217,
-  "lineEnd": 224,
+  "lineStart": 229,
+  "lineEnd": 236,
   "body": "- **Architecture**: Static HTML\n- **Layer**: L1 (via browser)\n- **Access**: eduhk.hk/ps/en/ for Psychology dept; accessible via browser\n- **Key endpoint**: https://www.eduhk.hk/ps/en/aboutus.php?s=our_staff\n- **PhD link**: https://gs.eduhk.hk/prospective/rpg/ （⚠️ 2026-09-14 更新：旧记录 `eduhk.hk/gradsch/` 已不是招生页；`gs.eduhk.hk` **curl 会 SSL 握手失败，必须用 WebFetch**）\n- **Failed**: Previous attempt via network blocked; browser works\n- **Last verified**: 2026-06-26",
   "aliases": [
    "EdUHK"
@@ -268,8 +268,8 @@
   "section": "Hong Kong",
   "region": "hk",
   "source": "school-registry-hk.md",
-  "lineStart": 148,
-  "lineEnd": 160,
+  "lineStart": 160,
+  "lineEnd": 172,
   "body": "- **Architecture**: Adobe AEM (main domain) + Pure Portal SPA (scholars portal) + separate infra for comm subdomain\n- **Layer**: L3→L4 (Scholars portal blocked, comm subdomain network-unreachable)\n- **Access**: Psychology lives within Dept of Education and Psychology (educ.hkbu.edu.hk), NOT standalone psych dept. Also check Business School at busrpg.hkbu.edu.hk.\n- **Key endpoint**: https://educ.hkbu.edu.hk/?page_id=20398\n- **PhD link**: https://educ.hkbu.edu.hk/?page_id=20338\n- **PhD programme (Communication)**: gs.hkbu.edu.hk/programmes/doctor-of-philosophy-master-of-philosophy-school-of-communication\n- **Accessible**: gs.hkbu.edu.hk (Grad School), scholars.hkbu.edu.hk (Pure Portal, JS-only for people), hkbu.edu.hk (main domain, Adobe AEM — all guessed URLs return 63KB 404 templates)\n- **Blocked**: socsc.hkbu.edu.hk → connection refused; comm.hkbu.edu.hk (SSL timeout — all protocols); scholars portal API (403); scholars portal UUID-based person pages return 31-byte empty shells\n- **Note**: HKBU has the strongest communication school in HK.\n- **Wayback Machine**: scholars organization page archived (235KB) but person data still JS-rendered in archive\n- **Failed**: socsc.hkbu.edu.hk connection refused; browser attempt failed; comm.hkbu.edu.hk SSL timeout\n- **Last verified**: 2026-07-01",
   "aliases": [
    "HKBU"
@@ -281,8 +281,8 @@
   "section": "Hong Kong",
   "region": "hk",
   "source": "school-registry-hk.md",
-  "lineStart": 112,
-  "lineEnd": 120,
+  "lineStart": 124,
+  "lineEnd": 132,
   "body": "- **Architecture**: JS-rendered\n- **Layer**: L3\n- **Access**: polyu.edu.hk/apss/ for Applied Social Sciences; polyu.edu.hk/mm/ for Marketing\n- **Key endpoint**: https://www.polyu.edu.hk/apss/people/academic-staff/\n- **PhD link**: https://www.polyu.edu.hk/apss/study/research-postgraduate-programme/\n- **Individual profile pattern**: `polyu.edu.hk/apss/people/academic-staff/prof-{slug}/`\n- **Note**: Recently posted JDM faculty job on SJDM, confirms active JDM research presence\n- **Failed**: JS-rendered needs browser",
   "aliases": [
    "PolyU"
@@ -318,8 +318,8 @@
   "section": "Hong Kong",
   "region": "hk",
   "source": "school-registry-hk.md",
-  "lineStart": 205,
-  "lineEnd": 215,
+  "lineStart": 217,
+  "lineEnd": 227,
   "body": "- **Architecture**: Static HTML (Cultural Studies department accessible; other subdomains may be blocked)\n- **Layer**: L1 (Cultural Studies) / L4 (other subdomains — all URLs return 234 bytes)\n- **Access (Psychology)**: ln.edu.hk/psy/ — fully accessible via browser; applied/counseling focus\n  - Key endpoint: https://www.ln.edu.hk/psy/about-us/people/academic-staff\n  - PhD link: https://www.ln.edu.hk/rpg/\n- **Access (Cultural Studies)**: ln.edu.hk/cultural/ — direct curl works\n  - Key endpoint: https://www.ln.edu.hk/cultural/people/faculty\n  - Profile URL: https://www.ln.edu.hk/cultural/people/faculty/prof-{name-slug}\n- **Blocked**: ln.edu.hk/daci, ln.edu.hk/visualstudies return 234 bytes; uni-directory returns 404; staffdir.htm too thin\n- **Last verified**: 2026-07-01",
   "aliases": []
  },
@@ -447,8 +447,8 @@
   "section": "Hong Kong",
   "region": "hk",
   "source": "school-registry-hk.md",
-  "lineStart": 122,
-  "lineEnd": 145,
+  "lineStart": 134,
+  "lineEnd": 157,
   "body": "**这是检索港理工建设类方向必须先知道的事**：旧 `polyu.edu.hk/bre/` 与 `polyu.edu.hk/lsgi/` 会 301 跳转，按旧系名/旧路径检索会走空。\n\n| 变更前 | 变更后（2026-07-01 起） | 官网 |\n|---|---|---|\n| Department of Building and Real Estate (BRE) | **Department of Construction Management and Intelligence (CMI)** 建设管理及智能学系 | `https://www.polyu.edu.hk/cmi/` |\n| Department of Land Surveying and Geo-Informatics (LSGI) | **Department of Land Surveying and Geospatial Science (LSGS)** 土地测量及地理空间科学系 | `https://www.polyu.edu.hk/lsgs/` |\n| （新设） | **Department of Architecture (ARCH)** | `https://www.polyu.edu.hk/arch/` |\n| 不变 | CEE（土木及环境工程）、BEEE（建筑环境及能源工程） | `/cee/`、`/beee/` |\n\n- **公告来源**：`https://www.polyu.edu.hk/fce/news-and-events/news/2026/ebulletin-188-cs/`\n- **FCE 师资与博士页通用规律**（2026-10-07 实测，**curl 可直读，无需浏览器**）：\n  - 师资：`https://www.polyu.edu.hk/{dept}/people/academic-staff/`（**必须带尾部斜杠**；不带会 301）\n  - 个人页：`https://www.polyu.edu.hk/{dept}/people/academic-staff/{slug}/`\n  - 博士项目页路径**各系不统一**，实测：\n    - CMI：`/cmi/study/research-postgraduate-programme/`（**单数 programme**，复数 404）\n    - BEEE：`/beee/study/research-postgraduate-programme/`\n    - ARCH：`/arch/study/research-postgraduate-programme/`\n    - CEE：**不同路径** → `/cee/prospective-students/research-postgraduate-programme/`\n    - LSGS：**不同路径** → `/lsgs/study/rpg-scheme-item---research-postgraduate-programme/`\n- **研究领域提取**：CMI/BEEE/LSGS 等系个人页常**没有 Research 板块**，页面正文只有 `Research Overview`（有则优先）或 `Biography`；再没有就取该页链接的 **PolyU Scholars Hub**（`https://research.polyu.edu.hk/en/persons/<uuid>`）的 `Fingerprint` 关键词，并在字段里**注明来源**。⚠️ LSGS 个人页有 `Research Overview` 板块，但**列表页不显示研究领域**，必须逐个进个人页。\n- **Research Assistant Professor 要剔除**：PolyU 各系师资页把 RAP 与 Professor/Associate Professor/Assistant Professor 混排（CEE 一个系就有 47 位 RAP），职称字段只写 `Research Assistant Professor`，按规则不进主表。\n- **Last verified**: 2026-10-07\n- **Last verified**: 2026-06-26",
   "aliases": [
    "FCE"
@@ -1083,8 +1083,8 @@
   "section": "港城 / 港理 / 浸会 三校抓取口径（2026-09-24 黄肇启案例沉淀）（自 SKILL.md 迁入 2026-10-07）",
   "region": "hk",
   "source": "school-registry-hk.md",
-  "lineStart": 302,
-  "lineEnd": 307,
+  "lineStart": 314,
+  "lineEnd": 319,
   "body": "- `scholars.hkbu.edu.hk/en/persons/<ID>` 有 Research Interests，**但页面无邮箱**（`<ID>` 常为人名全大写或缩写，如 `DANIELLAI` / `CHITAT` / `VWPLEE`）。\n- **系级名单页信息更全**（含职称 + `Research Focus:`），适合做「其他导师信息」：`sowk.hkbu.edu.hk/en/people/academic-staff.html`、`speh.hkbu.edu.hk/en/people/academic_and_teaching_staff/`、`geog.hkbu.edu.hk/people/academic-and-teaching-staff/`。\n- 官方英文名注意：**Department of Sports and Health Sciences**（带 s，该系自身页面英文标题为准）。\n- 系级博士页：SHS `/en/programs_and_courses/research_post_graduate_study/`（页标题 \"Research Post-Graduate (Ph.D.)\"）；Geography `/postgraduate/mphil-phd.html`；SOWK `/en/programmes/doctor-of-philosophy-master-of-philosophy.html`。\n- **浸会没有公共卫生学院**：方向3 落地为 SHS（身体活动测量与流行病学、健康行为干预）、地理系（健康地理 · Geo-AI · 社会处方）、社工系（健康老龄化 · 长期照护 · 数字包容 · ICT 干预）。落到这些院系时，**必须在备注与交付报告里如实标注院系**，把边界交给用户裁定，不要假装它们属于公卫学院。",
   "aliases": [
    "CHITAT",
@@ -1098,8 +1098,8 @@
   "section": "港城 / 港理 / 浸会 三校抓取口径（2026-09-24 黄肇启案例沉淀）（自 SKILL.md 迁入 2026-10-07）",
   "region": "hk",
   "source": "school-registry-hk.md",
-  "lineStart": 285,
-  "lineEnd": 294,
+  "lineStart": 297,
+  "lineEnd": 306,
   "body": "- 商学院各系 people 页路径**不统一**：`/is/people/academic-staff` ✅；`/MKT/about/people/` ✅（注意大写 MKT；`/mkt/people/` 404）；`/mgt/people/`、`/mgt/faculty` 一律 **400**；`/mgt/about-us/faculty-staff` 是 JS 空壳（无姓名）。`www.cb.cityu.edu.hk/sitemap.xml` 只收录 229 个 URL，不含各系 people 页。\n- **IS 名单页用 `data-eid` 属性给出 eid** → 个人页 = `https://www.cb.cityu.edu.hk/staff/<eid>/`，curl 可直接读到 `Research Areas` 原文（正文形如 `E-mail: … Research Areas <area1> <area2> … <bio>`）。\n- **管理系没有师资名单页** → 用 `https://www.cb.cityu.edu.hk/mgt/research/research-expertise`（含全部 18 位教师姓名 + 研究方向关键词），可作「其他导师信息」并在交付说明里注明。\n  - ⚠️ **更正（2026-09-24 复核）**：管理系**有**正式师资名录页 `https://www.cb.cityu.edu.hk/en/mgt/about-us/faculty-staff`（导航 About Us › Faculty & Staff，Drupal view `faculty_staff_listing_new-block_1`）。该页静态 HTML 里结果容器为空、curl 读不到姓名，但**真实浏览器渲染正常**（已用 `agent-browser open` + `snapshot` 确认：完整列出全部教师、职称与研究方向）。**`其他导师信息` 应填这个名录页，不要填 `research-expertise`**——审核会把它判为「研究专长页」不合格。JS 渲染页「curl 读不到」不等于坏链，用 agent-browser 判定，不要因为抓不到就换页。\n- 数据科学系 `https://www.ds.cityu.edu.hk/en/people/academic-staff` 只有名单 + `Research Interest:`，**无个人页**（`/people/academic-staff/<slug>` 均返回 Page Not Found）→ 个人页改挂 `scholars.cityu.edu.hk`。\n- 🔴 **scholars slug 撞名陷阱**：`scholars.cityu.edu.hk/en/persons/<slug>` 是 **curl 可读**的（只有 `/organisations/...` 与 `?search=` 会被 Cloudflare 403）。但同名者极多——`xinyue-li` 是物理系 PhD 学生，数据科学系副教授实际是 `xinyue-li-2`。**核验时必须断言页面里的院系字段**，只匹配姓名会写错人。\n- Incapsula 拦截（200 + ~850B 挑战页，curl 读不到正文）：`www.cityu.edu.hk/stfprofile/<eid>.htm`、`www.cityu.edu.hk/ph/staff/<slug>`、`www.cityu.edu.hk/ph/education/...` → 改用 WebFetch（可读到完整正文）。\n- 系级博士项目页（可直接连）：IS `/en/is/postgraduate-degrees/research-degrees/phd`；MGT `/en/mgt/programmes/research-degree`；MKT `/MKT/programmes/ResearchDegree/`；DS `www.ds.cityu.edu.hk/en/programmes/postgraduate-programmes/phd-programme-data-science`；PH `www.cityu.edu.hk/ph/education/research-degree-programme-phd`。\n- ⚠️ **IDPH（传染病与公共卫生系）本质是兽医学院下的系**：官方 PhD 项目页写明培养 \"specialist skills in the discipline of **veterinary medicine**\"，招生研究领域为动物福利 / 水产生产 / 畜禽与水产动物健康 / 保护与野生动物医学。做人类健康或组织数字化的学生慎入，写入前先读项目页的 Research Areas 列表。",
   "aliases": []
  },
@@ -1109,8 +1109,8 @@
   "section": "港城 / 港理 / 浸会 三校抓取口径（2026-09-24 黄肇启案例沉淀）（自 SKILL.md 迁入 2026-10-07）",
   "region": "hk",
   "source": "school-registry-hk.md",
-  "lineStart": 296,
-  "lineEnd": 300,
+  "lineStart": 308,
+  "lineEnd": 312,
   "body": "- `polyu.edu.hk` 各系名单页 curl **带浏览器 UA** 可直读（无 UA 会 403 / 空壳）。\n- 个人页正文含 `Research Interests: <原文>`；职称在正文职称行——**导航栏与列表页里出现的 \"Professor\" 字样不算**，别拿它判职称。\n- 系级博士项目页：DSAI `/dsai/study/rpg/phd-and-mphil-in-data-science-and-artificial-intelligence/`；AMA `/ama/study/research-postgraduate-programme/`；HTI `/hti/study/programmes/research-postgraduate-studies/research-postgraduate-programme/`；RS `/rs/study/research-postgraduate-studies/phd-or-mphil/`；**SN 无院级 RPG 页** → 用 `/sn/teaching-and-learning/postgraduate-programmes/`（页内明列 MPhil / Doctor of Philosophy 53601）。\n- AMA 的「统计组」几乎全是高维 / 半参 / 统计机器学习**方法论**，其余是优化、PDE、金融数学；真正偏行业应用者极少。若学生明确排除纯方法论，AMA 很可能整系落空——如实报告，不要凑人。",
   "aliases": []
  }

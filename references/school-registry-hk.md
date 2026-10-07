@@ -72,27 +72,39 @@
 #### City University of Hong Kong (CityU)
 - **Architecture**: Incapsula WAF (main domain + stfprofile) + Cloudflare WAF (scholars subdomain)
 - **Layer**: L3→L4 (Fully blocked from curl/WebFetch/urllib; search engine fallback required)
-- **WAF 现状（2026-07-13 验证）**:
+- **WAF 现状（2026-07-13 验证；2026-08-04 修正）**:
   - CityU 全站 Incapsula WAF，自动化工具（curl、Python urllib、WebFetch）**全部被拦截**
   - stfprofile 页面：200 返回 Incapsula JS 挑战页（约 200-1000 字节），不是真正死链
   - scholars.cityu.edu.hk：**403 Forbidden**（自动化访问），浏览器正常
   - **自动化审计脚本检测 CityU 链接时必然全部报死链/SPA壳，这是已知的系统性问题**
-  - 链接有效性必须由人在浏览器中确认，不要因为 WAF 拦截就删除记录
+  - 不要因为 WAF 拦截就删除记录；但也**不要因为 403 就假设链接有效**（见下条修正）
+- 🔴 **403 有两种可能（2026-08-04 修正，务必区分）**:
+  - ① 正常教授页面被 WAF 拦截 → **有效**
+  - ② **离任/已离职教授的页面已删除** → **失效**（WebFetch 穿透 WAF 后显示 "The page does not exist"）
+  - 因此「403 就放过」是错的：**必须用 WebFetch 穿透看正文**，不能用状态码下结论
+- 🔴 **离任导师检测三步（2026-08-04 沉淀，Maurice Benayoun 案例）**:
+  1. **WebFetch 穿透 WAF**：`WebFetch("https://scholars.cityu.edu.hk/en/persons/xxx")` — 若返回 "The page does not exist" / "Page not found"，该学者主页已删除，高度怀疑离任
+  2. **查 CityU 学术人员目录**：`https://www.cityu.edu.hk/zh-hk/directories/people/academic?page=N` — 若标注 **Visiting Professor** / **Adjunct Professor**，通常是离任后保留的挂名身份
+  3. **查系级现任教职员列表**：如 `https://www.scm.cityu.edu.hk/people` — 若现任教授/副教授/客座/兼任各分组均无此人，基本确认离任
+  - **辅助手段**：WebSearch `"[导师名] [原校] 教授"` 看是否已转校。**已离任导师不进入主表，已写入的需删除。**
+  - 案例经过与旁证见 `cases-rules.md` B3
 - **Primary workflow — Scholars Portal (ALL departments, mandatory)**:
   1. 浏览器打开 https://scholars.cityu.edu.hk/en/persons/ — CityU 统一教师数据库
   2. 搜索导师姓名
   3. 打开个人页面，复制 URL（格式: `scholars.cityu.edu.hk/en/persons/{name}({uuid})`）
   4. 写入 Vika 的 `导师主页` 列
   5. **备用格式**: stfprofile 页面 `www.cityu.edu.hk/stfprofile/{slug}.htm`，优先级高于 scholars（因为至少返回 200 而非 403）
+  - 两种格式的分工：**scholars** 是 Pure Portal 全校统一入口，信息更完整（评价、论文、任职史齐全），但自动化访问返回 403；**stfprofile** 是旧版院系页，信息较少但至少返回 200
+  - 选择策略：两种都能用，写入优先 stfprofile；用 scholars 的必须在写入后 WebFetch 穿透验证内容
 - **写入后复验规则（WAF 调整版）**:
   - WebFetch 验证 CityU 链接时，预期返回：stfprofile → 200 + ~200-1000字节（JS挑战）；scholars → 403
-  - 以上两种结果都不是死链信号，**不删除记录**
-  - **仅以下情况才删除**：Google/DDG 搜不到该导师、系页面已移除、或浏览器确认 404
-  - 交付前提示用户在浏览器中抽查 CityU 链接
+  - 以上两种结果**都不是死链信号，但也都不是「有效」的证据** → **必须 WebFetch 穿透 WAF 确认正文含该导师姓名/职称/院系**
+  - **删除记录条件**：Google/DDG 搜不到该导师、系页面已移除、浏览器确认 404、**或官方目录已无此人（离任）**
+  - 交付前提示用户在浏览器中抽查 CityU 链接（特别是 scholars 格式）
 - **自动化审计的 CityU 豁免**：
   - 计算链接通过率时，可将 CityU 记录从分母中扣除
   - 例如：55 条中 15 条 CityU，非 CityU 40 条全通过 → 实际链接率 100%（而非 73%）
-  - WAF 拦截 ≠ 链接质量缺陷
+  - WAF 拦截 ≠ 链接质量缺陷；但**豁免只针对状态码，不豁免离任检测**
 - **Subdomain probe results** (2026-07-13):
   - www.cityu.edu.hk/stfprofile/*: Incapsula WAF（200 + 约 200-1000 字节 JS 挑战）
   - scholars.cityu.edu.hk: 403 Forbidden（自动化工具）；浏览器正常

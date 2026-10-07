@@ -102,6 +102,7 @@ agent_created: true
 | `common-errors.md` | 交付前扫一遍高频错误 |
 | `collaboration-workflow.md` | 「开始学生」/「结束学生」协作流程 |
 | `lark-board-entry.md` | 任务来自飞书「选导任务管理看板」记录时 |
+| `acceptance-runbook.md` | 交付前三条验收怎么做（证据链抽检 / 链接抽检 / 真实任务复盘），含记录表模板 |
 
 ### L3 查询型数据（**禁止整读**，必须先用 `school-info.py` 或 grep 定位）
 
