@@ -162,6 +162,17 @@ Many profile pages hide research interests behind clickable tabs. If using brows
 
 If using WebFetch only, check whether the content appears in the static HTML. If not, note: "研究兴趣可能在JS标签页中，需浏览器验证."
 
+### 院系页研究方向只有一句空话时：去个人页 → 实验室站补（2026-10-09 Jin Goh 案例）
+
+不少美国院系页的 "About" 只有一句泛泛描述（如 UIC 的 Jin Goh：「His research focuses on social cognition and perception.」），**据此无法判定方向，也无法写备注**。补法有优先级：
+
+1. **个人页的 Publications 段**：看最近 3–5 篇的标题与期刊，比一句空话信息量大得多。
+2. **个人页上外链的实验室站**（Related Sites / Lab Website / 个人站）——**这是最容易漏的一手来源**。案例：`psch.uic.edu/profiles/goh-jin/` 只说 "social cognition and perception"，但其外链实验室站 `pbandjlab.com` 直接写明实验室全名 **Prejudice, Behavior, and Judgment (PB&J) Lab** 及完整研究纲领（"We research Prejudice (attitudes and beliefs regarding gender, race, sexual orientations), Behavior (political and health behaviors), and Judgment (judgment and perception of people and their environments)"）→ 由此才判定其研究对象是**偏见与群际关系**，与消费者/JDM 学生不对口。
+3. **系里的按方向分组页 / 导师所属 program 字段**（如 Social & Personality）。
+4. 实验室站不是 `*.edu`，但**只要是个人页上官方外链的实验室站，可作为方向判定的一手依据**（链接层级校验时仍以个人页为准，实验室站只用于补方向）。
+
+⚠️ **别被缩写骗**：PB&J 这种缩写要展开看全称，"Judgment" 在有些实验室里指「对人的社会知觉（social judgment of people）」，不是「判断与决策（JDM）」。同理 "Behavior" 可能指「政治与健康行为」。
+
 ### Batch Verification Pattern
 
 Verify multiple candidate pages sequentially:

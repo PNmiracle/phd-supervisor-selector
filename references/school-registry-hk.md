@@ -335,3 +335,39 @@
 - 读长日志**不要用 `cat`/`tail -n 60`**（会被工具截断，误以为缺行）→ 用 Read 工具按 offset 分段读。
 
 ---
+
+### HKU 地理 / 建筑学院 / 地球科学 名录页通道实测（2026-10-16 邱俊喆案例沉淀）
+
+| 单位 | 名录页（可用） | 通道要点 |
+|---|---|---|
+| HKU 地理系 | `https://geog.hku.hk/full-time-academic-staff` | Wix 站；**普通 UA 只得 3.5 KB 壳，需 Googlebot UA 才返回含「Prof X ／ 职称」的完整名录**（约 226 KB） |
+| HKU 建筑学院 城市规划及设计系 | `https://www.arch.hku.hk/people/upad-staff`（**不要带结尾斜杠**） | 带斜杠的同一 URL 返回残缺页（无教师名录）；不带斜杠返回完整 115 条（约 33 KB） |
+| HKU 建筑学院 景观建筑学部 | `https://www.arch.hku.hk/people/la-staff/` | 静态可抓，约 3 万字节；`/people/dla-staff` 为 404 |
+| HKU 地球与行星科学系（原地球科学系） | `https://www.earthsciences.hku.hk/people/academic_staff` | 静态可抓；**现职教师仅 8 人**，与旧资料差异极大 |
+| HKU 土木工程系 | `https://www.civil.hku.hk/h2_acstaff.html` | 静态可抓，名录页直接标职称与邮箱 |
+| ⚠️ HKU 全站共性 | — | `arch.hku.hk` 站群存在**响应被截断**（同一 URL 返回 32768 / 65536 字节残缺页），必须 `--compressed` + 长超时（实测最长 44 s） |
+
+**关键提醒**：`earthsciences.hku.hk` 的现职名单里**已无 Christelle Not**（塑料/微塑料研究者），她现在挂在 `swims.hku.hk/people`，职称为 **Senior Lecturer**（讲师序列）。查港大微塑料方向的人，必须以 SWIMS 名录页 + Earth Sciences 名录页两处交叉验证，不能按论文署名单位判断。
+
+### CUHK 名录页与项目页通道实测（2026-10-16 同上案例）
+
+| 单位 | 名录页 | 职称可靠性 | 项目页（层级最优） |
+|---|---|---|---|
+| 地理与资源管理系 GRM | `https://www.grm.cuhk.edu.hk/en/about/people/faculty/` | ⚠️ **不标职称**（只写 Prof./Dr.），职称须回各人部门个人页取 | `https://www.grm.cuhk.edu.hk/en/pg/research-postgraduate/phd/` |
+| 地球与环境科学系 EES | `https://www.ees.cuhk.edu.hk/people/faculty-and-supporting-staff/` | ✅ 名录页直接标职称与方向（如「Associate Professor Ecotoxicology Prof. TSUI Tsz Ki Martin」） | `https://www.ees.cuhk.edu.hk/programme/postgraduate-programmes/postgraduate-programme/` |
+| 建筑学院 | `https://www.arch.cuhk.edu.hk/school/people/faculty-members/` | ✅ 名录页标职称（Full-Time / Part-Time / Honorary 分栏，可用） | `https://www.arch.cuhk.edu.hk/programmes/pg-mphil-phd-architecture/` |
+| 公共卫生学院 | `https://sphpc.cuhk.edu.hk/academic-staff/` | — | — |
+
+**结构性事实（影响任何环境 / 水 / 污染类方向）**：CUHK **工学院没有土木工程系与环境工程系**（仅 Biomedical / Computer Science / Electronic / Information / Mechanical and Automation / Systems）。城市水环境、排水管网、合流制溢流一类问题在港中文只能落在 EES 或 GRM，且 **EES 博士项目页原文要求申请人持有 "Master's degree in Science or Engineering"** —— 人文地理 / 规划 / 建筑背景的学生进 EES 前必须先核这一条。
+
+**CUHK GRM 个人页取文本注意**：页面正文在约 1.7 KB 的同站导航之后；直接取网页前段只会拿到导航，看不到研究方向与在研项目。
+
+### 港澳 RPG 申请轮次（2027/28 入学，2026-10-16 当场打开页面核实）
+
+| 学校 | 主轮 | 清算轮 | HKPFS | 来源页 |
+|---|---|---|---|---|
+| 香港大学 | **2026-12-01（Main Round，HKT 23:59）** | 2027-04-30（1st）／2027-08-31（2nd） | 同主轮 | HKU 地理系 MPhil & PhD 页（`geog.hku.hk/mphil-phd`，页内直接列三轮日期） |
+| 香港中文大学 | **2026-12-01（Main Round，23:59 HKT）** | 2027-03-31 | 研资局首轮申请 2026-12-01 中午 12:00；向港中文递交完整申请 2026-12-01 23:59 | 多个 `*.cuhk.edu.hk` 项目页一致列明（如 `soc.cuhk.edu.hk/?p=10403`、`ccs.cuhk.edu.hk?p=3752`、`gs.cuhk.edu.hk/programmes/...`） |
+
+- 港中文 2027/28 学费 HK$49,500／年；HKPFS 2027/28 在港中文的最高资助总额约 HK$1.81M；研究生助学金 2026/27 为 HK$229,200／年。
+- ⚠️ `gradsch.hku.hk/prospective_students/admissions/application_deadlines` 为 **404**（2026-10-16 实测）；港大轮次日期以**各系项目页**为准，不要用猜出来的研究生院路径。

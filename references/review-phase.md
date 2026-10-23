@@ -45,6 +45,17 @@ python3 scripts/audit-all.py <DATASHEET_ID> --only notes,title,fields
 
 `--list-checks` 看清单；`--self-test` 是纯离线回归（改正则后必须仍全过）。
 
+**⚠️ 脚本的已知局限（2026-10-09 / 10-12 实测，跑之前先处理）**：
+1. **不支持按视图限定范围**：`fetch_records()` 拉的是**整张表**。若表里混有其他学生的记录（多学生共用一张表是常态），全量十项会被无关记录污染。**做法**：先用 `viewId` 取该视图的 recordId 集合，再写一个 `audit_scope.py` 用 `importlib` 加载本脚本、调用 `check_fields/check_notes/check_titles/check_email/check_school_link/check_evidence/check_gates` 并把 `records` 换成过滤后的子集。
+2. **URL 探测是串行的且无硬超时**：285 个 URL 跑十几分钟不返回（会卡住）。**做法**：自己写并发探测器（`ThreadPoolExecutor(max_workers=10)` + `urllib` + `timeout=12`），先出「非 200/403」与「落点漂移」两张清单，再对可疑项用渲染通道穿透。
+   另：本机 `ps`、`timeout` 不可用；`curl` 对 Cloudflare 站点恒 403，但 *rendered* 通道（WebFetch）可正常打开 —— 403 不等于坏链，也不等于好链。
+3. **`学校关联反查` 在「双主表」表上会给出全量误报**（2026-10-12 实测，25/25 条 WARN）：老学生表同时有「美国地区学校」→ US 主表 与「非美国地区学校」→ QS 主表，而脚本只接收一张 `--main-table-id`，另一张主表的 id 自然「找不到」。**做法**：不要据 WARN 判定；改为分别断言 `set(us_ids) ⊆ us_master_ids` 与 `set(qs_ids) ⊆ qs_master_ids`。
+4. **`主页命中导师姓名` 对带变音符的姓名会误判为 FAIL**（2026-10-12 实测）：表内写 ASCII（`Sosic`）、官网写 `Sošić`，正文匹配失败。**做法**：表内姓名一律用**官网拼写**；核验时先 NFKD 归一化再比对。
+5. **`证据链抽检` 对「中文备注 + 英文页面」固有误报**：备注按规范必须是中文，官网是英文，中文 4-gram 覆盖率恒为 0%。**做法**：把 WARN 当提示，改人工抽查——回原页找出支撑该备注的**英文原句**并记录下来。另注意：若三个链接中有的本机 403（未取到正文），该条的语料是空的，WARN 是双重假阳性。
+
+**把"本机不通(000)"和"真坏链"分开**：000 复测一次再判。实测 10 个 000 中 8 个复测即 200（瞬时网络），另 2 个是站点 SSL 证书问题（渲染通道可开）。**只有 404/410 及"渲染后正文不含该导师姓名"才算坏链。**
+
+
 → 每一项的判定标准与通过口径原文：`verification-workflows.md`「交付前机械复查 SOP」
 
 ## 2. 脚本判不了的三件事（必须人做）
@@ -186,3 +197,21 @@ SELECT DISTINCT 博士申请信息 FROM 本轮记录
 3. auditor PASS，P0 已修正并二次验证
 4. 交付前三件事做过
 5. 报告里的总结表**由脚本生成**，不是手写
+
+## ⚠️ `audit-all.py` 链接检查的两个已知误报源（2026-10-14 已修，附判断口径）
+
+复查报「FAIL (links) … 页面未出现导师姓氏「XXX」（第三关「是本人页」不过）」时，**先别急着改表**，
+下面两类是历史高发的**误报**：
+
+1. **JS 渲染页 / 员工门户**：纯 curl 抓到的 HTML 里没有姓名，但真人浏览器打开是正常的个人页。
+   高发域名：`profiles.ucl.ac.uk`、`profiles.warwick.ac.uk`、`staffportal.curtin.edu.au`、
+   `expert.uitm.edu.my`、`academics.aut.ac.nz`、`people.wgtn.ac.nz`、`people.ucd.ie`、`ece.ubc.ca`、`futur.upc.edu`。
+   → **对策**：用无头 Chrome 渲染复测（`--headless=new --dump-dom --virtual-time-budget=15000`），
+   渲染后正文含姓名即判通过。脚本已内置该兜底（`chrome_render_text`），仅在 curl 姓名比对失败时触发。
+2. **弯引号 / 连字符**：`Marie O’Mahony`（U+2019）页面 vs 表里 `O'Mahony`（U+0027）。
+   → **对策**：比对前统一弯引号、破折号、不间断空格。脚本已内置（`fold_text`）。
+
+**判断准则**：脚本报 FAIL 且页面 **HTTP 200 + size 正常**时，必须先用无头浏览器复测再决定是否修改；
+只有「HTTP 404/410」「软 404（200 但正文 Page Not Found）」「落点跳到首页/搜索页」这三类是**真问题**。
+
+自检：`python3 scripts/audit-all.py --self-test`（含姓名折叠与职称门槛用例，改动脚本后必须跑）。

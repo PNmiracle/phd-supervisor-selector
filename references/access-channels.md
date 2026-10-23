@@ -226,3 +226,34 @@ topuniversities.com 已切到 2027 版，**不要用它判 2026**。QS 2026（�
 
 
 ---
+
+## 🇬🇧🇪🇺 英国 + 欧陆建筑/土木类院校抓取实测（2026-10-21，张天钰第二轮 41 条）
+
+| 学校 | 主站状态 | 可用通道与要点 |
+|---|---|---|
+| KTH | `www.kth.se/profile/<slug>?l=en` **curl 返回 302** 到 `/files/auth/silent/bounce`（JS 认证） | **用 cookie jar 随跳转即可拿到 200**：`curl -sL -c ck.txt -b ck.txt --max-redirs 6`。职称在 `id="profileName"` 后第一个纯文本行。WebFetch 也可读 |
+| TUM | `cee.ed.tum.de/...` 503 / 000 | 改用官方个人页库 **`www.professoren.tum.de/en/<姓>-<名>/`**（200） |
+| Manchester | `www.manchester.ac.uk` 会整站返回 **503 "Under maintenance"**（维护期数小时） | Pure 门户 **`research.manchester.ac.uk/en/persons/<slug>`** 全程可用，可核人名/职称/邮箱/研究领域；`博士申请信息` 只能等主站恢复 |
+| TU Delft | `www.tudelft.nl` 同一波故障返回 **503** | **`research.tudelft.nl/en/persons/<slug>`** 与 `/en/organisations/<unit>/persons/` 全程可用（Pure），可核人名/职称/邮箱；个人页无叙述性简介时取 `Fingerprint` 关键词并注明来源 |
+| KU Leuven | `wieiswie` 个人页被 ICTS 状态页拦截，返回 **429 + 跳 `status.kuleuven.io`** | 属站点级故障，**进待重试，不要硬凑职称** |
+| KIT | `kit.edu`、`tmb.kit.edu`、`bgu.kit.edu` 全站 **"Currently not available"**（站方因 PHP 漏洞主动下线） | 整校进待重试 |
+| UCD | `people.ucd.ie/<slug>` 是 Discovery 类 **JS 壳**（约 2 KB，无姓名） | 无 API 可挖 → 待重试，不得据此入库 |
+| Uppsala | staff 页是 `?query=` 目录查询页 | 不是个人页，不能当 `导师主页` |
+| Imperial | CEE 系无建设管理方向 | Laing O'Rourke 系相关人员多为教学岗（Research/Teaching Fellow）或兼职教授，按职称硬门排除 |
+| KCL | **无土木院系** | 建设法中心授法学博士，不合学科口径 → 判无对口 |
+
+**批量核验提醒**：`scripts/audit-all.py` 在 **90 条规模**上运行超过 20 分钟无输出（疑卡在链接检查阶段）。大规模表可先用自写机械检查过一遍（备注正则 / 职称位括号 / 第三方主页 / `博士申请信息` URL 去重 / 八列空值 / QS 回填），再对小样本跑脚本。
+
+## 🔁 2026-10-22 全表体检补充（90 条 / 11 校）
+
+| 学校 | 现象 | 正确通道 |
+|---|---|---|
+| ETH Zurich | `im/sc/cea.ibi.ethz.ch/people/person-detail.<ID>.html` → **200 但正文 "Person not found"**；人员目录页 `people.html` / `personen.html` 是 JS 空壳，列表拿不到 | **`https://ethz.ch/en/utils/search.<同一 base64ID>.html`**（200，完整档案）。ID 可从旧 person-detail URL 里直接取（`MTY5NDQ2` 等） |
+| Edinburgh | `eng.ed.ac.uk` 全站 **401 `Pantheon \| Site Locked`**（含个人页 / 项目页 / 名录页） | 个人页 `https://www.research.ed.ac.uk/en/persons/<slug>`（**裸域名 research.ed.ac.uk 无 DNS，必须 www**）；项目页 `https://study.ed.ac.uk/programmes/postgraduate-research/947-engineering`；名录 `https://www.research.ed.ac.uk/en/organisations/school-of-engineering/` |
+| PolyU | 并发抓取会整片超时（000），单线程 3–4s 间隔可稳定 200 | 顺序 + 间隔 ≥3s；个人页 slug 必须从 `/cmi/people/academic-staff/` 的 `href` 取 |
+| Manchester | `www.manchester.ac.uk` **整站 503 Under maintenance**（持续数日）；`research.manchester.ac.uk/en/organisations/.../persons/` 被 Cloudflare 403 | 个人页 `research.manchester.ac.uk/en/persons/<slug>` 正常 200；项目页只能等主站恢复，勿改 URL |
+| TU Delft | `research.tudelft.nl/en/organisations/.../persons/` Cloudflare 403，**个人页 200 正常** | 名录页可保留（浏览器可开）；姓名命中检查要按标题 `A.C. den Heijer` 这种缩写形式比对，否则误判 |
+| KTH | `www.kth.se/profile/<slug>?l=en` 无 cookie 返回 302；`/directory/a/ai/aid?l=en` 需 cookie 才是 200 | **必须 cookie jar**：`curl -sL -c ck.txt -b ck.txt --max-redirs 6`。该 directory 页标题为 `Construction & Facilities Management \| Staff directory`，**是合格的系级名录页**，不要当搜索页判掉 |
+| UCL | `profiles.ucl.ac.uk/<id>-<slug>` 是 SPA 壳（恒 3327 字节）；`www.ucl.ac.uk` 对 curl 403 | 用 `https://profiles.ucl.ac.uk/api/users/<id>`：`positions[0].position` 给职称、`tabSummaryAbout.value` 给研究简介（HTML，需 strip）、`customFilterFour` 含 `Supervision of research degrees` 即标示可带博 |
+
+**UCL 带博证据三源**（本轮验证）：① `/api/users/<id>` 的 `customFilterFour`；② `https://www.ucl.ac.uk/bartlett/construction/people/phd-students` 页的在读博士生导师团队名单（35 人中 24 人命中，**这是最硬的证据**）；③ 个人页明文。

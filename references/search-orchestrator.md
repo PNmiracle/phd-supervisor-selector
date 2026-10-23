@@ -293,3 +293,74 @@ This 30-second step compounds: every search makes every future search faster.
 - **Batch writes**: Fill the spreadsheet in batches of 5-10, not one by one
 - **Report progress**: After each P-tier completion, tell user: "P0 done: found 12 candidates across 4 schools. Starting P1."
 - **Token budget awareness**: Each school deep-search costs ~5000-15000 tokens. Prioritization ensures tokens go to high-yield schools first.
+
+## 🔍 「找人」而非「找系」——每校四入口协议（2026-10-13 用户口径，最高优先级）
+
+**背景**：曾把「学校有没有服装/纺织院系」当作判断对口与否的依据，给 91 所学校写了「该校无服装或纺织院系」。
+用户明确纠正：**学生不在意学校有没有这个专业/院系，只在意有没有做对口研究的老师；老师在商学院、计算机学院、
+设计学院、工程学院、人机交互、运动科学等任何院系都算。**「没有纺织系」这种写法会让人以为没认真找。
+
+### 强制协议
+每所学校必须依次翻以下**四个入口**，全部翻过仍无人，才可判「无对口」：
+
+1. **商学院**（运营管理 / 供应链 / 信息系统 / 市场营销 / 商业分析）→ 找 fashion / apparel / textile / retail 的供应链与数字化研究；
+2. **设计 / 艺术 / 工业设计学院**→ 找 garment / body scanning / functional clothing / adaptive clothing / wearables；
+3. **计算机 / 电子工程系**→ 找 virtual try-on / 3D human / garment simulation / e-textiles / wearable computing；
+4. **站内检索或搜索引擎**：`[school] fashion supply chain research faculty`、`[school] apparel textile wearable professor` 等。
+
+补充入口（按需）：运动科学 / 康复医学（功能服装）、人因工程 / 工业工程（人体测量）、心理与消费研究（时尚消费）。
+
+### 命中判定
+**研究对象或应用场景涉及服装、纺织品、可穿戴、人体测量、零售/时尚/纺织服装行业** 即算对口。
+**不算对口**：纯纤维制备 / 纺织材料化学 / 复合材料且与服装关联弱；纯设计创作 / 设计史论；
+可持续中与材料或环境强相关（LCA、回收工艺）；纯服饰史 / 考古；**以及完全不涉及上述对象的通用 CV / HCI / 供应链**。
+
+### 说明行措辞（不得再写「无院系」）
+> 已核对全校各院系（含商学院、设计学院、计算机学院、工程学院等），未见从事服装、纺织服装产业或可穿戴方向研究的在职教师。
+
+若该校**确有对口师资但不进表**，备注须写明原因，例如：
+> 已核对全校各院系；管理学院有从事服装供应链劳工治理研究的教师，其所在的 MRes/PhD Management 项目强制要求 GMAT 或 GRE 成绩。
+
+### 反思
+本次按此协议重扫 91 所「无对口」学校，**31 所其实藏着对口导师**，净新增 78 人 / 53 校。
+代价是要翻四倍的页面，但漏掉的是真实可用的导师——宁慢勿漏。
+
+## 🧭 找不到「系级名录页 / 系级博士项目页」时的六条排查顺序（2026-10-14 实战总结）
+
+判定「该校确实没有该层级页面」之前，必须按下面顺序试完，否则极易误判：
+
+1. **先试站点自身语言的路径，再试英文路径**。
+   反例：Politecnico di Torino 三个系的名录页被判「已下线」，实际是路径判断错误 ——
+   正确路径是 `/<系域>/en/personale/elenco`（意大利语 *personale* = 人员，*elenco* = 名册），
+   而当时只试了 `/en/staff`。德/法/意/西/葡/荷的院系站普遍保留母语路径。
+2. **去学校的研究门户找「按组织单元列人」的页**。
+   例：The University of Sydney 的 School of Computer Science 系级名录不在 `sydney.edu.au` 站内，而在
+   `profiles.sydney.edu.au/groups/<unit_id>/experts`（Pure 门户的组织单元页）；学校主站的 our-people 页是
+   **学院级跨系聚合**，不合规。同理可用 `pure.<domain>` / `research.<domain>` / `researchportal.<domain>`。
+3. **看系页的导航栏与 sitemap**，不要只看 URL 猜。多语言站的导航里常有「People / Staff / Members / Personale / Mitarbeitende / Membres / Personal」等入口。
+4. **读官方 PDF / DOCX / 课程手册**。系级名录与邮箱有时只存在于官方附件（例：曼大 FSE Doctoral Academy Contacts 是一份 .docx，网页 HTML 里搜不到邮箱）。
+5. **区分「项目页」与「介绍页」**。院系的「研究生项目」列表页（列出学位与代码，如 `AS950 Doctor of Philosophy (Science)`）可以作为**学院/系级项目页**；
+   而「研究方向介绍页」「研究中心页」「实验室成员页」都不合格。
+6. **系里不设博士时怎么办**。若该校博士只能走全校跨学科项目（如 WSU 的 IIDP），
+   **全校研究生院入口不合规**，但**系级页面里说明该系参与该项目的那一页**（如 `amdt.wsu.edu/academics/`）可以填，
+   并在交付报告里注明「该系不设独立博士，博士路径为 XXX」。
+
+### 反例记录（用于对照，别再误判）
+| 情形 | 曾经的处理 | 实际结论 |
+|---|---|---|
+| Polito DIGEP/DIMEAS/DISAT 的 `/en/staff` 404 | 判「名录页已下线」并清空 | **错**。正确路径 `/<系域>/en/personale/elenco`，三条均 200 |
+| Sydney School of Computer Science 无系级 people 页 | 判「只有学院级聚合页」 | **错**。研究门户有组织单元页 `profiles.sydney.edu.au/groups/177744/experts` |
+| QMUL `eecs.qmul.ac.uk/phd/` 跳学院首页 | 判「层级丢失」并清空 | **对**，但可替换为现行页 `qmul.ac.uk/eecs/phd/`（学院自己的 Research degrees 页） |
+
+## ⚠️ Vika PATCH：同一 recordId 在一批里出现多次会**整批失效**（2026-10-14 实测）
+
+给同一个人补两个不同字段时，若把两条 `{"recordId": 同一个id, "fields": {...}}` 放进同一批 PATCH，
+接口返回 `data.records` 为 **0 条**（既不合并也不报错）。批量前必须**按 recordId 合并 fields**：
+
+```python
+agg = {}
+for name, (field_key, url) in PLAN.items():
+    agg.setdefault(record_id, {})[field_key] = url      # 合并
+items = [{"recordId": rid, "fields": fs} for rid, fs in agg.items()]   # 每批 ≤5 条记录
+```
+（此前还遇到「返回条数少于提交条数」的情况，同样是同 recordId 被合并所致 —— 判成功的唯一标准是**回读**。）

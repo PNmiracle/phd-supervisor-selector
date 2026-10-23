@@ -55,6 +55,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -116,15 +117,26 @@ NOTES_RULES = [
 FIXED_TITLE_PHRASES = ("未明确表明监督资格", "应该到退休年龄", "可以后放")
 
 # ── 职称（第 7 + 9 项） ────────────────────────────────────────────────────────
+# ✅ 口径已定（2026-10-13 用户裁定）：
+#   **英澳的 Senior Lecturer / 高级讲师算合格职称**；「讲师序列一刀切排除」只适用于港澳。
+#   依据：规则原文（field-rules.md / rules-write.md §7）只把该排除限定在港澳；且**已交付的**
+#   《万文睿 -Supervisor List》(dst3Yxt6clXFzvwZovd 同空间) 表内实际存在「高级讲师」6 条、
+#   「讲师」9 条、「Reader」2 条 —— 改行为前本脚本会把那批已交付的记录判为 FAIL。
+#   实现：scan_title 接收记录的 Location，港澳仍拦 讲师/lecturer；其他地区放行。
+#   港澳门槛说明位置：school-registry-hk-mo-cn.md「HK 地区职称门槛」、
+#   selection-rules.md「Region and Title Heuristics」。
 TITLE_OK = ("教授", "副教授", "助理教授", "讲座教授", "特聘教授", "杰出教授",
-            "高级副教授", "首席教授", "chair professor")
+            "高级副教授", "首席教授", "chair professor",
+            "高级讲师", "senior lecturer",
+            # 英制 Reader 是正式教职（等同副教授级）、通常带博；2026-10-14 加入
+            "reader")
 TITLE_LOW = ("讲师", "lecturer", "teaching fellow", "instructor",
              "professor of practice", "research assistant professor", "研究助理教授",
              "兼职", "兼職", "adjunct", "visiting", "客座", "emeritus", "荣誉教授",
              "名誉教授", "博士生导师", "博导", "硕导", "导师资格")
-# 讲师序列一律排除的说明位置：
-#   school-registry-hk-mo-cn.md「HK 地区职称门槛」
-#   selection-rules.md「Region and Title Heuristics」
+# 只在港澳生效的排除项（英澳的 Senior Lecturer / Lecturer 是正式教职，通常可带博）
+HK_MO_ONLY_LOW = ("讲师", "lecturer")
+HK_MO_REGIONS = ("Hong Kong SAR", "Macao SAR", "香港", "澳门", "澳門")
 
 REQUIRED_FIELDS_DEFAULT = [
     "导师", "Department", "导师主页", "导师联系方式", "导师研究领域",
@@ -304,7 +316,64 @@ def curl_probe(url, tmp_dir, idx):
     return {"code": code, "size": size, "title": title, "final": final, "body_head": head}
 
 
+# ── 姓名比对与 JS 页面兜底（2026-10-14 增加，用于消除误报） ──────────────────
+TEXT_FOLD = str.maketrans({
+    "\u2019": "'", "\u2018": "'", "\u02bc": "'", "\u00b4": "'", "`": "'",
+    "\u201c": '"', "\u201d": '"',
+    "\u2013": "-", "\u2014": "-", "\u2212": "-", "\u00a0": " ",
+})
+_CHROME_CANDIDATES = (
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "google-chrome", "chromium", "chromium-browser",
+)
+_js_render_cache = {}
+
+
+def fold_text(s):
+    """统一弯引号 / 破折号 / 不间断空格，便于姓名比对。"""
+    return (s or "").translate(TEXT_FOLD).lower()
+
+
+def chrome_render_text(url, timeout=45):
+    """用无头浏览器渲染 JS 页面并返回可见文本；不可用时返回 ""。（结果缓存）"""
+    if not url:
+        return ""
+    if url in _js_render_cache:
+        return _js_render_cache[url]
+    binary = next((b for b in _CHROME_CANDIDATES
+                   if os.path.sep in b and os.path.exists(b)), None)
+    if binary is None:
+        _js_render_cache[url] = ""
+        return ""
+    tmp_dir = tempfile.mkdtemp(prefix="audit_js_")
+    text = ""
+    try:
+        r = subprocess.run(
+            [binary, "--headless=new", "--disable-gpu", "--no-sandbox",
+             f"--user-data-dir={tmp_dir}", "--no-first-run",
+             "--no-default-browser-check", "--virtual-time-budget=15000",
+             "--dump-dom", url],
+            capture_output=True, text=True, errors="replace", timeout=timeout,
+        )
+        raw = r.stdout or ""
+        body = re.sub(r"<script.*?</script>", " ", raw, flags=re.S | re.I)
+        body = re.sub(r"<style.*?</style>", " ", body, flags=re.S | re.I)
+        body = re.sub(r"<[^>]+>", " ", body)
+        text = re.sub(r"\s+", " ", body).strip()
+    except Exception:
+        text = ""
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+        try:
+            subprocess.run(["pkill", "-f", "audit_js_"], capture_output=True, timeout=10)
+        except Exception:
+            pass
+    _js_render_cache[url] = text
+    return text
+
+
 def classify_link(probe, mentor_lastname, field_name):
+
     """返回 (severity 或 None, 说明)。None 表示通过。"""
     code = probe["code"]
     size = int(probe.get("size") or 0)
@@ -335,9 +404,17 @@ def classify_link(probe, mentor_lastname, field_name):
         return "WARN", "200 但无 title：换通道确认内容"
 
     if field_name == "导师主页" and mentor_lastname:
-        ln = mentor_lastname.lower()
-        if len(ln) >= 3 and ln not in (title + " " + head).lower():
-            return "FAIL", f"页面未出现导师姓氏「{mentor_lastname}」（第三关「是本人页」不过）"
+        ln = fold_text(mentor_lastname)
+        if len(ln) >= 3 and ln not in fold_text(title + " " + head):
+            # 纯 curl 抓不到姓名时，可能是 JS 渲染页（Pure / SPA / 员工门户）。
+            # 用无头浏览器复测一次，仍找不到才判 FAIL。
+            rendered = chrome_render_text(probe.get("url_original") or probe.get("final") or "")
+            if rendered and ln in fold_text(rendered):
+                return None, ""
+            if rendered:
+                return "FAIL", f"页面未出现导师姓氏「{mentor_lastname}」（第三关「是本人页」不过；已用无头浏览器复测）"
+            return "WARN", (f"curl 抓取未见导师姓氏「{mentor_lastname}」，且本机无无头浏览器可复测"
+                            "（JS 渲染页常见）——请换通道确认是否本人页")
     return None, ""
 
 
@@ -362,8 +439,12 @@ def scan_notes(text):
 RULE_DESC = {rid: desc for rid, desc, _ in NOTES_RULES}
 
 
-def scan_title(text):
-    """判定备注首段的职称位。返回 (severity, 说明) 或 None（通过）。"""
+def scan_title(text, location=""):
+    """判定备注首段的职称位。返回 (severity, 说明) 或 None（通过）。
+
+    location：记录的 Location 字段。2026-10-13 用户裁定——**英澳的 Senior Lecturer /
+    高级讲师算合格职称**，「讲师序列一刀切排除」只适用于港澳，故按地区放行。
+    """
     text = (text or "").strip()
     if not text:
         return None
@@ -371,9 +452,23 @@ def scan_title(text):
     if any(ph in first for ph in FIXED_TITLE_PHRASES):
         return "INFO", f"职称位为固定写法「{first[:24]}」，按规则放行"
     low = first.lower()
-    hit_low = [t for t in TITLE_LOW if t in low]
+    in_hkmo = any(k in (location or "") for k in HK_MO_REGIONS)
+    ok_hits = [t for t in TITLE_OK if t in low]
+    hit_low = []
+    for t in TITLE_LOW:
+        if t not in low:
+            continue
+        # 「高级讲师」⊃「讲师」：非港澳放行；港澳仍一并拦截
+        if any(t in ok for ok in ok_hits) and not in_hkmo:
+            continue
+        if t in HK_MO_ONLY_LOW and not in_hkmo:
+            continue
+        hit_low.append(t)
     if hit_low:
         return "FAIL", f"职称位「{first[:28]}」命中排除项 {hit_low}（讲师序列 / 兼任 / 资格描述一律排除）"
+    # 非港澳的「讲师 / Lecturer」是正式教职（英澳 Lecturer ≈ 助理教授、通常可带博），视为合格
+    if not in_hkmo and any(t in low for t in HK_MO_ONLY_LOW):
+        return None
     if not any(t in low for t in TITLE_OK):
         return "WARN", f"职称位「{first[:28]}」不在认可职称集内，需人工确认（可能是资格描述而非职称）"
     return None
@@ -488,12 +583,17 @@ def check_evidence(records, f, probes, url_meta, top):
 
 
 # ── 各项检查 ───────────────────────────────────────────────────────────────────
+# 学校说明行（导师列为空）按设计只有「学校关联 + 备注」，其余列不适用
+SCHOOL_ROW_REQUIRED = ["学校名字", "备注"]
+
+
 def check_fields(records, required, f):
     for rec in records:
         rid = rec["recordId"]
         fl = rec.get("fields", {}) or {}
         label = rec_label(fl, rid)
-        for name in required:
+        req = SCHOOL_ROW_REQUIRED if not field_text(fl.get("导师")).strip() else required
+        for name in req:
             if not field_text(fl.get(name)).strip():
                 f.fail("fields", label, f"缺字段 {name}")
         link_fields = [k for k, v in fl.items()
@@ -527,8 +627,11 @@ def check_notes(records, f):
 def check_titles(records, f):
     for rec in records:
         fl = rec.get("fields", {}) or {}
+        # 学校说明行（导师列为空）没有职称，跳过职称检查
+        if not field_text(fl.get("导师")).strip():
+            continue
         label = rec_label(fl, rec["recordId"])
-        res = scan_title(field_text(fl.get("备注")))
+        res = scan_title(field_text(fl.get("备注")), field_text(fl.get("Location")))
         if res:
             sev, msg = res
             f.add("title", sev, label, msg)
@@ -654,13 +757,22 @@ SELF_TEST_BAD = [
     ("教授；消费者判断与决策；详见链接确认。", "guiding-link"),
     ("教授；消费者判断与决策；文章看这里 https://a.com/x 也可以点击查看 https://b.com", "guiding-link"),
 ]
+# (备注, Location)：港澳讲师序列仍一刀切排除
 SELF_TEST_TITLE_LOW = [
-    "讲师；消费者判断与决策。",
-    "Senior Lecturer；设计史。",
-    "Professor of Practice；城市设计。",
-    "Research Assistant Professor；交通工程。",
-    "Emeritus Professor；建筑史。",
-    "博士生导师；消费者行为。",
+    ("讲师；消费者判断与决策。", "Hong Kong SAR"),
+    ("Senior Lecturer；设计史。", "Hong Kong SAR"),
+    ("高级讲师；消费者判断与决策。", "Macao SAR"),
+    ("Professor of Practice；城市设计。", "United States"),
+    ("Research Assistant Professor；交通工程。", "United States"),
+    ("Emeritus Professor；建筑史。", "United Kingdom"),
+    ("博士生导师；消费者行为。", "China (Mainland)"),
+]
+# 2026-10-13 用户裁定：英澳 Senior Lecturer / 高级讲师 算合格职称，不得误拦
+SELF_TEST_TITLE_ALLOWED = [
+    ("高级讲师；服装技术应用研究，涉及计算机辅助样板与放码。", "United Kingdom"),
+    ("Senior Lecturer；设计史。", "United Kingdom"),
+    ("高级讲师；功能服装与无缝针织研究。", "Australia"),
+    ("Reader；服装生产工程与管理研究。", "United Kingdom"),
 ]
 SELF_TEST_TITLE_FIXED = [
     "未明确表明监督资格，可以后放～",
@@ -692,13 +804,22 @@ def self_test():
     print(f"  反例 {len(SELF_TEST_BAD)} 条：{'全部拦截' if not missed else '有漏报'}")
 
     low_miss = []
-    for t in SELF_TEST_TITLE_LOW:
-        res = scan_title(t)
+    for t, loc in SELF_TEST_TITLE_LOW:
+        res = scan_title(t, loc)
         if not res or res[0] != "FAIL":
             low_miss.append(t)
             ok = False
-            print(f"  ❌ 讲师序列未被拦截：{t[:40]} → {res}")
+            print(f"  ❌ 讲师序列未被拦截：{t[:40]}（{loc}）→ {res}")
     print(f"  讲师序列 {len(SELF_TEST_TITLE_LOW)} 条：{'全部拦截' if not low_miss else '有漏报'}")
+
+    allow_miss = []
+    for t, loc in SELF_TEST_TITLE_ALLOWED:
+        res = scan_title(t, loc)
+        if res and res[0] == "FAIL":
+            allow_miss.append(t)
+            ok = False
+            print(f"  ❌ 英澳 Senior Lecturer 被误拦：{t[:40]}（{loc}）→ {res}")
+    print(f"  英澳高级讲师 {len(SELF_TEST_TITLE_ALLOWED)} 条：{'全部放行' if not allow_miss else '有误拦'}")
 
     fixed_miss = []
     for t in SELF_TEST_TITLE_FIXED:

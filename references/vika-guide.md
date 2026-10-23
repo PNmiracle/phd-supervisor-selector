@@ -451,7 +451,8 @@ Can't update/delete/create more than $10 records in one single request
 ```
 
 - 实测 **8 条/批最稳**；批间 `time.sleep(1)`。
-- 注意与 POST/PATCH 的坑**性质不同**：DELETE 是**显式报错**（好排查），而 POST 超 10 条是 **HTTP 201 + success:true 但 `data.records` 返回空数组**（静默失败，回读才发现）。两个都要防。
+- 注意与 POST 的坑**性质不同**：DELETE 是**显式报错**（好排查），而 POST 超 10 条是 **HTTP 201 + success:true 但 `data.records` 返回空数组**（静默失败，回读才发现）。两个都要防。
+- **PATCH 单次同样上限 10 条，且是显式报错**（2026-10-16 实测：13 条一次提交报同一条 `Can't update/delete/create more than $10 records`，拆成 7+6 两批即成功）。所以批量改字段时**先按 ≤10 分批**，不要等到报错再返工；同理，批量「补学校关联」这类跨校更新也要分批。
 - 删完必须 `GET` 回读，逐个确认 target recordId 已消失，并打印实际删除条数。
 
 #### 🔴 删行前必须 dump 整行 `fields`，不能只看关键字段（2026-09-21 踩坑）

@@ -246,3 +246,26 @@ curl -s -A "Mozilla/5.0" "https://profiles.ucl.ac.uk/api/users/45469"
 - **Key endpoint**: https://www.wbs.ac.uk/about/person/neil-stewart/
 - **Failed**: Old warwick.ac.uk/fac/sci/psych/people URLs 404 for Stewart (moved to WBS)
 - **Last verified**: 2026-06-26
+
+#### University of Roehampton（2026-10-12 实测）
+- **Architecture**: 主站静态 + **Pure 研究门户**（`pure.roehampton.ac.uk`）；主站 `/staff/<slug>/` 会映射到 Pure
+- **Layer**: L1（curl 可直连 200，同样**注意 gzip**）
+- **Key endpoint**:
+  - **个人页（首选）**：`https://pure.roehampton.ac.uk/portal/en/persons/<slug>`
+    - 页面含：职称（Professor / Dr, Associate Professor…）、所属中心与学院、ORCID、**`Accepting PhD Students` 标记**、Biography、Research output 计数
+  - 单位人员列表：`https://www.roehampton.ac.uk/research/research-and-knowledge-exchange-centres/arts-and-creative-exchange/staff/`（艺术与创意交流中心 CACE，含姓名＋职称＋邮箱）
+  - 其他可用列表页：`/study/academic-areas/arts-humanities-and-social-sciences/staff/`、`/study/academic-areas/education/staff/`、`/study/academic-areas/psychology/staff/`
+  - 研究学位总页：`/study/academic-areas/graduate-school/research-degrees/`；申请入口 `/study/academic-areas/graduate-school/degrees/`
+  - 全站 sitemap：`https://www.roehampton.ac.uk/sitemap.xml`（约 1305 条，可按 `dance` / `phd` 筛项目页）
+- **⚠️ slug 不可猜（实测）**：Alex Bubb→`alexander-bubb`；Mary Shannon→`mary-l-shannon`；John Moxon→`john-moxon`；Heike Salzer→`dr-heike-salzer`；Sara Houston→`sara-houston`；Chi-Fang Chao→`chi-fang-chao`。**必须从官方页面的 `<a href>` 抄**，不要按「名字-姓」硬拼。
+- **⚠️ 折叠组件会吞内容**：CRICA 页面的导师名单用 WebFetch 读出来是 `[...]`，**必须抓原始 HTML 再正则**才拿得到（人名与链接都在源码 `<a href>` 里）。
+- **⚠️ 无学科级博士项目页（2026-10-16 实测）**：`/study/postgraduate-research-courses/<subject>` 全部 404（dance / phd / mphil-phd 都试过）。该校只有 3 个独立研究学位页：`/study/postgraduate-research-courses/dba/`、`/doctor-of-education/`、`/phd-professional-education/`。**其余学科一律没有自己的项目页** → 此时 `博士申请信息` 应填**该导师实际所属的具体项目页**（如 CRICA：`/study/academic-areas/graduate-school/crica`），仍不要退回全校 how-to-apply 入口。
+- **其他中心 staff 页也带邮箱**（`contact-card` 结构：`<h5>姓名+纯链接</h5>` + `<p>职称</p>` + `mailto:`，可整块正则提取）：
+  - SCSC 中心：`/research/research-and-knowledge-exchange-centres/research-centre-for-society-culture-and-social-change/staff/`（43 人，含 Bubb / Moxon / Shannon）
+  - **⚠️ 该中心已改名**：上述 staff 页的 `<title>` 现在是 **"Staff in the Research Centre for Inclusive Humanities"**（新名），但中心首页 H1 与 Pure 个人页仍是旧名 "Research Centre for Society, Culture, and Social Change"。过渡期两个名字并存，**Department 字段建议跟 Pure（学生点"导师主页"看到的名字）保持一致**，改名情况写进备注。
+  - 商科中心：`/research/research-and-knowledge-exchange-centres/sustainability-and-responsible-management/staff/`（62 人，含姓名＋职称＋邮箱，可用；例：Markieta Domecka → "Senior Lecturer and RKE Lead, POSE"）
+- **🚫 空壳页勿用（2026-10-16 实测）**：`/study/academic-areas/business-and-law/business-school/staff/` 页面 200 但**完全没有人员信息**——`contact-card` 数 0、`mailto` 数 0、正文仅导航。**该站以 `/study/academic-areas/.../staff/` 结尾的院系页大多不可靠**，人员一律走 `/research/research-and-knowledge-exchange-centres/<中心>/staff/`。写入前务必验证目标页**确实含该导师姓氏**，不能只看 HTTP 200。
+- **CRICA 是舞蹈/残障方向的落点**：Roehampton × LSE 联合的 AHRC 博士项目（disability × creative economy × 表演与参与式艺术），项目页有官方 Supervisors 名单。名单内的人可直接引用为「该项目认可的博导池」，比自行扫院系权威；且名单外的人在 CRICA 内不收学生（Jana 回信原话）。**名单页在每个人名后括注了官方关键词**（如 "Dr Alex Bubb (disability history, multilingualism, migration and nineteenth century imperialism)"），**这是此人能带该项目博士的官方理由，必须优先于个人页的研究兴趣写进 `导师研究领域`**——只读个人页会漏掉机构视角下最重要的那个维度。
+- **学科强项（与舞蹈方向相关）**：Dance 系（`/study/academic-areas/arts-humanities-and-social-sciences/dance/`）是英国舞蹈研究重镇；另有 **Dance Movement Psychotherapy** 与 **International Master in Dance and Movement as Practical Knowledge and Heritage** 等课程。
+- **该校未进 QS 世界大学排名**，QS 主表里本来就没有 → 学校关联需机构先补校记录（见 `vika-school-link.md` 的「搜不到就停」）。
+- **Last verified**: 2026-10-12

@@ -144,6 +144,14 @@ FSU 研究生手册（University policy，各院系手册均引用同一段）�
 - 🔴 **B 档 / 备选档的人不要跟着 C 档组一起删**。本轮报告里 C 档各组已标注「某某已入 B」，删除时必须显式排除（本轮排除 3 位：羅承浤、Koji MATSUNOBU、孫丹兒），并在报告里说明「故意没删这 3 位，需要的话再说」。
 - 🔴 **检查有没有学校被整校清空**。本轮「香港科技大学（本部）」的 3 位恰好全部落在被删组里 → 该校变成 0 条。**这是分组删除的副作用，必须主动提醒用户**，不要静默。
 - 🔴 **快照会因人工并行策展而失效**。本轮同一天内表内记录数走 124 → 111 → 93，且港科广的两位导师在我 14:59 的快照里没有、执行时又出现（Vika GET 缓存 + 人工增删）。**每次动手前后都要重新 GET，不要复用几分钟前的快照**；发现条数或记录集与预期不符时先停手比对差异。
+- 🔴 **删「筛选条件为『选导意向为空』」的一批时，删除前必须逐条重查该字段，有值的当场挂起请示**（2026-10-09 蒋元萍 C 档案例）。当时 46 条 C 档在 40 分钟前建的快照里「选导意向」全为空，执行前重查发现 **5 条（UCF 的 I-O 组）已被人工填上「无相关同步信息」**——用户是在读我上一份报告的过程中顺手标的。处理方式：**删 41 条无值的，挂起 5 条并把姓名 + 新值列进报告请用户裁定**，绝不按旧快照的「为空」直接删。脚本层面就是把这段写成硬门：
+  ```python
+  locked = [(i, name_of(i), intent_of(i)) for i in ids if intent_of(i)]
+  ids = [i for i in ids if i not in {x[0] for x in locked}]
+  # 挂起清单单独落盘（C_hold_locked.json），报告里显式列出请用户确认
+  ```
+  判据：**删记录的唯一合法依据是「用户点名 + 该记录当前无人工标记」**；只要该记录在删除时刻带有任何 `选导意向` 值，就必须停下来问。
+- 🔴 **清理清单的取数范围要用「全表」，不要只用某个视图**（2026-10-09 蒋元萍案例）。当时的清单是按「美国选导」视图建的，视图外还有 5 条同类不合格记录（DePaul / ECU / Mercer / Rowan×2）——它们**只有「美国地区学校」关联、缺 QS 关联，所以进不了该视图**，只有全表扫才看得到。用户批准清理时通常会一并点名，但**我必须在报告里主动把这批"视图外同类"单列出来请其裁定**，不要因为"不在视图里"就默认不管。删除后视图条数可能**完全不变**（因为它们本就不在视图内），报告里要提前说明，避免用户以为没删成功。
 
 ## ⚠️ 分组剔除的副作用：会误删「项目主任 / 方向负责人」（2026-10-07 曹琇翕案例）
 
@@ -243,3 +251,443 @@ FSU 研究生手册（University policy，各院系手册均引用同一段）�
 - **个人页 meta 标签是职称/学院/学部的可靠来源**：`<meta name="description">` 含职称原句，`school_metatag` / `faculty_metatag` 给建制；正文的 `Accepting applications from PhD students` 是明确招生信号。同类 Drupal 站点可复用。
 - **判定 JS 空壳靠比对字节数**：多个不相关 URL 返回完全相同字节数（南安是 284920）即为壳。`/people?q=` 搜索与 education/psychology 的 `staff.page` 都属此列。
 - 串行抓 48 个个人页会被 120s 前台超时 kill（exit 137）——后台跑或改并发（`ThreadPoolExecutor`）。
+
+---
+
+## 🎓 四校 EdD 的「导师名单在哪」——项目页往往不是答案（2026-10-07 逐校核实）
+
+**通用教训**：EdD 项目的导师名单**通常不在 EdD 项目页上**。补某一所学校的 EdD 导师前，先判断名单落在下面哪一类，否则会像本轮一样看到"0 位导师"却以为没有。
+
+| 学校 | 名单在哪 | 关键口径 |
+|---|---|---|
+| **香港大学** | **不在 EdD 项目页**；名单＝教育学院 **4 个 Academic Units** 的在职教师：LALE（语言与读写）、HCLD（沟通与人类发展）、MST（数理科技）、SCAPE（社会脉络与政策） | 教师个人页有 **「Prospective PhD/EdD/MPhil Applications」字段（三态）**：`available to supervise` / `Not applicable` / `not taking on graduate supervision in 20XX-XX`——第三种是**明确不招生**，必须读。个人页路径 `web.edu.hku.hk/faculty-academics/<slug>` |
+| **澳门大学** | **官方不公开 EdD 导师名单**（项目页与入学要求页都没有） | 唯一依据＝教师个人页字段 **「Accepting applications from PhD/EdD students」**。⚠️ 有人只写 `PhD students` → EdD 不收，必须逐字读。师资总览 `fed.um.edu.mo/people/faculty-members/`，另有按职称分的子页（chair-professors / professors / associate-professor / assistant-professors / research-assistant-professor / senior-instructors-instructors） |
+| **宁波诺丁汉** | **在 EdD 项目页**：给出**核心团队 5 人**（McTaggart、Anwei Feng、John Trent、Vlachopoulos、Umesh Sharma），并原文写明 **"All EdEn academic staff are potential supervisors of EdD theses"** | 即**教育与英语学院全体学术人员均可任 EdD 导师** → 这是四校里导师池最大的一所。个人页路径 `/en/Humanities-and-Social-Sciences/People/Profile.aspx?id=<uuid>`。师资页 `/en/humanities-and-social-sciences/schools-and-department/education-and-english/people/listing.aspx`（**英文版翻页 `?STFPageIndex=2` 会 404，中文版 `/cn/...` 可翻页**） |
+| **西交利物浦** | **不在 EdD 项目页**（该页教学团队只列 1 人＝项目主任 Na Li）；真名单＝**未来教育学院博士导师页 28 位**（同时覆盖 PhD 与 EdD） | `xjtlu.edu.cn/en/study/departments/academy-of-future-education/doctoral-supervisors`；个人页 `scholar.xjtlu.edu.cn/en/persons/<NameOrUUID>` |
+
+### ⚠️ 两条本轮踩到的坑
+1. **「职称门槛」会把方向最贴的人挡在门外，要如实告诉用户而不是静默丢掉**。本轮港大 **Patrick LO** 的方向是「博物馆与艺术设计图书馆学」——四校里最贴该学生的人，但职称为 **Senior Lecturer**，按 HK 门槛（助理教授及以上）不收。同类：宁诺 **John Trent** 方向涉 **JVET 职业教育**（与高职教师身份对口）但是 **Visiting Professor**；西浦 **Anisa Vahed** 是 **Associate Professor of Practice**。
+   → 报告中应设「**已排除但值得记录**」一节，写清姓名 + 原因，让用户自己决定要不要破例。
+2. **「不招生」与「职称不符」是两类不同的排除**，不要混写。港大教育学院有约 10 位教师（Nancy Law、David Carless、CHEN Gaowei、Jeremy Rappleye、Lily Zeng、TAI Chung Pui、FUNG Dennis、CHEN Logan、CHAN Kennedy 等）官网明确标注 2026-27 或 2027-28 **不出任研究生指导**——他们不是方向问题。
+
+### 各校 EdD 池的「方向地形」（便于快速判断有没有戏）
+- **港大**：数字/多模态素养、学习科学、教育技术、体验式学习、课程与创造力、媒介素养、哲学与文化研究。**没有**职业教育 / 艺术与设计教育 / 博物馆教育方向的在职教师。
+- **澳门大学**：教育学院主体是数学教育 / STEM / 科学教育 / **音乐教育** / 教育心理 / 幼儿 / 特教 / 量化测量；可指导 EdD 的"边缘对口"只有**教育信息技术、非正式学习、多媒体学习、中文课程与性别教育**四类。
+- **宁波诺丁汉**：翻译学（**博物馆叙事 / 艺术展览叙事**）、应用语言学（多模态 / 数字叙事）、教育戏剧、教育领导、多语教育。**注意：国际传播系不在 EdD 主办学院内**（Mary J. Ainslie 属该系，官网无其任 EdD 导师的依据）。
+- **西交利物浦**：未来教育学院 28 位里包含 **VET、艺术教育、艺术本位研究、非正式教育、项目式学习、教育符号学、AI 与教育**。**Design School / 影视与创意科技学院 / 中国研究系**方向极贴（digital cultural heritage、AIGC & New Narrative、Cultural Heritage Studies）但**无 EdD 指导权依据**，只能作 co-supervisor。
+
+### OneWayLink 写入前的稳妥做法（本轮新增）
+写 `学校名字`（OneWayLink）时，若不确定目标学校 recordId：**先用「同值重写 + 读回比对」验证**——把已有记录的该字段用候选 recordId 重新写一次（值不变，无副作用），再 GET 读回字符串看是否仍是原来的学校名。**读回一致即确认正确**。本轮用这招锁定 4 个 recordId，避免了靠"学校全称"字符串匹配失败（西交利物浦在主表里就搜不到 "Liverpool" 关键字）。
+
+---
+
+## 🎓 宁波诺丁汉：国际传播系的 PhD 路径（2026-10-08 核实，与 EdD 是两条完全不同的线）
+
+### 官方博士项目清单（FHSS 方向，`study-with-us/postgraduate-research/programmes/phd.aspx`）
+**PhD Creative Practice / PhD Culture Studies / PhD Education or English Studies / PhD History and Politics / PhD Economics + 商学院四个（Accounting/Finance/Marketing/Strategy）**，另有 EdD。工程类是 MRes + PhD。
+
+### 🔑 PhD Creative Practice —— 创作实践型博士（对「有作品集但论文少」的申请人极友好）
+- 归属：**School of International Communications / FHSS**；官网原文定位「designed for **filmmakers, media practitioners, artists**, and researchers who wish to develop original creative work, such as **films, documentaries, sound pieces, games, virtual production and other digital media projects**, together with a written **exegesis**」。
+- **创作实践即博士核心产出**，exegesis 只作理论框架与反思 —— 属「实践型博士」而非论文型。
+- 全日制 **3 年，仅全日制**（无兼读）；2 月 / 9 月入学；全年收申请，建议提前 3 个月。
+- 设施与合作：Virtual Production Studio、TV Studio、Dolby Atmos 音棚；ARRI、Arturia、UNESCO 相关项目、Yong Opera、国际电影节。
+- 导师团队专长：film, media, sound, postproduction, game design。
+
+### PhD Culture Studies —— 研究型
+- 同属国际传播系；页面直接列出**该系可能的博士指导领域**（Media arts、Documentary、Film genre、**Game studies**、**Sensory ethnography**、Sound studies、Cultural studies、Southeast Asian studies、Platform studies、Discourse analysis 等）。
+- 页面写明「**How to find a supervisor**」→ 指向该系 People 列表，即**导师不预先绑定项目，按研究计划分配**。
+- 学位注册在宁诺、**颁授诺丁汉大学（英国）学位**，中国教育部认可。
+
+### ⚠️ 两个项目的三个关键口径（务必逐字读）
+1. **英语：IELTS 7.0（各项≥6.5）/ PTE 76 / TOEFL 100。**
+   🔑 但豁免名单里**包含 United Kingdom**，原文：「Applicants from the following countries **or have studied for a degree there** (excl. split site degree programmes) are **NOT required to submit any further evidence of English language ability**」→ **在英国取得学位者可免交英语证明，且本条未写时限**（「成绩两年有效」只约束雅思/托福分数本身）。这与西浦 EdD 的「国家清单 + 毕业两年内」形成鲜明对比。
+2. **学历门槛：「hold an honours degree at 2.1 AND a masters at merit level or above in a relevant subject」** —— 与 EdD 的「硕士须为教育或相关领域」是**同一类障碍**：若申请人硕士专业不相关（如规划类），必须用本科专业或实践作品集论证相关性，并**先向 PGR Director 书面确认**；此外还要确认其硕士成绩是否达 merit。
+3. **只有全日制**（Creative Practice 与 Culture Studies 的 Types of study 均写 Full time）→ 在职申请人需评估是否能脱产 3 年。
+
+### 该系的人员构成提醒
+- **EdD 主办学院是 School of Education and English（教育与英语学院）**；**国际传播系（School of International Communications）不是 EdD 主办单位** → 传播系的教师不应挂在 EdD 项目页下（本轮修正 Mary J. Ainslie 即此问题）。
+- 国际传播系个人页里**明确写有「PhD Supervision」**的：**Filippo Gilardi（教授、系主任；创意产业 / 跨媒介叙事 / 数字平台）**、**Thomas Whyke（助理教授；动画研究 / 性别 / 文化分析）**。
+- ⚠️ 反例：**Mary Ainslie** 的官方页**没有「PhD Supervision」条目**，只有「regularly invited to … **examine** PhD theses internationally」（受邀当答辩委员）。→ **「examine PhD theses」不等于带博资格**，核验时必须区分。
+
+---
+
+## 🎓 宁波诺丁汉 PhD Creative Practice —— 导师池与官方方向清单（2026-10-08 逐页核实）
+
+### 🔑 项目页自带「Research interests」官方方向清单（**不点名导师**，只列方向）
+项目页：`https://www.nottingham.edu.cn/en/Study-with-us/Postgraduate-research/Programmes/PhD.aspx?id=d885a705-32e9-41ea-983d-7790adf98f53&language=en-GB`
+- 引导句：「We encourage work that brings together new forms, digital tools, clear thinking, and cultural understanding.」/「this list is **indicative, not exhaustive**」。
+- **Disciplines / fields**：Film and screen production｜Documentary and non-fiction media｜**Digital media and virtual production**｜Sound design, music and audio-visual practice｜Game design, game studies and interactive media｜Media, communication and cultural studies｜**Intangible cultural heritage and performance**
+- **Topics 里含**：creative screenwriting and development for film/TV/streaming｜virtual production, immersive and mixed reality｜**creative practice and AI in media production**｜**digital storytelling and platform-based creative work**（short-form video, web series, vodcasts, podcasts）｜game-based narratives / playable documentaries｜**creative practice with intangible cultural heritage, folk traditions and performance**｜**festival curation, multi-media exhibitions**
+- **联系人＝PGR Director：Dr Vikrant Kishore（`Vikrant.Kishore@nottingham.edu.cn`）**；项目页两处均写他。⚠️ Culture Studies 页存在**同页自相矛盾**：正文 "Postgraduate Research Director" 写 **Dr Stephen Goulding**，同页 "More information → PGR Director" 写 **Dr Vikrant Kishore** → **以项目页的 Kishore 为准**，Goulding 记为旧文案。
+
+### 该系导师池（写入表内的 6 位）
+| 导师 | 职称 | 方向 | 带博证据（逐字） |
+|---|---|---|---|
+| **Vikrant KISHORE** | 副教授；**PGR Director** | documentary practice; screen production; online storytelling; mobile filmmaking; **multimedia curation; archiving and exhibitions**; **intangible cultural heritage**; film festivals; Asian cinema; creative practices | 角色性证据（PGR Director，申请经其筛分）；**页面无 supervision 字样** |
+| **Corey Kai Nelson SCHULTZ** | 副教授 | Chinese art film; Chinese visual culture; film phenomenology; film theory; **museum studies; heritage studies**; affect studies | **"I have supervised PhD dissertations to completion in film studies, and am currently supervising PhD research projects on Chinese film."** |
+| **Levi DEAN** | 助理教授（影视制作） | cinematography; colour grading; screenwriting within Chinese context; narrative filmmaking; documentary filmmaking; virtual production and motion capture | **"He also supervises practice-based PhD students and welcomes enquiries from prospective candidates"**；ARRI 认证讲师 |
+| **Roy HANNEY** | 副教授（创意技术） | immersive storytelling; expanded narrative; XR; virtual production; audio-visual installation; **duanju（竖屏短剧）**; AI-assisted production; practice-based research design | 页面**无** supervision 字样 |
+| **Simon WEAVING** | 副教授 | film genre; movie production/distribution/exhibition; **creative practice research**; cinematic virtual reality; documentary; screenwriting | 页面**无** supervision 字样；本人为导演／电影节总监 |
+| **Filippo GILARDI** | 教授、**系主任**、亚太研究所所长 | media convergence; creative industries; digital business models; digital copyright; transmedia storytelling | 页面**明确列 "PhD supervision"**；Pure Supervised Work 7 条 |
+
+### 未写但可补 / 被规则挡住的人
+- **可补**：Bjarke LIBORIUSSEN（副教授，videogames／中国游戏文化／cinematic videogame adaptation，明确列 PhD supervision）、Richard FRENNEAUX（助理教授，music industry／platform，明确列 PhD Supervision）、Matt PARKER（助理教授，**creative practice-based research**／sound arts／immersive audio／sensory ethnography／documentary practice）、Thomas WHYKE（副教授，animation studies／gender／cultural analysis，多年明确列 PhD Supervision）、María Mercedes VÁZQUEZ（助理教授，**film curatorship**／拉美与华语电影，未列带博）。
+- **职称不符但方向极对口**：**Dr Zhaoyu ZHU（Teaching Fellow；中国电影技术／虚拟制作）**、Dr Jessica HATRICK、Dr Tyler BECKLEY（Teaching Fellow）。
+- **Honorary 一律不收，但值得记录**：**Prof Henry JENKINS（跨媒介叙事／transmedia 奠基人）**、Terry Flew、P. David Marshall、Claudia Mellado。
+- **明确不招生**：Dr Troy CHEN（页面原文 "not accepting PhD students at this time … at capacity"）。
+- **C 档（与视觉创作实务无接口）**：Terence Lee、Zhan Zhang、Shixin Ivy Zhang、Sadia Jamil、Stephen Goulding、Jo Parkes（需编程统计）、Laura-Jane Filotrani、Lei Hao。
+
+### 🔑 机构性结论：不必去别的学院找
+**Mixed Reality Lab（6 人）、Institute of Screen Production（3 人）、Digital Heritage Centre（5 人）的成员全部来自国际传播系本院**（Dean、Hanney、Gilardi、Weaving、Kishore、Filotrani、Frenneaux、Lei Hao、Parkes），**官网无任何外系成员参与 Creative Practice 指导的依据**。IAPS 有 32 名跨院系成员，但均无指导依据。
+
+### 两条通用教训
+1. **「项目页有方向清单、但不点名导师」是一种常见结构** → 遇到这种项目，导师要从**主办学院的师资名单页**反查，并对每个人的方向逐个比对项目页清单，而不是等一个官方导师名单。
+2. **核验带博资格要区分三类表述**：`PhD Supervision`（明确带博）／`supervises practice-based PhD students`（明确带实践型博士）／`examine PhD theses`（**只当答辩委员，不等于带博**）。本案例里 Ainslie 属第三类，Kishore 属「角色性证据」，Hanney / Weaving / Parker 属「无表述」——三类必须在备注里如实写明差异。
+
+## 2026-10-09 更新（万文睿第三轮 — 英国 + 澳洲 QS 前 100：环境功能材料 / 吸附材料 / 膜分离 / 环境痕量分析批次）
+
+### 场景
+学生方向＝功能孔材料（多孔二氧化硅、MOF）与高分子复合材料，对应「功能吸附材料与环境痕量分析」「吸附催化一体化环境功能材料」「功能分离膜材料与水处理技术」；应用场景限淡水废水与陆地土壤，海洋排除、大气后放，偏计算/建模的材料方向排除。
+范围＝英国 + 澳洲 QS 前 100 全部学校（排除牛津、剑桥、IC）。共 22 校，覆盖 UCL/KCL/Edinburgh/Manchester/Bristol/Warwick/Birmingham/Glasgow/Leeds/Southampton/Sheffield/Durham/Nottingham + Melbourne/UNSW/Sydney/ANU/Monash/UQ/UWA/Adelaide/UTS。
+
+### 🔑 结构性发现：**「环境功能材料 + 膜 + 水处理」这条线在澳洲化工系，不在化学系**
+- 澳洲侧真正的富矿是**化工系**：Melbourne Chemical Engineering（Kentish/Scholes/Qiao/Mumford/Gang Li）、UNSW Chemical Engineering（UNESCO 膜中心：Leslie/Henderson/Le Clech/Cheng）、UTS 水与废水技术中心（Tijing/Shon/Guo/Fu/Nghiem）、UQ Chemical Engineering（Hou/Xiwang Zhang/John Zhu/Carvalho）、Monash CBE（Huanting Wang/Zhikao Li）。
+- **化学系反而薄**：UNSW 化学系除在册者外无新增；Monash 化学院多为分析/合成；Glasgow 化学系集中在 MOF 合成化学（命中排除项）；Sheffield 化学系主体是高分子合成与催化。
+- 英国侧相反，**化学系的「环境分析」线更实在**：Birmingham GEES（Abdallah/Drage 环境痕量分析）、Bristol Geographical Sciences（Charlotte Lloyd 土壤/淡水有机物分析）、Nottingham 化工与环境工程系（Tokay 膜材料 / R. Gomes 废水处理+吸附）。
+
+### 🔴 本轮踩到的制度性坑（可直接复用）
+1. **Bristol 已下线系级静态 staff 名录**。`bristol.ac.uk/chemistry/people/` 与 `/geography/people/` 均 302 到全校 `bristol.ac.uk/people/`。可用替代＝带院系筛选参数的全校 People 入口：`https://www.bristol.ac.uk/people/?search=Faculty%20of%20Science%20and%20Engineering%2FChemistry`（地理系换 `%2FGeographical%20Sciences`）。**只回该系人员**，但地理系版为 JS 渲染可能只回 "Loading…"。
+2. **Southampton 无任何可用的系级 staff 名录**。`/chemistry/about/staff.page` 302 到「Find a person」全校目录；带 `search_api_school=School of Chemistry and Chemical Engineering` 直接报 "Sorry, we couldn't find what you were looking for"。可用的系级页只有 `https://www.southampton.ac.uk/study/postgraduate-research/chemistry`（含 **Potential supervisors** 栏 + 指向 supervisor list 搜索页）。
+3. **UNSW 没有系级博士项目页**。CEE 的 "Research degrees" 最终指向校级 `research.unsw.edu.au/higher-degree-research-programs`；系级最贴近替代＝`.../civil-and-environmental-engineering/our-research/research-students`。教师名录用**校级 People + 系筛选**（`unsw.edu.au/engineering/about-us/our-people`）。
+4. **Monash 化工系的科研门户 org persons 页会漏人**。`research.monash.edu/en/organisations/chemical-biological-engineering/persons/` 查不到 Huanting Wang —— 其主机构被标为 Monash Suzhou Research Institute。系官方名录应用 `https://www.monash.edu/engineering/departments/chemical/our-people/academic-staff`。
+5. **Edinburgh IMP 旧路径已 404**（`eng.ed.ac.uk/research/institutes/imp/people`）→ 改用 `https://eng.ed.ac.uk/about/people?field_loc_eng_ri_target_id=23`（按研究所筛选）。化学系 `chem.ed.ac.uk/staff/academic-staff` **无职称列**，职称需回个人 staff 页取。
+6. **Adelaide / UWA 都没有院系级博士项目页**，只有校级入口；按 field-rules 的例外条款保留校级或学院页并在报告说明，不要硬凑。
+7. **反爬通道实测（本轮新增）**：Durham 全站 AWS WAF（curl 一律 202 + 空 body，**必须 WebFetch**）；UCL `profiles.ucl.ac.uk/<id>-<name>` 是 ~3.3KB JS 壳、`ucl.ac.uk/mathematical-physical-sciences/*` 与 `/engineering/*` 对 curl 403；Melbourne `chemistry.unimelb.edu.au` / `chemical.eng.unimelb.edu.au` 对 curl 403；Monash `www.monash.edu` 与 `research.monash.edu` 对 curl 403；UWA `research-repository.uwa.edu.au` 403；Adelaide `researchers.adelaide.edu.au` curl 走 TLS legacy 报 000 但 **WebFetch 正常**；UTS `profiles.uts.edu.au` 是 JS 壳但 WebFetch 可渲染。
+8. **UTS 个人页 slug 可能带 `-1` 后缀**：`Wenshan.Guo` 404 → 正解 `Wenshan.Guo-1`；`Long.Nghiem` 404 → 正解 `DucLong.Nghiem`。系级名录用 `profiles.uts.edu.au/groups/27/experts`。
+9. **Warwick 化学系名录页 `warwick.ac.uk/fac/sci/chemistry/staff/` 是 JS 渲染**（datastore API `/sitebuilder2/api/dataentry/*` 返回 403），静态抓不到全量名单 → 覆盖不全，需换渲染通道重试。
+10. **KCL 本轮 0 条**：Department of Analytical, Environmental & Forensic Sciences 在职者方向集中在生物与法医基质（LC-MS/MS 药物与违禁物定量、环境致癌物代谢毒理），无功能吸附材料/膜分离/环境痕量分析主线；且系名录页疑为旧版，Leon Barron 个人页正文已写 Imperial College London（疑已转校）。**下一轮搜 KCL 前先核其在职状态**。
+11. **LSE 属结构性非对口**：研究生项目总目录全为社会科学学科，无化学/化工/材料/环境工程类实验型博士项目 → 该类方向的学生遇到 LSE 直接记 non-fit，不必逐系翻。
+
+### 审核侧新发现
+- **职称陷阱（本轮 2 例）**：Manchester 的 **Xiaolei Fan** 与 Edinburgh 的 **Giulio Santori**，院系名录页原文都是 **`Reader`**，个人页/档案页并无 "Associate Professor"。写「副教授」会被判定职称错 → **英国 Reader 建议照抄名录页原文写 `Reader`**（机械检查脚本会给 WARN 而非 FAIL，可接受）。同理 Warwick/Edinburgh 名录上的 `Chair of X` 只是讲席头衔，不等于正教授职级。
+- **「需确认」类推责表述本轮反复出现 4 次**（Huanting Wang「实际指导时间需确认」、Majumder「膜-水方向需再确认」、Andrew Harris「需要当面确认」、Garcia-Araez「需要再核」）→ 全部改为客观陈述或 `未明确表明监督资格，可以后放～`。**写备注时凡出现"需确认/需要再核/当面确认"即视为不合格**。
+- **备注事实可追溯**：Marco Conte 备注原写「该项目注明为自费」，三条链接里都找不到 → 已删。**项目经费类表述最容易没有出处，写入前必须回页面 grep**。
+- **备选后缀数量比例**：本批 80 条里 38 条带备选/后放后缀，按 4 种后缀轮换（10/10/10/9），机械自查口径应按「某一后缀占比是否 >50%」而不是「每种 ≤3 次」（后者是 15 条批次的标定）。**真正的雷同来源是方向短语本身**：方向名一旦 ≥14 字（如「吸附催化一体化环境功能材料」），同批出现两次就必然触发 14 字窗口重复 → **方向短语要拆短（≤7 字）并轮换变体**，配合不同的关系词（能搭上/有交叉/能接上/对得上/沾得上/连得上/有关联/说得上）即可把重复清零。
+- **机械检查脚本的已知局限（本轮实测）**：`audit-all.py` 的职称门槛是**非地区感知**的——`TITLE_LOW` 含「讲师」，因此英国 Lecturer/Senior Lecturer 与澳洲 Lecturer 会被一律判 FAIL，而 `selection-rules.md` 明确允许英国 Lecturer/Senior Lecturer（澳洲需带博证据）。**审到这类 FAIL 时先读 selection-rules 的地区口径再决定，不要直接删人**。另：脚本的 `fields` 检查把 `导师研究领域` 与 `导师联系方式` 列为必填，历史批次这两列多为空，全表 FAIL 数会被历史记录放大，**过滤时按姓名或记录 ID 只看本批**。脚本输出里 label 的记录 ID 是**截断的 9 位**，不能直接与完整 recordId 比对，按姓名过滤更稳。
+- **Fusion API 批量写入门槛再次确认**：单请求 >10 条会静默失败（HTTP 201 + `data.records` 空数组）；本轮按 **5 条/批** 写入 80 条全部成功。带 OneWayLink 的 POST **不能带 `fieldKey`**；URL 三列必须用**字段 ID + `fieldKey="id"`**，文本列用**字段名 + `fieldKey="name"`**，两者不可混在同一请求。
+
+## 2026-10-09 更新（万文睿第三轮·第二轮抓取复核：JS 站点绕行通道 + 导师状态变更核实）
+
+### 🔑 通用技巧：英澳校的「系级名录页抓不到」几乎都有 Pure 门户兜底
+本轮 24 个系级名录页报抓取失败，其中绝大多数可用**科研门户**绕过：
+| 学校 | JS/反爬的系名录 | 可用的替代入口 |
+|---|---|---|
+| Bristol | `bristol.ac.uk/chemistry/people/`、`/geography/people/`（302 到全校搜索） | `https://research-information.bris.ac.uk/en/organisations/school-of-chemistry/persons/`（同理 `school-of-geographical-sciences`、`school-of-civil-aerospace-and-design-engineering`） |
+| Edinburgh | GeoSciences 的 `ed.ac.uk/geosciences/people/teaching-research`（Angular，{{peoplenum}} 占位） | `https://www.research.ed.ac.uk/en/organisations/httpswwwedacukgeosciences/persons/` 与 `?search=<name>` |
+| Durham | 全站 AWS WAF（curl 202 空 body） | **`https://dur.ac.uk/staff/<slug>/` 走 WebFetch 可读全传记**；系名录 `.../<dept>/about-us/staff/` |
+| Monash | `www.monash.edu` Cloudflare 403、`research.monash.edu/.../persons/` 会漏人 | `research.monash.edu/en/persons/...`（WebFetch 可读）；系官方名录 `monash.edu/engineering/departments/chemical/our-people/academic-staff` |
+| ANU | 个人页 JS 壳 | `researchportalplus.anu.edu.au/en/persons/<slug>`（含 Registered to supervise 字段） |
+| Adelaide | 系 our-people 只列 Dean + School Manager；`researchers.adelaide.edu.au` curl 报 000 | `researchers.adelaide.edu.au/profile/<first.last>`（**WebFetch 可穿透 TLS legacy**，页内有 Eligible to supervise 字段）；`adelaide.edu.au/directory/<slug>` |
+| Warwick | 化学系 datastore 端点持续 429、sitemap 404 | `profiles.warwick.ac.uk/<id>-<name>/about`（Discovery 门户）；院系领导层页 + Honorary 名单页可读 |
+| KCL | — | 名录分页 `?page=N` 可全量；注意 `kcl.ac.uk/people/<name>` 存在**陈旧残留页**（见下） |
+| UNSW | 无系级 our-people（设计如此） | 校级 People + 系筛选：`unsw.edu.au/science/about-us/find-academic`、`unsw.edu.au/engineering/about-us/our-people`；WRC 用 `unsw.edu.au/research/wrc/about-us/our-people` |
+| UQ | SCMB `/our-people` JS 空壳 | `scmb.uq.edu.au/team/academic` |
+| UTS | slug 易失效 | 系名录 `profiles.uts.edu.au/groups/27/experts`；slug 可能带 `-1` 后缀 |
+
+### 🔴 个人页「还在」不等于人在：本轮抓到 7 例陈旧残留页
+**校方系网页/个人页常年不清**，看到名字就当作在职是最大的坑。本轮逐条核实的实例：
+- **Robert Mokaya**：Nottingham 个人页仍写 `Professor of Materials Chemistry and Pro-Vice-Chancellor for Global Engagement`，但 Sheffield 官方页现署 **Emeritus Professor**，且 Sheffield《University Officers》写明其 `Provost & Deputy Vice-Chancellor (until 31 August 2025)`、2024-06 上任 → **已离任且已荣休**。核实通道：目标校官方 staff 页 + 该校 officer 名单 PDF。
+- **Sihai Yang**：系网页静态名录仍列 `Professor in Inorganic Chemistry`，但科**研门户个人页 404 且门户检索 0 条** → 已离任（现北京大学）。
+- **Leon Barron**：KCL 个人页仍在，但**正文自己写着 Imperial College London** → 2020 已转校。
+- **Vernon Phoenix**：Glasgow 个人页变空壳，实为已转 **University of Strathclyde**（现该校土木与环境工程教授）。
+- **Paul Webley**：Melbourne 旧页失效，实为 **Monash** 教授（ORCID 任职区间 2020-06 起 Monash）。
+- **Dianne Wiley**：Sydney 已无在职页，现为 University of Newcastle 的 **Honorary Professor**（2022-02 离任）。
+- **Giancarlo Pascali**：UNSW 官方页现写 **Conjoint Associate Professor**（兼任序列）。
+**新增核验动作**：对「系网页有名、科研门户无档」的人，一律先查科研门户（Pure）有无个人页；门户 404 且检索 0 条 → 判离任，不要只看系网页。
+
+### 🚧 「明确不招」与「带生资格受限」要分开记
+- **Sydney Abbas El-Zein**：个人页原文 `Abbas is not currently accepting new MPhil or PhD research students` → 不是方向问题，是**明确停招**，直接排除并在备注注明。
+- **Adelaide 的带生资格字段有三种值**，含义完全不同：`Eligible ... as Principal Supervisor`（可主带）/ `Co-Supervisor only`（**只能共同指导，不能任主导师**）/ `Not eligible, but is currently at capacity`（**当前名额已满**）。同一学院三个人分别命中三种值，必须逐人读字段，不能按「页面上有这个人」处理。
+- **Nottingham 学位归属**：Centre for the Environment 是**跨院挂靠中心**（Geography + Biosciences），候选人的博士**学位学科**要按个人页的 School 归属定（Liz Bailey → School of Biosciences，项目页 = Environmental Sciences PhD/MPhil/MRes）。挂靠中心页不能当「院系名录页」也不能决定学位。
+
+### ⚙️ Vika Fusion API：密集调用后的 301 是限流，不是丢表
+本轮出现连续多次 `{"success": false, "code": 301, "message": "Can't find the specified datasheet"}`，同一 token 换小 `pageSize` 又能读到、稍后又全部恢复，且**关联的学校主表始终正常** → 判定为**限流伪装成表不存在**。
+对策：① 一次 `pageSize=200` 把全表读完，不要分页连打；② 失败先 sleep 10–20s 再试，重试次数给足（12 次以上）；③ **不要用 `python3 -c "import 脚本名"` 来调试**——会把脚本顶层的 POST 再执行一遍（本轮因此多建 5 条重复记录，事后按字段完整度保留一份、DELETE 另一份）；④ 写入仍按 **5 条/批**。
+
+---
+
+## 🎓 香港教育大学：EdUHK 的「EdD 归属」判据 —— 别再凭院系猜（2026-10-10 逐名核实）
+
+### 🔑 判据：EdUHK 有**两份官方名单**，EdD 与 PhD 是两条不同的线
+1. **EdD 有官方导师名单**：`https://gs.eduhk.hk/prospective-students/edd/potential-supervisors/`
+   → **一次性列出全部潜在导师**（2026-10 版 **57 人**），含姓名、学院/学系、职级。**这是 EdD 归属的权威判据。**
+   ⚠️ 但页顶明确标注该名单 **"non-exhaustive"（非详尽）且会持续更新** → **「不在名单上」只能证明"无 EdD 依据"，不能证明"不能带 EdD"**。写备注时必须把这个区别写出来。
+2. **PhD（RPg）没有导师名单**：`https://gs.eduhk.hk/prospective/rpg/` 只写 "you will follow a programme of study under the guidance of a principal supervisor and a supervision committee"，并设 "Finding Your Supervisor(s)" 一节 → **不列名单**，只指向 EdUHK Repository（`repository.eduhk.hk/en/persons/`）与 EdUHK Experts。
+   - 研究生院页原文区分两类项目：**"Research Postgraduate Programmes (i.e. PhD and MPhil)"** 与 **"Professional Doctorate Programmes (i.e. EdD and EdD(Chinese))"**。
+
+### ⚠️ 本轮抓到的实际错误：CCA 的人被误挂到 EdD
+12 条港教大记录里，**6 条来自文化与创意艺术学系（CCA）的人根本不在 EdD 名单上**：洪強 HUNG Keung、劉亮國 LAU Leung Kwok Prudence、郭秋孜 GUO Qiuzi、林巧羚 LAM Hau Ling Eileen、何月珍 HO Yue Jin、Zoran POPOSKI。
+- 判据：逐一比对 EdD 名单 → 均未出现；同时 **CCA 研究生课程页首项即 "Doctor/Master of Philosophy (PhD/MPhil)"**（`https://www.eduhk.hk/cca/en/programmes/postgraduate-programmes/`）→ CCA 承担的是**研究型研究学位**。
+- 处置：这 6 条改挂 `导师所在项目=艺术类PhD`、`博士申请信息= https://gs.eduhk.hk/prospective/rpg/`，备注写明「不在 EdD 名单上（名单为非详尽）+ CCA 承担 PhD/MPhil + 个人页未载明指导记录」。
+- **教训：按院系反推项目归属是错的。** CCA 既可能参与 EdD（见下），也承担 PhD/MPhil，**只有名单能定归属**。
+
+### 🔴 更正：「18 个 Specialised Areas / Creative Arts Education」的说法不成立
+EdD 项目页（`https://gs.eduhk.hk/prospective/edd/`）当前列 **5 个 Cluster**，申请人选其一并为该 Cluster 指定**一个附属院系**：
+1. Curriculum and Learning（C&I／ECE／PS／SEC）
+2. Leadership, Policy and Values in Global Education（C&I／EPL）
+3. **Language, Culture and Education（CCA／CHL／ELE／LML）** ← CCA 在这里
+4. STEM Education（MIT／SES）
+5. Social Science and Human Well-being（HPE／SSPS）
+
+**没有名为 "Creative Arts Education" 的 Cluster**；「Doctor of Education – Creative Arts Education」只出现在人文学学院（FHM）层面的表述里。**以项目页的 5 Cluster 为准。**
+其余 EdD 参数（本轮复核原文）：Programme Code A3D045 / C4D001；硕士须为教育或相关领域；四年工作经验为 preferred；**IELTS 6.5（各项≥6.0）/ TOEFL 80（2026-01-21 起新制 4.5）**；**明确不接受 CET**；72 学分；全 3 年／兼读 4 年；2026 九月入学的截止日为 2026-04-15；课程主任 Prof HOU Wai Kai。
+
+---
+
+## ⚙️ Vika 写入技术坑：SingleSelect 字段要用**字段 ID** 写，且必须回读校验（2026-10-10）
+
+**症状**：用 `PATCH /records`＋`fieldKey:"id"`，在同一个 payload 里同时写 `"导师所在项目":"艺术类PhD"`（SingleSelect，按中文选项名）与 `"备注":"..."`（Text）——**API 返回 `success: true`，Text 字段生效，但 SingleSelect 字段完全没变**（回读仍是旧选项）。
+
+**修复**：改用**字段 ID** 写入即可生效：
+```json
+{"records":[{"recordId":"recXXX","fields":{"fldTHIScc8CgL":"艺术类PhD"}}],"fieldKey":"id"}
+```
+
+**规则**：
+1. 改 SingleSelect／MultiSelect 字段值，**一律用字段 ID（`fldXXXX`）而不是字段中文名**。
+2. **写完必须回读校验**——本轮就是因为回读才发现 6 条分类没改成功；如果只看 `success` 就会以为改完了。
+3. 记录字段 ID 备查（本表）：`导师所在项目=fldTHIScc8CgL`（SingleSelect）、`EDD工作年限要求=fldf26g3jM6xW`（Text）、`备注=fldt2UATh9Ofp`（Text）、`博士申请信息=fldYm8R3l4Bnu`、`学校名字=fldFfXtdDSST1`（OneWayLink，值须为 recordId 数组）。
+
+---
+
+## 🇬🇧 University of Sussex：全站人员页已 JavaScript 化 + 无合格院系名录页（2026-10-10，姜一丁第六轮实测）
+
+**症状**：以下 URL 用 curl（含完整浏览器 UA、`-L`）打开一律返回 **约 4.2KB 的 "Discovery" 空壳**（`<title>Discovery</title>`、`<div id="app"></div>`、`/javascript/client.js`），正文无姓名：
+
+- `https://www.sussex.ac.uk/profiles/{id}`（曾有服务端渲染版本，2026-09 前可用）
+- `https://profiles.sussex.ac.uk/p{id}-{slug}`
+- `https://www.sussex.ac.uk/english/people/peoplelists/person/{id}`
+- `https://www.sussex.ac.uk/schools/media-arts-humanities/subjects-and-people/english/people/groups/person/{id}`
+
+**可用通道**：真实浏览器（`agent-browser`，PATH 前缀 `/Users/leyiqingxue/.workbuddy/binaries/node/versions/22.22.2/bin`）打开 `https://profiles.sussex.ac.uk/p{id}-{slug}/about`，`document.querySelector('main').innerText` 可拿到完整姓名 / 职称 / 院系 / 研究自述。**判定 Sussex 链接一律以此为准，curl 状态码既不构成 FAIL 也不构成 PASS。**
+
+**⚠️ 无合格院系名录页**：`…/drama-theatre-and-performance/people/` 在浏览器中只给「Drama, Theatre and Performance」「A-Z list of people in the English subject areas」两个分类链接，不列人员；按系分组页 `…/english/people/groups/group/drama` **只列 Sara Jane Bailes 一人**；A-Z 名录（`…/english/people/groups/a-z`）不含 Price / Corrieri / Fowler / McEvoy 等戏剧系教师。→ **Sussex 导师记录的「其他导师信息」字段只能留空**，不要拿 A-Z 或 subject-areas 级页面凑数。
+
+**Sussex 戏剧系（Department of Drama, Theatre and Performance）已知教学人员**（课程页 "Our experts" + A-Z 交叉得到，用于快速建候选池）：Sara Jane Bailes（Visiting Professor，排除）、Augusto Corrieri、Tomei Bacon、Benjamin Fowler、William McEvoy（Head of Drama）、Lisa Peck、Jason Price、Arabella Stanger。
+
+**附：Birmingham 对照** — 戏剧系名录页 `https://www.birmingham.ac.uk/about/college-of-arts-and-law/drama-and-theatre-arts/staff` 服务端渲染正常，共 10 人（含 4 位非学术岗：Costume Supervisor / Scenic Designer / Theatre Arts Manager / 行政），**浏览器确认无分页**；个人页 `.aspx` curl 可直接取正文，页面顶部部门字段现为 `Department of Creative Industries`（项目与名录页仍用旧名 Drama and Theatre Arts）。
+
+## 2026-10-10 更新（万文睿第三轮·第三遍复查：Warwick 全名录通道 + 诺丁汉项目页死链）
+
+### 🔑 Warwick 化学系名录的两级绕行（可直接复用）
+Warwick 把 staff 名录交给 Sitebuilder 的 entries-filter 组件渲染，**三层通道全部堵死**：
+1. 后端 API：`/sitebuilder2/api/dataentry/entries.json?datastoreId=<id>&originalUrl=<page>` —— 端点名从 `static_war/entriesfilter/index.js` 里挖出来了，但**带完整浏览器头（Referer + X-Requested-With + Accept + 会话 Cookie）仍一律 429**，属 WAF 级路径封锁，不是限流；`entries.json` / `list` / `filtereditems/info` 三种子路径全 429。
+2. 门户 `profiles.warwick.ac.uk`：SPA，个人页同为 4151 字节壳；`/api/*` 只有 Express 默认 404，无公开检索端点；`configuration.js` 里只暴露 `publicApiUrl` 与 `prerenderUserAgent`，实测用 prerender UA 也不返回服务端渲染。**注意它的 `sitemap.xml` 是 brotli 压缩**（curl 报 "Unrecognized content encoding type"，需 `pip install brotli` 后解压），解压可得 4,935 条 profile URL，但**无法按院系筛选**。
+3. ✅ **可行通道＝系站「研究主题页」**：`https://warwick.ac.uk/fac/sci/chemistry/research/<theme>/`（theme ∈ measurement-analytical / synthesis-catalysis / energy-materials / polymers / chemical-structural-synthetic-biology / catch）由服务端渲染，人员以卡片呈现，**照片 `alt` 属性带完整称谓**（`Prof Julie Macpherson`、`Dr Mark Barrow`），正文给每人一句方向摘要。抓 6 个主题页 + `aboutus/slt/` + `staff/honorarystaff/` + `research/independentresfellows/` 即可还原全系研究活跃教职。
+   - 附属发现：`/research/groups/`、`/staff/academicstaff/`、`/staff/academic-staff/`、`/staff/researchstaff/`、`/staff/technicalservices/` 均 404；个人页格式为 `/fac/sci/chemistry/staff/<slug>`（无斜杠亦可）。
+   - 另：`WebSearch` 对 Warwick 很有效 —— 搜索引擎已把 SPA 门户渲染好，返回片段里直接带「Professor Chemistry + FIELDS OF RESEARCH + email」。
+
+### 🔴 学位项目页「学部列表有、课程页 404」＝校方死链，不是我们找错
+**Nottingham Environmental Engineering PhD** 案例：工程学部研究生页 `engineering/pg-research/` 的「Explore PhDs」**确实列出**该学位，链接为 `https://www.nottingham.ac.uk/pgstudy/course/research/environmental-engineering-phd`（**不带年份段**），但**该链接 404**；对照同目录 5 个兄弟项目**全部 200**（chemical-engineering-phd / civil-engineering-phd / sustainable-energy-technology-phd / materials-engineering-and-material-design-phd / environmental-sciences-phd）。
+**可复用的判定法**：当某课程页 404 时，**先取同学部/同系「兄弟项目」的 URL 做对照测试**——兄弟全 200 而目标 404，即可判定为校方未发布或死链，而不是地址猜错；同时用它反推出规范 URL 形态。
+**顺带确认的 URL 形态**：Nottingham 的研究型课程页既支持 `/pgstudy/course/research/<slug>`，也支持 `/pgstudy/course/research/<year>/<slug>`（如 `2026/environmental-sciences-phd` 与不带年份均可访问）。
+
+## 2026-10-10 更新（万文睿第三轮·交付后「全部检查一遍」：全量链接实测 + 备注/职称回核）
+
+### 🔑 新增可复用的机械检查动作（建议固化成交付前必跑）
+1. **全量三列链接实测**：把本批所有记录的三列 URL 去重（86 条 → 170 个唯一 URL），逐个取 **状态码 + 最终落点 + 正文长度 + 页面内是否命中该导师姓/名 + 名录页人名条数**。判定口径：
+   - `status != 200` → 需换通道；`正文 < 700 字` 或含 `enable JavaScript` / `{{` → 判为 **JS 壳页**，需换通道；
+   - 个人页：正文必须命中该导师**姓**（页面常写 "Prof. X. Surname"，全名不一定连写）；
+   - 教师名录页：**人名条数 < 10** 时高度可疑（Adelaide 的 `our-people` 只有 Dean + School Manager 两人，就是这个信号）；
+   - 博士项目页：看标题层级（校级课程目录 vs 院系自有页）。
+   实测结果：170 个 URL 中 **150 个直连 200、20 个被 Cloudflare/SPA 挡住**，换 WebFetch/搜索引擎后**零死链**——这说明「curl 403」在本类站点上几乎从不等于坏链，**每次都要换通道再判**。
+2. **壳页与反爬的新名单（本轮实测）**：`profiles.ucl.ac.uk/<id>-<name>`（11 字节壳，且**去掉 `/about` 后缀反而能拿到内容**）、`profiles.uts.edu.au/**`（278 字节壳）、`findanexpert.unimelb.edu.au/**`（762 字节壳）、`www.ucl.ac.uk/**` 与 `research-information.bris.ac.uk/**` 与 `research.monash.edu/**` 与 `chemistry.unimelb.edu.au/**` 与 `research-repository.uwa.edu.au/**`（Cloudflare「Just a moment…」403）。可用 `brotli` 预解压后再判正文。
+3. **改完备注必须复跑雷同扫描**：本轮修正两条备注后**当场产生两处新的 14 字重合**（`方向有交叉，可以往后放一放～`、`和你的环境痕量分析方向有交叉，作为备选看看～`），改关系词（`有交叉`→`沾得上`）即消除。**教训：雷同扫描不是「写完后跑一次」，而是「每次 PATCH 备注后都要再跑一次」。**
+4. **全表同名重复检测**：按姓名的 NFKD 规范化在整个表内查重。本轮查出 3 对（Bayden Wood / David Bishop / Jia Khan），全部来自历史批次，其中 2 条只有姓名与学校、其余字段全空 → **只报告、不擅自删除**（历史记录可能已被学生锁定）。
+
+### 🔴 本轮抓到的两类「只有回页面才能发现」的错误
+1. **监督资格表述与页面事实相反**：南安普顿 Nuria Garcia-Araez 的备注写「未明确表明监督资格，可以后放～」，但她的个人页正文第一行就是 **`Accepting applications from PhD students.`**。→ 凡是写「未明确表明监督资格」，必须回个人页 grep 一遍 `Accepting applications` / `Available for supervision` / `Research supervision` / `Registered to supervise` / `Available to supervise`；命中即不能这么写。
+   - 顺带记住各校的**带博证据字段名**：Southampton = `Accepting applications from PhD students`；Sydney = 概况栏 `AVAILABILITY → Research supervision`；UTS = `AVAILABILITY → Masters Research or PhD student supervision`；UWA = `Accepting PhD and other Higher Degree by Research Students`；ANU = `Research student supervision → Registered to supervise`；Monash = `Accepting PhD Students`。
+2. **系级博士项目页的层级判定**：UCL 化工系的两条记录原用 `www.ucl.ac.uk/study/prospective-students/graduate/courses/chemical-engineering-mphilphd`——这是**校级课程目录**，不合格；真正的系级页是 **`www.ucl.ac.uk/chemical-engineering/study/mphilphd`**。
+   - ⚠️ **UCL 路径坑**：系站的规范前缀是 `www.ucl.ac.uk/<department>/…`（如 `/chemical-engineering/…`），而 `www.ucl.ac.uk/engineering/chemical-engineering/…` 会 404，但 `www.ucl.ac.uk/mathematical-physical-sciences/chemistry/…` 却有效——**UCL 各系的站内前缀不统一，必须实测，不能按规律拼**。
+   - Monash 化学院**没有**独立研究生页（`science/schools/chemistry/graduate-research` 实测 404），可用 `www.monash.edu/science/schools/chemistry`（学院自有页，含 Graduate Research 入口）。
+
+### 🧩 其他可复用结论
+- **阿德莱德无系级教师名录**：`adelaide.edu.au/about/school/chemical-engineering/our-people/` 只列 Dean 与 School Manager（不是名录）。**替代入口＝官方 People directory `https://adelaide.edu.au/people/`**（带 Portfolio/College 与 Function/School 筛选，可选到 school of chemical engineering），另有个人页 `https://adelaide.edu.au/people/<first.last>` 与研究人员库 `researchers.adelaide.edu.au/profile/<first.last>`（页内含 `Eligible to supervise Masters and PhD as Principal Supervisor` / `Co-Supervisor only` / `Not eligible, but is at capacity` 三种取值）。
+- **澳洲名师「主页无职称词但院系名录页有」**：ANU 的 `researchportalplus` 个人页可能只写 "Dr" 与 "early career academic"（James Latimer 即如此），**职称要回院系名录页取**（`fennerschool.anu.edu.au/people/<slug>` 明写 Lecturer）——这与「职称以院系名录页为准」的硬门一致，别因为个人页没有就判「无职称」。
+- **华威化学系个人页会公开邮箱与职称**：`warwick.ac.uk/fac/sci/chemistry/staff/<slug>` 正文含 `Professor of Chemistry` + `j.macpherson@warwick.ac.uk`，补邮箱时优先试这页（比门户 SPA 好用）。
+- **墨尔本 findanexpert 专家库页不给邮箱**（6 人全部无邮箱字段），但**学校官方 Handbook 页会列**（Brad Clarke 的 `brad.clarke@unimelb.edu.au` 即来自 Handbook）。
+
+### ➕ 2026-10-10 补充（当日第二轮）：雷同扫描的正确口径 + 职称冲突的裁定优先级
+
+**(1) 雷同扫描要按「后缀前 6 字」分组比，不是笼统看关系词**
+14 字窗口 = 备选后缀本身（8 字）+ 后缀前 6 字。所以**只要某条记录的后缀前 6 字与「同后缀组」内任一记录相同，就必然报 14 字重合**；而组间（后缀不同）不会撞。实操：
+- 正确做法＝按后缀分组，列出每条记录的「后缀前 6 字」，组内两两比对；
+- 错误做法＝只看「关系词有没有重复」。本轮实测翻车：把 Nuria Garcia-Araez 的「有交叉」改成「沾得上」后，其后缀前 6 字变成 `方向沾得上，`，与同组的 Helena Gomes **完全相同** → 仍报重；再改成 `方向能对上，` 才对组内全部唯一。
+- **一条记录改完备注，必须立刻把这个后缀分组重算一遍**——本次连续两轮触发新重合（先撞 Sankar/Latimer，再撞 Helena Gomes），都是这个机制。
+- 单调可复用判断：`同一后缀组内，各记录备注的「倒数第 9～14 字」（即后缀前 6 字）必须两两不同。`
+
+**(2) 职称出现「校方双源冲突」时的裁定优先级**
+Monash 的 Zhikao Li 一例：**学校官网个人页（`monash.edu/engineering/<slug>`）与院系学术名录页都写 `Senior Lecturer and ARC Industry Early Career Fellow`，ORCID 自述也是 Senior Lecturer，只有研究门户（`research.monash.edu` Pure）写 `Senior Research Fellow`。**
+用户裁定口径：**「按学校官网的来」** → 即 **学校官网 / 院系名录页优先于研究门户（Pure）**，与硬门「职称以院系教师名录页为准」一致。落地写法：备注首段写 `高级讲师`（Senior Lecturer），并在澳洲规则下确认带博证据（该页有 `Accepting PhD Students` 与在读博士生名单，过关）。
+- 附带规律：**Pure/Pure-like 研究门户的职级字段可能滞后或走另一套 HR 口径**（尤其兼任/双聘、跨校区任职者，如本例同时挂了 Monash Suzhou Research Institute），**不能作为唯一依据**；遇到冲突先找学校官网的系名录页与官网个人页。
+
+## 2026-10-12 秦嘉琪 · 「导师只肯当二导，让我去合作校找主导师」——联合培养项目的处理法
+
+### 场景
+LSE 社会学的 Jana Melkumova-Reynolds 回信：**在 CRICA 项目之外不收新学生；即使在 CRICA 内也只能做 second / third reader，不能当 primary supervisor**；学生的题目适合 CRICA，但**博士生应落在合作校 University of Roehampton**，让她去那边找主导师、把 Jana 列为二导。
+
+### 关键动作：先查清那个"项目"是什么，再决定去哪找主导师
+回信里出现的 `CRICA` 是关键索引词，**不要跳过它直接去合作校扫院系**。查清后一切自洽：
+**CRICA = The Consortium for Researching Inclusive Cultures in the Arts**，University of Roehampton × LSE 社会学系联合、AHRC Doctoral Focal Award 资助的博士项目，主题是**残障 × 创意经济 × 表演与参与式艺术**，有一批表演/参与式艺术机构做外部合作方。
+- 项目规定"**学生两位导师，通常都来自 home institution**，偶尔跨校" → 所以"合作校主导师 + 原导师做二导"是**制度支持**的组合，不是退而求其次。
+- 项目页有一份**官方「Supervisors」名单**（分 home 校与合作校两栏）→ **这就是主导师的权威候选池**，比自扫院系精准得多，且名单上的人都已被项目认可可带该项目的博士。
+- 顺带还能拿到：截止日期、名额限制（本例国际生每年仅 1–2 个名额）、培养机制（placement / 训练营）、设施工位等交付时必需的信息。
+
+### 通用规律（可迁移到任何"联合培养 / DTP / 联合博士"场景）
+1. 导师说"我只能当二导 / 请去合作校找人"，**先定位这个联合项目的官方页面**，其上的人员名单就是候选池；不要按学生方向去合作校盲扫。
+2. 同时确认**主导师必须出自哪一侧**（home institution / 哪一校是该项目的 lead），这决定学生往哪投。
+3. 交付时把"为什么必须换校"讲清楚（用项目规定原文），否则学生会以为被拒了。
+
+### 技术要点
+- **折叠/展开组件会吞掉名单**：CRICA 页面的导师名单用常规抓取（WebFetch）读出来是 `[...]`，**必须抓原始 HTML 再正则 `<a href>`** 才能拿到全部姓名与链接。
+- **Pure 门户的 slug 不可猜**（Roehampton 实测：Alex Bubb→`alexander-bubb`、Mary Shannon→`mary-l-shannon`、John Moxon→`john-r-l-moxon`、Heike Salzer→`dr-heike-salzer`）。**从官方页面的 `<a href>` 里抄**是唯一稳妥做法。
+- Pure 个人页含 `Accepting PhD Students` 标记，可用作带博意愿证据；但**职称仍以院系名录页为准**（见上一条 2026-10 的裁定）。本轮实测冲突一例：Roehampton 的 Heike Salzer，院系名录页写 `Senior Lecturer`，Pure 与其本人自述写 `Associate Professor` → 暂记高级讲师并标注冲突，建议套磁前再确认。
+- **非 QS 榜单学校**（如 Roehampton 未进 QS 世界大学排名）在 QS 主表里天然不存在 → 学校关联走「搜不到就停」流程，先让机构补校记录，**不要为了写入而静默创建残缺行**（无 Location / QS 的行在按学校筛选的视图里不可见）。
+
+## 2026-10-16 邱俊喆 · 港大 + 港中文「城市进程 → 微塑料」方向：两校都找不到可执行的对口导师
+
+### 学生与方向
+学生：人文地理与城乡规划本科（海南大学 211）→ 剑桥 MPhil in Architecture and Urban Studies（2027 年毕业）；技能为 ArcGIS / Rhino / Python / R / 遥感 / 地理加权回归；经历全在城市空间分析、城市健康评估、规划院实习。只申**香港大学 + 香港中文大学**，2027 入学，需奖学金，**不接受经济相关方向**。
+方向（2026-10 由剑桥导师定题）：**"Climate change as a vector for microplastic pollution in cities"**——城市进程（源：轮胎磨损、洗涤、建筑、垃圾处理；路径：不透水面冲刷、排水管网、合流制溢流、绿色基础设施）→ 微塑料 → 级联气候风险与健康影响；并保留原方向的跨境塑料废弃物贸易线索。
+
+### 核心结论：**两校都没有「微塑料 + 城市环境过程 + 空间数据」这条线的可执行导师**
+- **港大**：地球与行星科学系（原地球科学系）现职教师**仅 8 人**（Gong / Zhao / Dauphas / Jiao / Lee / Li / Liu / Michalski），全系页面无 microplastic / plastic / litter 字样。曾经的塑料与微塑料方向研究者 **Christelle Not 现在挂在太古海洋科学研究所（SWIMS）名下，名录页职称是 Senior Lecturer** → 按港澳讲师序列一刀切排除。港大涉微塑料者只剩一个跨学科 RIF 项目（PI 在电机电子工程系 Edmund Lam，本体是光学成像工程），不构成导师落点。
+- **港中文**：全校以微塑料为主线的在职教师**仅 Martin Tsui（EES）一人**，且其本体是汞的生物地球化学与稳定同位素实验分析，微塑料只是一篇综述；叠加 **EES 博士项目页原文要求 "Master's degree in Science or Engineering"**，与该生学位背景不对口 → 排除。
+- **结构性原因**：港中文**没有土木 / 环境工程系**（工学院只有 Biomedical / CS / Electronic / Information / Mechanical and Automation / Systems），城市水环境与排水管网类问题只能落在 EES 或 GRM；港大的城市径流与排水侧师资集中在**土木工程系**，学位学科为土木工程，对规划/建筑背景的学生属跨学科。
+
+### 交付做法：把「导师池」改成「研究议程可承载者」
+写入 9 条，全部落在**城市环境地理 / 城市规划与治理 / 废物治理 + 空间数据分析方法**这条可执行主线上，并在备注里逐条写明对象差异：
+- 港大 4：Hongsheng ZHANG（地理系，城市化过程的多源遥感与 GeoAI）、Yimeng SONG（城规系，多源大数据与时空建模、环境暴露与健康）、Chinmoy SARKAR（城规系，城市健康与流行病学 + 空间统计）、Bin CHEN（景观建筑学部，遥感与地理空间大数据、城市环境与公共健康）。
+- 港中文 5：Calvin CHUNG（GRM，中国城市废弃物管理转型与零废弃、城市再野化治理）、Qiming ZHENG（GRM，城市环境遥感与土地利用）、Zihan KAN（GRM，GIS 与时空分析、绿地暴露与环境健康）、Jianfeng LI（GRM，降雨极值统计与城市洪涝/复合洪水）、Muhammad SAJJAD（GRM，地理空间 + 机器学习的城市灾害风险制图）。
+- 排除 2 条（独立审核官判定）：**Wendy Y CHEN**（港大地理，个人页自陈方向含 Ecological Economics / Environmental Economics，方法为非市场价值评估与环境计量，同时命中「经济标签」与学生的「不接受经济相关」）；**Martin TSUI**（见上）。
+
+### 可迁移规律
+1. **一所学校「有没有这个方向的人」要按人的现有单位与职级查，不能按论文署名单位查**。Christelle Not 的论文署名仍是「HKU Department of Earth Sciences」，但院系现职名录里已经没有她，现职单位与职称都在 SWIMS/Senior Lecturer——只看论文署名会误收一位讲师序列的人。
+2. **方向极新的跨学科题目，两校都无本体导师是常态**。此时不要为了凑数往毒理 / 大气 / 工程本体铺人，应改为「研究议程可承载者」：方法与学生技能对得上、对象不设限、备注逐条写明对象差异。
+3. **学位学科闸门要落到项目页原文**。CUHK EES 博士项目页明写 "Master's degree in Science or Engineering"，这一句就否掉了文科/规划背景学生进该系的可能——只看导师方向永远查不出来。
+
+### 技术要点
+- `arch.hku.hk` 站群**存在响应截断**（同一 URL 返回 32768 / 65536 字节残缺页）；`/people/upad-staff/` **带结尾斜杠返回残缺页**，去掉斜杠才有完整 115 条教师名录。抓该站务必 `--compressed` + 长超时。
+- `geog.hku.hk` 是 Wix 站，静态 HTML 不含名录正文，**需 Googlebot UA** 才能取到「Prof X / 职称」的完整名录。
+- CUHK GRM 名录页 `grm.cuhk.edu.hk/en/about/people/faculty/` **不标职称**（只有 Prof./Dr.），职称须回各人部门个人页取；个人页正文在约 1.7 KB 导航之后。
+- CUHK 各系自建项目页比研究生院项目页层级更细，优先用 `grm.cuhk.edu.hk/en/pg/research-postgraduate/phd/`、`ees.cuhk.edu.hk/programme/postgraduate-programmes/postgraduate-programme/`、`arch.cuhk.edu.hk/programmes/pg-mphil-phd-architecture/`。
+
+### 补充（同日）：院系名录页会滞后——用 ORCID 的 Employment 记录交叉验证
+查港中文 GRM 的 **Yongqin David CHEN** 时发现：**港中文 GRM 名录页至今把他列在 Faculty Members（Professor，带 852 电话与 @cuhk.edu.hk 邮箱），但该页的在研项目停在 2016、代表作停在 2018**；而 **ORCID（0000-0001-8891-2116）Employment 记录显示其教职已是「The Chinese University of Hong Kong: Shenzhen, 2018-08-20 至 2024-08-19」，现个人页在 `hss.cuhk.edu.cn` / `sse.cuhk.edu.cn`**。他 2024–2025 仍高产（Journal of Hydrology、Water Resources Research、Nature Reviews Earth & Environment），**活跃度没问题，是单位变了**。
+
+→ **判据增补**：判断「这个人现在还在不在这个系」，必须三处交叉 —— ① 院系名录页；② 个人页在研项目/代表作的**最新年份**；③ **ORCID 的 Employment 段落**（会写起止年月与所在校区）。只查①会把已转校/转校区的人当成在职教师写进表；只查②/③又可能漏掉名录页尚未更新的新入职者。
+
+### 同日第二轮（用户要求「注意学科范围」）：港大 + 港中文全学科重扫
+
+**做法**：先建学科地图（从研究生院课程总目录列**全部**招收研究生的单位），再逐单位检索，不预设哪些系「不相关」。港大覆盖建筑、文、经管、牙医、教育、工程、法律、医学院、理学院、社会科学、跨学科研究院共 30+ 单位；港中文覆盖文学院至跨学院研究所全部单位。
+
+**四条可迁移规律**
+1. **别按论文署名单位判断「这人在哪个学校」**。本轮查出 **Bo HUANG（黄波）已从港中文 GRM 转到港大地理系任 Chair Professor**，但港中文 GRM 与 ISEIS 页面仍把他列为在职——与上轮 David CHEN 同一类错误。**判据三处交叉**：院系名录页 + 个人页在研项目/代表作的最新年份 + ORCID Employment。本轮共查出 **6 位**已转校/转校区者（见下）。
+2. **个人页可能只有「名录骨架」而没有研究方向正文**（港大建筑学院 `/staff/...` 多个页面如此）。这种情况**不要凭子代理摘要写备注**——按「研究方向须有页面原文依据」的硬门，应挂起或换一个含研究方向正文的官方页。
+3. **有的学院天然无法满足「其他导师信息＝本系名录页」**：CUHK 法律学院只有**学院级** People 聚合页，没有系级名录。此类院系的记录无法合规落库，应整条放弃，而不是拿学院级页面凑。
+4. **学科范围放宽后，真正新增的仍是「方法对口、对象不涉塑料」的人**。两校合计新命中 15 人以上，但**没有一位**新增者的本体是「城市陆域微塑料 + 空间/气象数据」。这说明该方向在两校的真实缺口不在学科覆盖，而在**选题本身太新**。
+
+**本轮查出的转校/转校区（勿写入）**：Bo HUANG（港中文 → 港大）、CHEN Yongqin David（港中文 → 港中深）、REN Chao（港中文 → 港大建筑学院）、QIN Hua / ZHU Shiping（→ 港中深）、Jianxiang HUANG（港大城规系 → 清华深圳，港大仅荣誉职）、Dennis Y.C. LEUNG（荣休）、Kenneth M.Y. LEUNG（→ 港城大）、Ouyang Xiaoguang（已离港中文生命科学学院）。
+
+**待裁定（本体方向／跨学科，未写入表）**：港大 May CHUI / M.F. GUAN / Ji CHEN（土木工程学位学科）、**Lui Wing Yee（生物科学学院，做纳米与微塑料的生殖毒性——港大唯一以微塑料为主线的在职教师，但本体是生殖生物学与毒理）**、Aleksandra DJURIŠIĆ（物理，微塑料光催化降解）、Edmund LAM（电子工程，微塑料光学检测）、Ning XI（数据及系统工程，AFM 纳米塑料识别）、Zheng Xiao GUO（化学，电子废物光催化回收）、Stefano CANNICCI（生物科学，红树林 macro/microplastic）；港中文 NGAI To（化学，聚合物胶体）、DU Penghui（EES 研究助理教授，水生环境化学）、THIBODEAU（EES，海洋生物地球化学）、ZHOU Xiang Sean（商学院运营管理，海洋塑料回收的商业模式）。
+
+---
+
+## Roehampton · CRICA 路径（2026-10-16）：项目官方名单页的关键词优先于个人页研究兴趣
+
+**背景**：学生套磁 LSE 的 Jana Melkumova-Reynolds，对方回复：她在 CRICA 项目之外不收新学生，且即使在 CRICA 内也只能当 second / third reader，建议去合作校 Roehampton 找主导师。候选池直接取自 **CRICA 项目页的官方 Supervisors 名单**（14 人，比自行扫院系权威）。
+
+**四条可迁移规律**
+
+1. **项目/中心官方名单页给的关键词，比导师个人页的研究兴趣更权威、也更该写进 `导师研究领域`**。CRICA 页面在名单里给每人括注了官方关键词，例如 `Dr Alex Bubb (disability history, multilingualism, migration and nineteenth century imperialism)`。第一版只读 Pure 个人页的研究兴趣，结果 **Bubb / Shannon / Moxon 三人全部漏掉 disability** —— 而这恰是 CRICA 的核心主题、也是学生 RP3 的关键词。**名单页关键词 = 「机构认为此人能带这个项目博士的理由」；个人页研究兴趣 = 此人的全部研究面。两者都要读，前者必须落到 `导师研究领域`。**
+2. **Pure 的职级字段会滞后或走别的口径**。Markieta Domecka 的 Pure 页只显示 `PhD`，但官网新闻页与中心名录页都写 **Senior Lecturer in Sociology of Work and Employment**（另兼 POSE 方向的 RKE Lead）。**Pure 只显示学位（Dr / PhD）而不显示职级时，必须去官网新闻页、中心名录页交叉核对**，不要直接把「博士」当职称填。
+3. **HTTP 200 ≠ 页面有用**。`/study/academic-areas/business-and-law/business-school/staff/` 返回 200，但页面**完全没有人员信息**（`contact-card` 数 0、`mailto` 数 0、正文仅导航）。**写入前必须验证目标页确实含该导师姓氏**——尤其当它要当 `其他导师信息` 用时。该校可靠的人员页一律在 `/research/research-and-knowledge-exchange-centres/<中心>/staff/`。
+4. **同一个中心的改名会在不同页面不同步**。本例 staff 页标题已改用新名 `Research Centre for Inclusive Humanities`，而中心首页 H1 与 Pure 个人页仍是旧名 `Research Centre for Society, Culture, and Social Change`。**以学生点「导师主页」会看到的那个名字为准写 Department**，改名情况写进备注，不要单挑新名或旧名。
+
+**附带产出**：Domecka 的专著 *The Politics of Unpaid Labour*（OUP 2025）实证部分**明确比较了创意产业（含 dance）**的工作条件 —— 这类「乍看只有方法沾边、实则对象直击」的线索，需要读到具体著作/项目摘要才发现，**不能只看关键词列表**。
+
+
+---
+
+## 美国 R1 中后段·记忆神经成像批次（2026-10-19，张瑞旸第三轮）：四个系的目录结构实测
+
+**背景**：学生方向为「人类长期记忆 + 神经成像 + 计算建模」（排除临床/老龄化/细胞/非人），要求美国 R1 中后段、非顶尖。用 OpenAlex（`topics.id:T10918|T10448` + `last_known_institutions.id`）按校反查高产作者，比逐系翻名录快得多，可用作**候选生成**（不可作为写入依据）。
+
+**四校目录结构（直接可复用）**
+
+| 学校 | 个人页 URL 规则 | 系教师名录页 | 备注 |
+|---|---|---|---|
+| University of Oregon | `cas.uoregon.edu/directory/neuroscience/all/<邮箱前缀>`（`bkuhl`、`bhutch`）——**页内含职称、邮箱、研究兴趣与代表作，模板最好** | `blogs.uoregon.edu/neuroscience/profiles/psychology`（服务端渲染、含姓名与职称） | `cas.uoregon.edu/directory/psychology-faculty` 是 JS 壳，HTML 里没有姓名，**不能用作名录页**（姓氏自检会失败）。邮箱前缀 ≠ 姓名缩写，`Murty` 的 handle 试了 8 种都 404 |
+| University of Delaware | `.../psychological-and-brain-sciences/our-people/<first-last>/` | 同目录 `our-people/`（`<li class="matrixResult" data-title="姓名">` 属性里直接带姓名、职称、邮箱，最好解析） | 博士项目按 concentration 分页，`cognitive-concentration/` 即该方向的 PhD 项目页 |
+| Syracuse University | `/people/faculty/<姓氏>-phd-<名>/` | `/psychology/psychology-people/` | ⚠️ 个人页常常**只有职称+邮箱、没有研究段落**（Lohnas 即如此），备注无法从个人页取据，只能靠发表记录 |
+| University of Iowa | `/people/<first-last>` | `/people/faculty`（**服务端渲染、含姓名+职称**） | `/people` 本身是 JS 壳，不含姓名；名录务必用 `/people/faculty` |
+| Michigan State University | **无个人页** | `/People/faculty/`（列表页含姓名/职称/邮箱） | 实验室站点 `cbcc.psy.msu.edu` 当前返回 500，导致 Healey 这类方向极合的人**无法落库**（缺合格个人页） |
+
+**三条可迁移规律**
+1. **「个人页存在」与「个人页有研究正文」是两件事**。Syracuse 模板只给职称+联系方式，此时备注里的方向描述在三个链接内找不到出处——审核会按 P1 打回。遇到这种模板，要么换人，要么接受备注可追溯性下降并如实说明。
+2. **系教师名录页必须做「姓氏自检」再写入**：`cas.uoregon.edu/directory/psychology-faculty`、`psychology.uiowa.edu/people` 都是 200 但 JS 渲染、HTML 无姓名；真正能用的是 `psychology.uiowa.edu/people/faculty` 这类服务端渲染页。
+3. **老学生美国表的 Location 靠双表关联**：只设 `美国地区学校`（US 主表无 Location 字段）→ Location 为空；再去 QS 主表 `dstNvlYbmD2BTMCB0r` 找同名记录设 `非美国地区学校`，Location/QS 才会同步（本轮 4 校全部命中）。
+
+### 同日补充：Drexel / Missouri / Nebraska / MSU / Temple 五系结构（2026-10-19 第二批）
+
+| 学校 | 个人页 | 系教师名录页 | 博士项目页 | 结论 |
+|---|---|---|---|---|
+| Drexel | `/coas/faculty-research/faculty-directory/psychology/<last-first>/`（含职称、邮箱、研究兴趣） | `/coas/academics/departments-centers/psychology/faculty/`（`data-title` 可解析） | `/coas/academics/graduate-programs/psychology/doctorate-applied-cognitive-brain-science/`（认知方向实际招人的就是这个 PhD） | ✅ 三件套齐全 |
+| Missouri | `/people/<姓氏小写>`（如 `/people/johnson`） | `/faculty`（**`/people` 是 404**） | `/graduate-program` | ✅；但 QS 主表无该校记录，Location/QS 会留空 |
+| Nebraska–Lincoln | `/person/<first-last>/` | `/about/directory/`（姓名+职称+邮箱齐全） | `/academics/graduate/` | ✅ |
+| Michigan State | ❌ 无个人页：`/People/faculty/` 已 404，`cbcc.psy.msu.edu` 500，`scholars.msu.edu/scholar/<id>` 是 JS 空壳（HTML 仅 1.5 KB） | — | — | 🚫 实际上无法合规落库，遇 MSU 直接放弃，不要反复试 |
+| Temple | `/directory/<first-last>`（含 expertise、biography、代表作） | ❌ 系级名录抓不到（`liberalarts.temple.edu/directory` 前端渲染，HTML 无姓名；系主页各路径变体全 404） | — | 🚫 只有个人页、凑不齐三个链接，整条放弃 |
+
+**一条新判据**：**「能拿到个人页」≠「能落库」**。落库要三件套（个人页 + 系名录 + 项目页），三者缺一就整条放弃；本轮 MSU、Temple 都是卡在中间那件。
+
+## 2026-10-21 更新（国内首个批次·万文睿：分析化学方向，985 后半段 + 211 甘鄂陕川沪）
+
+### 🔴 国内选导最大的坑：**方向最对口的人，往往只是硕导**
+本批 24 所学校里，每个学校都出现「简历/方向完全对口、但官网标注硕士生导师」的人，直接导致「一校只能出 1–2 人」：
+武汉理工 蔡宏伟（SPME 前处理）、华中师大 梁沛/程靖、华中农大 李秀娟（Pawliszyn 组访学，分子印迹涂层 SPME）、长安大学 高莉宁、西北农林 刘书慧（毛细管电泳在线富集）、地大（武汉）黄理金（COFs 前处理）、西北大学 卫引茂/白泉（磁性 SPE，但不在 2026 目录）。
+**做法**：每所学校的「师资名录」必须逐个点开个人页看 `博士生导师` 字样或查当年博导名单，**不能凭职称推断**（副教授可以是博导，教授也可能只是硕导）。
+
+### 🔴 先确认「有没有 0703 化学博士点」，再谈导师
+本批 4 所学校是结构性缺口：
+- **西安电子科技大学**：整校无 0703 化学、无环境/食品学科 → 整校非对口，不要硬凑。
+- **西南交通大学**：无 0703 化学博士点，化学学院只招 080500 材料科学与工程；2027 目录已公布可直接核。
+- **四川农业大学**：理学院只有 0710Z1 生物资源化学（挂生物学），全二级学科仅 4 位博导。
+- **中国海洋大学**：化学化工学院无 0703 化学博士点，人选落在海洋化学/环境方向。
+**做法**：`[学校] 博士招生专业目录` 里先 grep `0703`；没有就说明学位学科会落在别的门类，必须在记录里标 `degree_ok` 并交人工裁定，不要默认都是化学博士。
+
+### 🗓 2027 招生目录的时间窗
+2026-10-21 时点：23 所学校中**只有 3 所**（西安交大、西北农林、西南交大）公布了 2027 目录；其余仅出推免/直博通知。**11–12 月才是集中发布期**。
+**做法**：目录未出时按 A/B/C 分级，并在记录里写明「参考 2026 目录」；目录一出必须复核一遍，把「不在目录里」的人剔掉（本批已出现：西北大学 卫引茂/白泉、上海大学 王田霖 连续三年未列名）。
+
+### 🧭 学院层面的「伪对口」识别
+- **生物传感强校**（湖南大学化学生物传感全国重点实验室、上海大学材料生物所）：分析化学教授一抓一大把，但绝大多数做核酸/细胞/活体成像。**判据只有一个：analyte 是不是环境或食品里的污染物**。湖大 20 位分析化学教授里，做前处理/分离的只有 3 位（陈增萍、吴朝阳、朱日龙）；上大 65 位化学导师里真正的 core 只有 1 位（何海波，POSS 基磁性分子印迹 + 兽药残留）。
+- **师范大学/农林院校**：分析化学常与农药残留、食品检测结合，反而容易出 core；但学位学科常挂"化学生态学""生物资源化学"，要单独标。
+
+### 🔧 通道
+- `teacher.nwpu.edu.cn`、`chem.lzu.edu.cn`、`faculty.nwu.edu.cn` 对 curl 常返 **412**（WAF），换 WebFetch 或 WebSearch 摘要；**412 ≠ 死链**。
+- 教师主页系统常见域名：`grzy.<校>.edu.cn`、`faculty.<校>.edu.cn`、`teacher.<校>.edu.cn`、`jszy.<校>.edu.cn`、`gr.<校>.edu.cn` —— 均算官方个人页。
+- 招生目录 PDF 常需会话或为扫描件（武汉理工 008 分册），扫描件无法 grep 时以「学院博导名单 + 个人页」交叉确认。
+
+### 项目对口核查：四个能直接看到"是否招人"的页面（2026-10-23）
+
+落库之后还要回答"这个导师在不在对口 PhD 项目里、招不招"，以下页面能直接给出答案，优先于自己推断：
+
+| 学校 | 页面 | 能看到什么 |
+|---|---|---|
+| Delaware | `/psychological-and-brain-sciences/graduate-programs/<方向>-concentration/` | 页内明写 **「Faculty accepting graduate students for 2027–2028: 某某」**，是最硬的招生状态证据 |
+| Syracuse | `/psychology/graduate-study-psychology/cognitive-psychology-graduate-program-overview/` | 按方向列全部导师，每人后面标 **Accepting new students / 不标**，并给实验室名 |
+| Drexel | `/coas/academics/graduate-programs/psychology/doctorate-applied-cognitive-brain-science/` | 项目师资表（姓名+职称+邮箱+研究方向关键词）；认知方向对口的就是这个 ACBS PhD，不设单独 Psychology PhD |
+| Nebraska–Lincoln | `graduate.unl.edu/academics/programs/PSYC-PHD/` | 研究生院口径的 Program Faculty 名单 + 五个方向（Clinical / Developmental / Law-Psychology / Neuroscience and Behavior / Social and Cognitive）；**系里在职≠名单里有**，新入职者可能未更新 |
+
+**判据**：`系里在职` → `系里有个人页` → 还要再看 `研究生院项目师资名单` 与 `招生状态`。前者不等同于后者；缺后两项时应在交付里标注"招生状态待确认"，不要写成确定在招。

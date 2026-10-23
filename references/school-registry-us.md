@@ -156,3 +156,73 @@
 - **Last verified**: 2026-07-17
 
 ---
+
+#### American University — Psychology ／ Psychology 相关博士（2026-10-09 核实）
+- **Program fact（先看这条再决定要不要找导师）**：心理系研究生项目只有 **MA Psychology**、**PhD Clinical Psychology**、**PhD Behavior, Cognition, and Neuroscience（BCaN，由 Neuroscience 系主办）**。**没有** Social / Cognitive / 消费者行为方向的博士；**Kogod 商学院没有博士项目**（无 MBA 之外的 PhD，也无心理学联合博士）。
+- **BCaN 参与名单页**：`https://www.american.edu/cas/neuroscience/phd/faculty.cfm`（含心理系 Laura Juliano、David Kearns、Judy Kim、Arthur Shapiro；Judy Kim 做语言/思维/社会认知、Shapiro 做视觉知觉，**均非消费者或应用 JDM**）。
+- **Trap 1 — 教学轨冒充社会心理**：Laura Duval（social cognition, stereotyping and prejudice）、Erica Hart、Maria Gomez 的职称是 **Senior / Hurst Senior Professorial Lecturer（教学轨）**，不能招博士生。名字出现在 "Full-Time Faculty Research Interests" 页上，容易误判。
+- **Trap 2 — Decision Sciences Lab 是伪线索**：`/cas/psychology/decision/index.cfm` 方向为 Risk/Security/Intelligence/Leadership/Forensic（军情与国家安全分析取向），非消费者决策；页面**未标主任、未说明是否招博士生**，领衔 Craig Gruber 职称为 Research Associate Professor **In Residence**，不在 BCaN 名单内。
+- **Access**：全站对 curl 返 403，须用渲染通道（WebFetch）。
+- **Last verified**: 2026-10-09
+
+#### Michigan Technological University — Psychology and Human Factors（ACSHF）（2026-10-09 核实）
+- **⚠️ 一票否决项**：官方研招页 Program-Specific Requirements 明文 **"For all PhD applicants, the GRE is required."**（`https://www.mtu.edu/globalcampus/gradadmissions/programs/degrees/applied-cognitive-science-human-factors`；同页 Accelerated MS 写 "No GRE Required"，可确认非笔误）。**不考 GRE 的学生 → 整个 ACSHF 博士不可投**，不要浪费时间找导师。
+- **语言**：托福 4.5（2026-01-21 新分制）／旧制 79；雅思 6.5；**明确接受 Home / Paper Edition**（"Test Center, Home, and Paper Editions are accepted"）。无单项线。
+- **项目性质**：PhD in Applied Cognitive Science and Human Factors —— 人机交互/决策/注意/人为因素，方向对消费者-技术交叉的学生未必对口，对「决策 + AI + 人因」很对口。
+- **Access**：教职员页 `https://www.mtu.edu/psychology/people/`（一页列全系，**含邮箱**）。个人页 URL 不能靠猜（`/people/faculty/{name}/` 404）。
+- **Last verified**: 2026-10-09
+
+#### University of Denver — Psychology（2026-10-09 核实）
+- **Program**：PhD in **Affective, Social & Cognitive Psychology**（另设 Clinical–Child、Developmental）。招生要求页 `https://www.du.edu/academics/admission-steps/psychology-affective-social-cognitive-psychology-phd-2027-2028`。**GRE optional**。
+- **⚠️ 语言口语单项线（罕见且致命）**：TOEFL 80 且 **Speaking ≥ 26**；IELTS 6.5 且 **Speaking ≥ 8**。口语 18 / 6.0 一类的学生**直接不符合**，写入表格时语言列标【不符合】。
+- **最有价值的一页**：`https://liberalarts.du.edu/psychology/psyc-resources-prospective-phd-students` —— 按方向列出**当年招收 PhD 的导师**（2026 秋：ASC 8 人、Developmental 5 人、Clinical 8 人）。比翻全系名录高效得多。
+- **Access**：全站 Cloudflare，**curl 一律 403**，必须渲染通道。People 页是**服务端分页** `?page=0..6`（70 人），不传 `?page` 会被工具截断在字母 D；实验室页同理 `?page=0..1`。
+- **Trap**：个人页页头结构化字段是 `Specialization(s)`（不是 "Research Interests"）；少数人的 `What I do`/自述文字是**旧文未更新**（例：E. Paige Lloyd 页头 Associate Professor、自述仍写 Assistant Professor）→ 以页头/名录页的结构化字段为准。
+- **Last verified**: 2026-10-09
+
+#### Baylor University — Psychology & Neuroscience（2026-10-09 核实）
+- **Program**：PhD in Psychology，四个 track：Behavioral Neuroscience / **Social Psychology** / General Experimental / Clinical。项目页 `https://psychologyneuroscience.artsandsciences.baylor.edu/graduate-programs/graduate-program-psychology`；PhD 师资页 `/graduate/graduate-program-psychology/phd-faculty`。
+- **GRE**：**2027 申请季 optional**（原文 "The Graduate Record Examination (GRE) WILL BE OPTIONAL FOR THE 2027 ADMISSION CYCLE."）。
+- **语言**：雅思 "All others 6.5"（无单项线）；托福研究生院页已改成**新分制**（研究型博士 4.5），旧制 iBT 对照线未列。
+- **⚠️ 邮箱不在个人页**：心理系教师的个人页**没有 Contact Information 块**，邮箱要从 `https://psychologyneuroscience.artsandsciences.baylor.edu/faculty-staff/departmental-faculty-staff` 取（该页同时是最好的「其他导师信息」名录页，含姓名+职称+邮箱）。格式多为 `First_Last@baylor.edu`，**但不要猜，逐条抄页面**（例外：`NB_Keele@baylor.edu`、`rick_joy@baylor.edu`）。
+- **个别页面会写"招生意向"**：如 Schnitker "is currently accepting applications for Ph.D. students"、Andrade "plans to recruit students for the Summer 2027 Cohort" —— 这类原句值得抄进报告。
+- **Access**：curl 403（WAF），须渲染通道。
+- **Last verified**: 2026-10-09
+
+#### Georgia State University — Psychology（2026-10-09 核实）
+- **Program**：PhD in Psychology，concentration：Clinical (CLG)、Clinical-Community (CLC)、**Cognitive Sciences (CGS)**、Community (COR)、Developmental (DEV)。**没有 I-O 方向**。项目页 `https://psychology.gsu.edu/graduate/`。
+- **招生状态页（很好用）**：`https://psychology.gsu.edu/faculty-accepting-students-for-fall-graduate-admissions/` —— 逐人列 Yes / No / Maybe（Fall 2027），并说明无 CLN/CAN 招生。
+- **GRE**：**不要求**（"The GRE is not required and GRE scores will not be reviewed."）。
+- **语言**：托福最低 69（建议 79；**明确接受 Home Edition、My Best、拼分**）／雅思最低 6（建议 6.5；接受 IELTS Online 与 One Skill Retake）。
+- **Access**：`https://psychology.gsu.edu/directory/` 是 **JS 渲染**（curl 拿到 HTML 但表格为空，需渲染通道）；个人页 `https://psychology.gsu.edu/profile/{firstname-lastname}/`（curl 可达，但站点 WAF 时好时坏）。
+- **Last verified**: 2026-10-09
+
+#### Ohio University — Psychology（2026-10-13 核实）
+- **Program**：博士只有两个 —— **Clinical Psychology PhD** 与 **Experimental Psychology PhD**（五年制）。**没有独立的 I-O 博士**：I-O 是 **Experimental Psychology PhD 下的一个 specialization**。项目页 `https://www.ohio.edu/cas/psychology/graduate`（子页 `/graduate/clinical`、`/graduate/experimental`；招生页各自 `/admissions`）。另有 Psychological Science M.S. 与在线 M.S./证书（与博士招生无关）。
+- **Experimental 下的四个 specialization（判方向的入口）**：**Cognitive Psychology**（官网原文强项 = "complex cognition, particularly in the areas of memory and **judgment and decision making**"）／Experimental Health Psychology／**Social Psychology**（强项 = "social cognition and **social judgment**"）／Industrial-Organizational Psychology；另有 Quantitative 选修方向。
+  → **对消费者 / JDM 方向的学生，入口是 Cognitive 或 Social，不是 I-O。**
+- **⚠️ 2026 新聘 I-O 助理教授 Jingyi Li 不对口**（`https://www.ohio.edu/directory/jingyi-li`）：研究对象是**人事测评与选拔**（personnel selection and assessment），用 AI/ML/NLP/LLM 做个体差异（职业兴趣、人格）测评，关注效度与公平性、申请人行为与人—AI 测评。虽有 "AI / human–AI" 机制词重合，但对象（测评 vs 决策偏误）、场景（招聘选拔 vs 创业机会识别）、结果变量（测评效度/公平 vs 幸福感）均不同 → 按判据归 **C 档**。她**明确招 2027–2028 学生**，但方向不搭。
+- **Access**：`https://www.ohio.edu/directory/{firstname-lastname}`（Keith Markman 即此路径）。curl 可达（200），无需渲染通道。**师资全名单**在 `https://www.ohio.edu/cas/psychology/about/contact/faculty-staff-directory`（**不是 table，是 `a.views-row.profile-card` 卡片**，解析按卡片取 `.name` + `.titles`；`/cas/psychology/faculty` 是空壳 JS 页，别用）。
+- **招生要求（Experimental PhD，页 `/graduate/experimental/admissions`）**：
+  - **GRE：Optional**（原文 "Optional Graduate Record Examination (GRE), both Verbal and Quantitative"；另注 "We strongly encourage applicants to the cognitive area or those pursuing the quantitative specialization to submit quantitative GRE scores." → **"强烈鼓励"不等于要求**，不考 G 可投）。
+  - **语言**："A TOEFL-iBT of 80 or higher is recommended. The minimum IELTS is 6.5 **across all bands**." → **雅思要求各单项 6.5**，单项 6.0 的学生不能递雅思，**须递托福**。
+  - 先修 18 学分心理学（含统计 + 实验研究设计）；GPA 3.0 总 / 3.3 心理；**截止日 12 月 1 日**（申请次年秋入学）。
+- **⚠️ 该校 SOP 有一项特殊要求**："Include in your personal statement a **rank-ordered list of the three faculty members** with whom you most want to work." → 套磁名单要与 SOP 的三人排序一致，选人时必须提前定序。
+- **Cognitive / Social 两个方向的师资（官方方向页 `/graduate/experimental/manual/specialization-cognitive-psychology` 与 `…-social-psychology` 列出）**：
+  - **Cognitive**：**Claudia González Vallejo**（Professor；"Social Judgment & Behavioral Decision Making"，研究 lens model、calibration、判断与选择的数学模型、跨期决策、**nutrition judgments and food studies**，授课含 Judgment and Decision Making 与 "Food Matters… the Psychology of Food Choices" 模块 → **对消费/JDM 学生最对口**；⚠️ 她现任 **NSF Decision, Risk, and Management Sciences 项目主任**，个人页未写招生意向，投前需发信确认）／**Ronaldo Vigo**（Professor of Mathematical & Computational Cognitive Science；个人页明写 **"will not be accepting new graduate students for the upcoming academic year"** → 不写）。
+  - **Social**：**Keith Markman**（对口的 JDM 线）／Brett Peters（关系中的压力与生理，不对口）。
+  - 两方向的 **Affiliated Faculty：Jeffrey B. Vancouver**（Professor & Byham Chair in I-O；动机与目标的计算模型 → 边界）。
+  - 其余不对口：Mirinda Whitaker（定量 + 疼痛）、Molly Maloney（IPV/物质使用）、Katrina Hamilton（慢性痛）、Jennifer Grant Weinandy（成瘾）、K. Jean Forney（进食障碍）、James Gerhart（慢病管理）、Eric Muth（工效/生理，且任副校长）、Gary Sarver（无近年发表）；另有 Zanesville/Eastern/Lancaster **区域校区教学岗**（Poling/Casebolt/LoSchiavo/Munhall）不属 Athens 博士师资。
+- **Last verified**: 2026-10-13
+
+---
+
+#### 商科 · 运营/供应链方向（2026-10-21 孙雨璐暖区轮核实）
+
+- **Georgia Tech (Scheller)**：授 **PhD in Management**，Operations Management 是 7 个 concentration 之一（不是独立的 Operations PhD）。2027 Fall 官方原文只关 **Strategy & Innovation**。截止 **1/6**。个人页 `https://www.scheller.gatech.edu/directory/faculty/{slug}/index.html` curl 可达；OM 学域名录 `academics-research/operations-management/index.html` 与全院名录 `directory/faculty/index.html` 都是 **JS 渲染**（无头 Chrome 可拿到姓名）。ISyE 的 IE/OR 博士是方法论导向（优化/随机/仿真），不是绿色供应链的出口。
+- **Texas A&M (Mays)**：`mays.tamu.edu` **全站 Cloudflare**，curl 一律 403「Just a moment…」，**WebFetch 可穿透**。PhD in Business Administration – Information and Operations Management；早申 12/10、终申 2/15；申请入口 BusinessCAS2027。⚠️ 个人页「Professor / Associate Professor」抬头与 bio 正文常互相矛盾（James Abbey 抬头已升 Professor、正文仍写 Associate），**以抬头为准并回名录复核**。
+- **University of Florida (Warrington)**：PhD in Business Administration – ISOM（供应链嵌在 ISOM 系里，无独立 OM 项目）；截止 **12/31**；硬门槛 GMAT 650 / GRE 310(V+Q)。**GRE at-home 明文接受**（`admissions.ufl.edu/apply/graduate/`），GMAT 家考全站无表述。ISOM 无静态名录页，官方入口 `warrington.ufl.edu/directory/?organizational_unit=10`（unit 10 = ISOM），但要点「Load all profiles」才出人名，**curl 与无头 Chrome 都拿不到姓名**。
+- **NC State (Poole)**：**只有 OR 博士（O&SCM track）与经济学博士**，没有 Business Administration / Management 博士；OR 是独立学位授予项目、自己招生。**只列 GRE、不列 GMAT**（中国学位必须交 GRE）；奖学金一轮 1/15。个人页邮箱被 Cloudflare 混淆，用 `data-cfemail` 十六进制 XOR 解码。
+- **Virginia Tech (Pamplin · BIT)**：PhD in Business Administration – BIT，课程明含 operations & supply chain（核心课 `BIT 6334 Operations Management & Supply Chain Seminar`）；截止 2/1（研究生目录写 2/15）；要求 GMAT/GRE **90 百分位**。`bit.vt.edu/academics/graduate-programs/phd-program/program-faculty.html` 可区分「能带博」与「不能带博」（Arnette 不在名单内）。
+- **结构性不可投（省时间用）**：**Clemson** 的 Supply Chain and Operations Management 方向官方标注本轮不招生，六个方向只剩 Executive Leadership；**Florida State** 七个 major 无 OM/SCM，供应链老师在 BAISSC 但只带 MIS 博士生；**UGA (Terry)** 八个 area 无 OM/SCM（供应链只在本科 BBA 层）；**Tulane (Freeman)** 博士只有 Finance / Financial Accounting；**Wake Forest** 商学院不授予博士学位；**Miami (Herbert)** OM 项目方法论明写 Optimization / Game Theory，PhD 不免 GMAT/GRE。
+- **Last verified**: 2026-10-21

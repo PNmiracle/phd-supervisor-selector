@@ -26,6 +26,16 @@
 - **④ 层级对**：`导师主页` = 个人页（不可用 Google Scholar / ResearchGate）；`博士申请信息` = 项目申请页（不可用全校研究生院入口）；`其他导师信息` = **该导师所在院系**的教师名录页（不可用站点根目录 / 搜索落地页 / 学院级跨系聚合页）。
 - **禁止仅凭 HTTP 状态码判定**（美国校常对 404 返回 200 + "Page Not Found" 内容）。逐条判定口径见 `field-rules.md` 与 `verification-workflows.md`。
 
+### 2.0 三种「状态码看不出来」的真失效（2026-10-22 全表体检实证）
+
+90 条 / 11 校做状态码检查，**79 条返回 200，其中 5 条是坏的**。以下三类只能靠正文扫描抓到，交付前必跑：
+
+1. **200 + 正常尺寸 + 正文写 "Person not found"**：ETH 的 `*.ibi.ethz.ch/en/people/person-detail.<base64ID>.html` 三人全部如此（40KB、标题正常，正文一行 "The person you were looking for cannot be found in the database."）。**补救**：同一 base64ID 换成 `https://ethz.ch/en/utils/search.<base64ID>.html`，200 且渲染完整档案（职称 / 研究领域 / 邮箱 / 论文）。
+2. **整站被锁返回 401**：爱丁堡 `eng.ed.ac.uk` 全站 `<title>Pantheon | Site Locked</title>`（个人页、博士项目页、系名录页一并 401）。**这是站点级故障，不要据此删人。补救**：个人页走 `https://www.research.ed.ac.uk/en/persons/<slug>`（**必须带 www**，裸域名无 DNS → 000）；项目页走 `https://study.ed.ac.uk/programmes/postgraduate-research/<id>-<slug>`（该站分 19 页，遍历 `?page=0..18` 再 grep）。
+3. **slug 凭规律拼 → 404**：港理工某条写成 `dr-michael-sing`，真实为 `dr-sing-chun-pong-michael`（姓在前 + 中名）。**个人页 URL 一律从系师资列表页的 `href` 取，不许按姓名拼。**
+
+**收尾动作**：批量核验不能只看 `status==200`，必须同时判 ① 正文是否含 `not found / cannot be found / page not found`；② 正文是否含该导师姓名（去掉变音符后归一化匹配）；③ 重定向后 `url_effective` 是否仍落在同一人 / 同一项目上。
+
 ### 2.1 三类字段一致性硬门（2026-09-21 全表复查沉淀）
 
 一次全表复查最常见的失分点不是链接失效，而是**字段之间的语义不一致**。交付前必查这三项：
@@ -94,6 +104,7 @@
 
 ## 8. 排除规则
 
+- 🔴 **提到「欧洲」时默认排除挪威与瑞典**（2026-10-23 用户定调）：范围词为欧洲/欧陆/北欧/Europe/Nordic 等时，**挪威、瑞典一律不搜索、不写入**。仅当用户当次明确点名挪威或瑞典的学校/导师，或明确说「含北欧」时才纳入。细则（触发词表、三阶段执行口径）见 `selection-rules.md`。
 - **排除退休/名誉教授**：不添加 Emeritus、退休、约 70 岁以上、或不在当前教职员目录中的导师。
 - **默认排除顶尖名校**，除非用户明确点名要搜：
 
@@ -126,6 +137,18 @@ def normalize_name(name):
 ```
 
 - 流程：① 拉取全部已有记录按 `normalize_name()` 分组 → ② 新导师按同法查重 → ③ 已有则跳过，或先合并空缺字段再删重复 → ④ 删重复时**优先保留选导意向非空的记录** → ⑤ `DELETE /records?recordIds=recXXX,recYYY`，**不带 Content-Type header**。
+
+- 🔴 **查重必须对全表做，绝不能对「筛选后的视图」做**（2026-10-19 黄海若批次实测，一次撞 3 个）：
+  先按「地区 + 联系状态」筛出待处理记录再去重，会漏掉两类已有记录，直接产生重复行——
+  - **状态已变**：学生已联系过、甚至已「积极回复」的人（实测 Gorshkov 已积极回复、Ng Hui Khoon 已联系），按「未联系或待核实」筛就看不到；
+  - **Location 字段坏掉**：记录的 `学校名字` 指向一条**损坏的重复学校记录**时，`Location` 会显示成乱码 option id（如 `optMatiTaRpP2`）或空值，按地区筛同样过滤不到（实测 Antoine Browaeys、Ignacio Cirac、Maciej Lewenstein 等 18 条都是这种情况）。
+  **机械做法**：POST 之前无条件 `GET` 全表 → 用 `normalize_name()` 建全表姓名索引 → 命中即停止创建。命中后若原行的 `学校名字` 指向坏记录，**修原有行的 OneWayLink（`{"学校名字":[正确 schoolRid]}`，`fieldKey="name"` 可写）而不是新建**，以保住原行的 `选导时间/From` 溯源字段。
+
+- 🔴 **`normalize_name()` 的精确相等不够，必须再加一层「姓氏模糊比对」，且查重结果必须写成 assert**（2026-10-20 同批次第二次撞车）：
+  `Jonathan M. Baker` 与 `Jonathan Mark Baker` 规范化后仍不相等，于是建出了重复行；`Swamit Tannu` 明明精确命中，却因为脚本只 `print` 没 `assert` 照样建了。
+  **机械做法**：① 索引里同时保留 `last_name = normalize(name).split()[-1]`，新导师的 last_name 命中全表任何一条即视为**疑似重复**，必须人工确认再建；② 查重结论写进 `assert`，不要只打印——打印了不拦，等于没查。
+
+- 🔴 **`联系状态` 不能当「是否处理过」的代理**：`未联系或待核实` 只覆盖一个状态；`草稿`（已在写邮件）、`已联系`、`积极回复`、`已申请` 都是**已处理**。按状态筛出「待处理清单」再去重或补人，会系统性漏掉这些行，进而建出重复记录（实测 Baker／Tannu 均为 `草稿`，两条都被漏过）。判断某人是否已存在，只能看全表姓名，不能看状态。
 
 ## 11. Funding / Stipend / Grant 硬门
 
@@ -174,6 +197,7 @@ def normalize_name(name):
 
 - **同一记录的多字段改动必须合并为一次 PATCH**：同一 `recordId` 在同一批请求里出现两次会被去重，导致只生效一条（表现：一批 5 条只回写 4 条）。
 - **一次请求不能混用 `fieldKey="name"` 与 `fieldKey="id"`**：URL 字段必须 `fieldKey="id"`，文本字段必须 `fieldKey="name"`，混在一起整体返回 0 条。
+- **单次请求条数上限 10**：POST / PATCH 一次提交超过 10 条会**直接报错**（返回体里没有 `data` 键，容易被误判成响应格式变了）。2026-10-12 实测：17 条一次 PATCH 失败。实操按 **≤5 条/批、批间 `sleep(1)`**；DELETE 按 ≤8 条/批。
 - **写入前必须重新 GET 当前记录**（防止覆盖他人改动）；批量写入后必须回读验证。API 细节与代码模板见 `vika-guide.md`。
 
 ## 17. 备注里的语言说明：只写「不需要语言成绩」的学校

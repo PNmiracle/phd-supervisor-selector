@@ -1,5 +1,5 @@
 <!-- 头部由 2026-10-07 瘦身改造统一添加：三行说明用于阻止无谓加载，正文未改动 -->
-> **本文含**：验证工作流：链接健康审计、链接修复五步、交付前机械复查 SOP（10 项）、申请信息汇编文档批量核查、申请截止日核查、整表验证工作流与问题分级
+> **本文含**：验证工作流：链接健康审计、链接修复五步、交付前机械复查 SOP（10 项）、申请信息汇编文档批量核查、申请截止日核查、整表验证工作流与问题分级、**博士项目学位类型核查（PhD vs DVM/执业学位，2026-10-10 沉淀）**
 > **什么时候读**：交付之前；用户报「链接 404 / badcase」时；核查已有表格或申请信息汇编文档时
 > **什么时候不用读**：搜索阶段刚开始、还没有可交付内容时；只判断单条导师是否合格（转 selection-rules.md）
 
@@ -36,9 +36,6 @@ python3 scripts/link-audit.py [DATASHEET_ID] [VIKA_TOKEN]
 3. **URL 命名易错点**：人名类 slug 常与直觉不符，务必从官方目录页取 href 而非手拼。案例：WPI 的 Catherine F. **W**hittington 正确 slug 是 `cfwhittington`（她中间名 Faye），写成 `cwhittington` 会 404。
 - 修复流程：搜索替代 URL → 逐条 WebFetch 验证 → `fieldKey="id"` PATCH → 回读验证
 - 各校 2026 年 URL 改版格式见「链接修复工作流 → 步骤 2」表格
-
----
-
 
 ---
 
@@ -143,9 +140,6 @@ for r in verified['data']['records']:
 
 ---
 
-
----
-
 ## ✅ 交付前机械复查 SOP（10 项，全部可脚本化）（自 SKILL.md 迁入 2026-10-07；加第 9 项地区职称门槛闸门、第 10 项项目覆盖完整性）
 
 
@@ -192,7 +186,20 @@ for r in verified['data']['records']:
 - **可用的正向侧证**：目标申请季内的招生说明会日期（如 2026 年 9-11 月的 info session）、已公布下一学年学费、已列入目标学年目录。
 - **先修课与前置条件是独立的第四道关**：Delaware BIOMS 要求 12 学分实验科学 + 微积分 + 解剖/生理（B 以上），且**必须先找到同意资助的导师**；CU Boulder 同样要求先匹配 research mentor。三门槛通过 ≠ 学生实际能申，这些要单独写进交付说明。
 
----
+**第 8 项的两条新坑（2026-10-09 全量复查沉淀，代价最高的一类）**：
+
+1. **GRE 政策可能"按方向分化"——必须读到该方向的招生页，不能只看院系总页**
+   实测（一次复查就抓到 4 所）：
+   - **Colorado State**：`psychology.colostate.edu/apply-to-become-a-psychology-student/` 原文 "GRE scores are not required for all programs. **The GRE scores are required by the Industrial/Organizational Psychology program.**" → 表内 2 位 I-O 方向导师（个人页 "Programs: Industrial Organizational Psychology"）与"不考 G"直接冲突。
+   - **UIUC**：I-O、Quantitative 要求，其余 optional；**Minnesota**：CSPR / I-O / QPM 要求，CAB / Counseling / Social 不要求；**Wayne State**：I-O 要求，其余 optional；**UCF**：Clinical 要求、HFC 不要求。
+   - **判定动作**：拿到某位导师后，先去其**官方个人页**读 "Program / Programs / Area of Specialization" 字段确认他属于哪个方向，再找**该方向**的招生页读 GRE 原文。只看院系"我们系不要求 GRE"会踩坑。
+
+2. **GRE 政策会"反向加严"，旧记录必须重核**
+   **NYU 心理系**（Cognition & Perception 与 Social Psychology 两个 PhD）原文：`NEW FOR 2026 APPLICATION DEADLINE: The GRE general test is required of all applicants...` —— 即 2026 申请季**恢复要求** GRE。而表里早前写的说明行还是「NYU 心理系明确不接受 GRE」，已完全过时。
+   - **教训**：GRE 政策不是"查过就一劳永逸"的静态事实，**每轮交付前都要对"已写入的学校"重核一遍**，尤其是"曾确认免 G"的学校（可能反向加严）。
+   - 同时校验**学位学科**：该教授挂在哪个学院/哪个 PhD 项目下（例：同一位 NYU 教授可能在 Stern 商学院，而商学院明确要求 GRE/GMAT）——个人页所属学院 ≠ 表里填的项目页。
+
+3. **"非导师实体行"要单列**：表里常混有「XX心理系补充说明 / XX确认」这类把**院系级说明**装进「导师」字段的行。它们必然缺 `导师主页/博士申请信息/其他导师信息`，跑机械审计会全报 FAIL。**先按命名模式识别出来单列**（`补充说明|补充更新|确认`），再对其余真实导师记录判 FAIL，否则噪声会淹没真问题。
 
 
 ---
@@ -263,9 +270,6 @@ for r in verified['data']['records']:
 
 ---
 
-
----
-
 ## 申请截止日期核查（2026-09-17 沉淀，CRITICAL）（自 SKILL.md 迁入 2026-10-07）
 
 
@@ -314,9 +318,6 @@ for r in verified['data']['records']:
 
 ---
 
-
----
-
 ## 表格验证工作流（验证已有表格时触发）（自 SKILL.md 迁入 2026-10-07）
 
 
@@ -360,8 +361,6 @@ Step 7: 生成问题清单 → 分级 → 修正 → 二次验证
 
 ---
 
----
-
 > 📎 自 SKILL.md 迁入（2026-10-07）。
 
 ## 写入后审计（强制执行）
@@ -378,3 +377,55 @@ python3 scripts/audit.py [DATASHEET_ID] [VIKA_TOKEN]
 3. 备注中是否有垃圾内容
 4. 缺少必填字段（导师主页、博士申请信息、其他导师信息）
 5. **国内学校**：检查 `导师联系方式` 是否为空，是否为有效 email 格式
+
+---
+
+## 2026-10-10 学位类型核查：确认「博士项目」而非执业兽医学位（必做步骤）
+
+**客户会追问：「确认所有项目都是 PhD 项目而不是 DVM 之类的兽医项目。」** 填完「博士申请信息」后必须做一轮学位类型核查。
+
+### 核查方法（缺一不可）
+
+1. **关键词双向扫描**：正向找 `phd / doctor of philosophy / dphil / doctorate / doctoral / Dr. med. / Dr. rer. / Dr. phil.`；反向找**执业学位词** `Doctor of Veterinary Medicine / DVM / BVSc / Bachelor of Veterinary / entry to practice / register as a veterinarian / veterinary surgeon`。
+2. **读页面正文确认学位层级**，不只看网址和标题。关键判据是页面里的 **"AQF level 10 / Doctoral Degree"**、**"Doctorate by Research"**、**"thesis"**、**"research degree"** 字样。
+3. **看入学前提**：执业学位（DVM/BVSc）通常接受本科直入、要求高中成绩或 SJT（情境判断测试）；研究博士要求已有学位 + 荣誉/研究经历 + 导师同意。
+
+### ⚠️ 本轮抓到的三个真实错误（任何学科都可能重演）
+
+| 错误 | 症状 | 教训 |
+|---|---|---|
+| **UQ 兽医学院页实为本科执业学位页** | `veterinary-science.uq.edu.au/study-area/veterinary-science` 标题含 "Veterinary science"，但正文主体是 **Bachelor of Veterinary Science (Honours)**——5 年制、AVBC 认证、**毕业可注册当兽医**，底部才有一小段 HDR 指向 PhD | **学院级 "study-area" 页常常是本科招生页**。必须确认页面主体讲的是博士项目，不能因为底部提了一句 PhD 就算数。已改为 UQ `Doctor of Philosophy`（program code 7516） |
+| **Murdoch 的 DVetMedSc 是博士但不是 PhD 头衔** | `Doctor of Veterinary Medical Science (D1061)` 属 **AQF Level 10 博士级研究学位**、需写 thesis、入学要求是「兽医本科学位 + 荣誉」，**不是执业学位** | 名称含 "Veterinary" 不代表是执业学位，要读 AQF 等级。但**若客户要的是 PhD 头衔，应换该校统一 PhD**（Murdoch 为 `Doctor of Philosophy`，code **D1067**） |
+| **Otago 链接是 404，被反爬掩盖成 403** | `otago.ac.nz/study/postgraduate-study/subjects/immu` curl 返回 **403**（Cloudflare 挑战页），我据此判定"反爬但链接正确" | **403/202 绝不能当作"链接正确"的证据。** 必须用能穿透反爬的方式（WebFetch / 搜索引擎快照）复核。此例中 WebFetch 直接返回 **Page Not Found**。正确地址为 `courses/postgraduate-study/subjects/immunology` |
+
+### 各国博士学位的正确名称（用于向客户解释）
+
+- **英国**：PhD；**牛津**：DPhil（牛津官方表述"相当于 PhD"）
+- **澳洲**：Doctor of Philosophy（AQF Level 10）；少数校设学科专属研究博士（如 Murdoch DVetMedSc），但统一 PhD 通常更符合客户预期
+- **加拿大**：Doctor of Philosophy；学位页标注 `Degree Level: Doctoral` + `Program Type: Thesis Based`
+- **德国**：**Dr. med. vet.**（兽医学博士）、**Dr. rer. nat.**——属**博士学位（Promotion）**，与执业资格无关（德国兽医执业走 **Staatsexamen 国家考试**，不存在 DVM）。**要向客户说明这不是 DVM，但也不是 PhD 头衔**
+- **瑞士**：**Dr. phil. nat.**（GCB 等研究生院授予，等同 PhD）
+- **荷兰 / 比利时 / 挪威 / 丹麦**：PhD（岗位制）
+
+### 「执业学位」警示词清单（核查时扫这些）
+
+`Doctor of Veterinary Medicine`、`DVM`、`BVSc`、`Bachelor of Veterinary Science`、`entry to practice`、`register as a veterinarian`、`accredited by AVBC / AVMA / RCVS`、`veterinary surgeon`、`practice-ready`
+
+### 补充：客户要求「只要 PhD」时的德国特例（2026-10-12 刘艺佳案例）
+
+**德国兽医学博士有两种路径，性质与头衔都不同，必须分清：**
+
+| 路径 | 头衔 | 是否 PhD | 说明 |
+|---|---|---|---|
+| 传统 Promotion | **Dr. med. vet.** / **Dr. rer. nat.** | ❌ 不是 PhD 头衔 | 德国大学各系自行授予；研究型、需论文，**不是执业学位也不是实践类博士**（德国兽医执业走 **Staatsexamen 国家考试**，不存在 DVM） |
+| 结构化研究生院项目 | **PhD** | ✅ | 需加入 DRS / 研究生院 |
+
+**Freie Universität Berlin 实例**：官网原文明确列出三条路径——*"we offer the opportunity to pursue a doctorate with the qualification Dr. med. vet., Dr. rer. nat. **or PhD**. Doctoral students pursuing a PhD are enrolled in the **Biomedical Sciences program at the Dahlem Research School**"*。
+
+因此，**当客户只接受 PhD 时，德国院校不要填 `Promotionsbüro`（博士办公室）页**——那是涵盖三种学位的行政入口。应填结构化 PhD 项目页：
+- FU Berlin → `https://www.fu-berlin.de/en/sites/drs/doctorate/structured-or-individual/drs_programs/natural_and_life/biomedical_sciences/index.html`（"Doctoral Program Biomedical Sciences"，兽医学院 + 生物化学药学院联合开设）
+- ⚠️ 已失效路径（勿用，实测 404）：`vetmed.fu-berlin.de/en/einrichtungen/sonstige/drs/index.html`、`.../drs/Information-for-Applicants/`、`fu-berlin.de/en/sites/drs/about-us/drs_programs/...`
+
+**FU Berlin 的 CSC 友好点（值得在备注里点出）**：Biomedical Sciences 项目官方写明「Admission is restricted to those with external scholarships or within the framework of third-party-funded projects」，即**只接收持外部奖学金者、不发奖学金**，正好匹配 CSC 通道；且项目子方向含 **RTG 2046「Parasite Infections」**与 **RTG 3096「One Health approach to soil-transmitted helminths」**，对寄生虫/免疫方向学生是直接入口。
+
+**Bert Devriendt 式的判断口径**：客户说「实践类博士」时，实际要排除的是「非 PhD 头衔的博士路径」与「执业/第一专业学位」，不要误把 `Dr. med. vet.` 当成执业学位删掉整所学校——**先查该校有没有 PhD 路径，有就换成 PhD 项目，没有才移除**。

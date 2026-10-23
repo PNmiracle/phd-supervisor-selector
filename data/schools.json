@@ -1,5 +1,16 @@
 [
  {
+  "name": "American University — Psychology ／ Psychology 相关博士",
+  "rawHeading": "American University — Psychology ／ Psychology 相关博士（2026-10-09 核实）",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 160,
+  "lineEnd": 166,
+  "body": "- **Program fact（先看这条再决定要不要找导师）**：心理系研究生项目只有 **MA Psychology**、**PhD Clinical Psychology**、**PhD Behavior, Cognition, and Neuroscience（BCaN，由 Neuroscience 系主办）**。**没有** Social / Cognitive / 消费者行为方向的博士；**Kogod 商学院没有博士项目**（无 MBA 之外的 PhD，也无心理学联合博士）。\n- **BCaN 参与名单页**：`https://www.american.edu/cas/neuroscience/phd/faculty.cfm`（含心理系 Laura Juliano、David Kearns、Judy Kim、Arthur Shapiro；Judy Kim 做语言/思维/社会认知、Shapiro 做视觉知觉，**均非消费者或应用 JDM**）。\n- **Trap 1 — 教学轨冒充社会心理**：Laura Duval（social cognition, stereotyping and prejudice）、Erica Hart、Maria Gomez 的职称是 **Senior / Hurst Senior Professorial Lecturer（教学轨）**，不能招博士生。名字出现在 \"Full-Time Faculty Research Interests\" 页上，容易误判。\n- **Trap 2 — Decision Sciences Lab 是伪线索**：`/cas/psychology/decision/index.cfm` 方向为 Risk/Security/Intelligence/Leadership/Forensic（军情与国家安全分析取向），非消费者决策；页面**未标主任、未说明是否招博士生**，领衔 Craig Gruber 职称为 Research Associate Professor **In Residence**，不在 BCaN 名单内。\n- **Access**：全站对 curl 返 403，须用渲染通道（WebFetch）。\n- **Last verified**: 2026-10-09",
+  "aliases": []
+ },
+ {
   "name": "Auckland University of Technology (AUT)",
   "rawHeading": "Auckland University of Technology (AUT)",
   "section": "United Kingdom",
@@ -21,6 +32,17 @@
   "lineStart": 59,
   "lineEnd": 75,
   "body": "##### University of Vienna\n- **Architecture**: German site (doktorat.univie.ac.at) works well; English redirects often 404. UCRIS Pure portal on separate subdomain (behind Cloudflare). u:find JS SPA at ufind.univie.ac.at.\n- **Layer**: L2→L3 (UCRIS Pure Portal + DE site works, EN 404s)\n- **Access (PhD info)**: Navigate from https://www.univie.ac.at/studium/ → \"PhD / Doktorat\" → \"Zulassung zu Doktorats- und PhD-Studien\" → https://doktorat.univie.ac.at/doktoratunivie/zulassung/\n- **Access (individual profiles)**: Search Google for \"[Name] University Vienna u:find\" → find person ID → use `ufind.univie.ac.at/en/person.html?id=XXXX`. Check \"Currently not an active member of staff\" status on the profile.\n- **Key endpoint**: https://doktorat.univie.ac.at/ (DE version) / https://ufind.univie.ac.at/en/person.html?id={numeric_id}\n- **Language requirements**: Deutsch- und/oder Englischkenntnisse auf Niveau C1. \"Abschlusszeugnisse und optionaler Sprachnachweis\" — language certificate is optional, depends on department. For Bildungswissenschaft (Education), English C1 likely sufficient.\n- **Failed**: ufind search.html URLs don't work; need direct person ID; UCRIS blocked by Cloudflare; curl 403, browser also blocked by Cloudflare challenge\n- **Last verified**: 2026-06-29\n\n##### University of Innsbruck\n- **Architecture**: IEZW site protected by Anubis web firewall (v1.25.0)\n- **Layer**: L3 (Anubis anti-bot)\n- **Access**: Not accessible via automated tools. Manual search needed.\n- **Failed**: curl 404 on team pages; browser blocked by Anubis; FODOK search returns 410\n- **Last verified**: 2026-06-29",
+  "aliases": []
+ },
+ {
+  "name": "Baylor University — Psychology & Neuroscience",
+  "rawHeading": "Baylor University — Psychology & Neuroscience（2026-10-09 核实）",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 183,
+  "lineEnd": 190,
+  "body": "- **Program**：PhD in Psychology，四个 track：Behavioral Neuroscience / **Social Psychology** / General Experimental / Clinical。项目页 `https://psychologyneuroscience.artsandsciences.baylor.edu/graduate-programs/graduate-program-psychology`；PhD 师资页 `/graduate/graduate-program-psychology/phd-faculty`。\n- **GRE**：**2027 申请季 optional**（原文 \"The Graduate Record Examination (GRE) WILL BE OPTIONAL FOR THE 2027 ADMISSION CYCLE.\"）。\n- **语言**：雅思 \"All others 6.5\"（无单项线）；托福研究生院页已改成**新分制**（研究型博士 4.5），旧制 iBT 对照线未列。\n- **⚠️ 邮箱不在个人页**：心理系教师的个人页**没有 Contact Information 块**，邮箱要从 `https://psychologyneuroscience.artsandsciences.baylor.edu/faculty-staff/departmental-faculty-staff` 取（该页同时是最好的「其他导师信息」名录页，含姓名+职称+邮箱）。格式多为 `First_Last@baylor.edu`，**但不要猜，逐条抄页面**（例外：`NB_Keele@baylor.edu`、`rick_joy@baylor.edu`）。\n- **个别页面会写\"招生意向\"**：如 Schnitker \"is currently accepting applications for Ph.D. students\"、Andrade \"plans to recruit students for the Summer 2027 Cohort\" —— 这类原句值得抄进报告。\n- **Access**：curl 403（WAF），须渲染通道。\n- **Last verified**: 2026-10-09",
   "aliases": []
  },
  {
@@ -154,8 +176,8 @@
   "section": "Australia",
   "region": "au-nz",
   "source": "school-registry-au-nz.md",
-  "lineStart": 126,
-  "lineEnd": 148,
+  "lineStart": 154,
+  "lineEnd": 176,
   "body": "⚠️ **Previous assessment was incorrect.** staffportal.curtin.edu.au is a **pure React SPA** — all profile pages return ~2KB empty HTML shells to WebFetch/curl, even though browsers render them fine. about/our-people also uses JS accordions with no static content.\n\n- **Architecture**: React SPA (staffportal) + WordPress (personal sites) + JS accordion (about pages)\n- **Layer**: L0-SPA (SPA Workaround — skip staffportal entirely, use ALTERNATIVE sources)\n- **Accessible** (WORKING):\n  - **Personal academic websites**: tamaleaver.net, wishcrys.com (WordPress, static HTML, full content)\n  - **Research center pages**: digitalchild.org.au/team-members/ (ARC Centre — server-rendered, full profiles)\n  - **ResearchGate**: profiles with publications, stats, research areas (server-rendered)\n  - **Google Scholar**: search snippets give research tags + citation counts\n  - **ORCID**: structured profile data\n- **Blocked**: staffportal.curtin.edu.au ALL pages (SPA shell, ~2KB, zero extractable content), about/our-people (JS accordion, no names visible)\n- **SPA Workaround Strategy** (L0):\n  1. WebSearch `\"[Name] Curtin University professor research\"` → find alternative domains\n  2. Prioritize: personal WordPress sites > research center pages > ResearchGate > Google Scholar\n  3. WebFetch alternative sources for detailed content\n  4. Combine data: personal site for research areas + ResearchGate for publications + Scholar for citations\n- **Verified examples**:\n  - Tama Leaver: tamaleaver.net (full profile, research, books, teaching awards) + digitalchild.org.au (CI role)\n  - Crystal Abidin: wishcrys.com (full profile, 250+ pubs, h-index 42, awards) + ierlab.com (lab director)\n  - Michele Willson: researchgate.net (43 pubs, Monash PhD, research areas) + ORCID\n  - Mike Kent: Google Scholar snippet (cited 2,517, Internet Studies/Disability Studies/eLearning) + ResearchGate\n- **Last verified**: 2026-07-03",
   "aliases": []
  },
@@ -176,9 +198,9 @@
   "section": "Australia",
   "region": "au-nz",
   "source": "school-registry-au-nz.md",
-  "lineStart": 116,
-  "lineEnd": 124,
-  "body": "- **Architecture**: Pure Portal SPA (experts.deakin.edu.au) + Cloudflare WAF (deakin.edu.au CMS pages)\n- **Layer**: L3\n- **Access**: experts.deakin.edu.au/{slug} returns \"Discovery\" SPA shell (~2KB). Individual profiles require browser. deakin.edu.au/about-deakin/people blocked by Cloudflare.\n- **Key endpoint**: https://experts.deakin.edu.au/{slug}\n- **PhD application**: https://www.deakin.edu.au/study/find-a-course/research-degrees\n- **Note**: experts.deakin.edu.au is the consistent URL pattern.\n- **Failed**: deakin.edu.au/about-deakin/people/{name} → 403 Cloudflare\n- **Last verified**: 2026-07-01",
+  "lineStart": 132,
+  "lineEnd": 152,
+  "body": "- **Architecture**: Pure Portal SPA (experts.deakin.edu.au) + Cloudflare WAF (deakin.edu.au CMS pages)\n- **Layer**: L3\n- **Access**: experts.deakin.edu.au/{slug} returns \"Discovery\" SPA shell (~2KB). Individual profiles require browser. deakin.edu.au/about-deakin/people blocked by Cloudflare.\n- **Key endpoint**: https://experts.deakin.edu.au/{slug}\n- **PhD application**: https://www.deakin.edu.au/study/find-a-course/research-degrees\n- **Note**: experts.deakin.edu.au is the consistent URL pattern.\n- **Failed**: deakin.edu.au/about-deakin/people/{name} → 403 Cloudflare\n- **Last verified**: 2026-07-01\n- **✅ 2026-10-21 实测修正（李芳批次）**：\n  - **`experts.deakin.edu.au/{id}-{slug}` 形式（如 `28120-anne-kershaw`、`40550-Jian-Xu`）本机 curl 直连 200，页面含职称、`FIELDS OF RESEARCH`、`AREAS OF EXPERTISE`，以及关键的 `AVAILABILITY FOR SUPERVISION: Masters by Research and PhD supervision`——**这是判断带博资格最直接的字段**\n  - 个人页发现入口：`experts.deakin.edu.au/search?q=<关键词>`（服务端渲染、可读，含 id 与 slug）\n  - `deakin.edu.au` 主站 CMS 页（含 `/course/*`、`/faculty-*/…`、`/buslaw/…`）对本机 curl 一律 **403 `Just a moment...`**，WebFetch 可读；`/course/doctor-philosophy`、`/buslaw/research/graduate-research`、`/buslaw/department-of-management/our-people` 均为 **404**（真实路径是 `/course/doctor-philosophy-arts`）\n  - **学位路径陷阱**：**艺术与文化管理硕士/博士挂在 Deakin Business School 的 Department of Management**，博士走 **M900（Faculty of Business and Law）**；文学院 SCCA 走 **A900（Faculty of Arts and Education）**。别默认「艺术管理 = 文学院」\n  - **人名时效陷阱（重要）**：`motionlab.deakin.edu.au/people/katya-johanson/` 仍写她在迪肯任教授，**实际 2023-01 已转 Edith Cowan University**；`Hilary Glow` 页面显示为 **Honorary Professor**（须排除）。收 Deakin 艺术管理方向的人，先查 `experts.deakin.edu.au` 的当前任职，不要只看研究中心旧页\n- **✅ 2026-10-22 实测（李芳迪肯扩池）**：\n  - **`experts.deakin.edu.au/search?q=<关键词>` 是 JS 渲染，curl 拿到的 HTML 里 0 条结果**——发现人选只能靠 WebSearch（`Deakin <方向关键词> experts.deakin.edu.au`），拿到 `{id}-{slug}` 后再直连核页\n  - **迪肯的「品牌 / 营销传播」只在 Deakin Business School 的 Department of Marketing**（Paul Harrison、Jeffrey Rotman、Michael Polonsky、Joshua Newton），文学院 SCCA 没有营销传播师资；「艺术与文化管理」在 Department of Management（Anne Kershaw）。**按方向拆系，不要指望一个学院全包**\n  - 文学院侧对文创/传播方向真正对口的是：数字媒体与文化治理（Jian Xu、Toija Cinque）、批判公关（Kristin Demetrious）、媒体产业经济（Alison McAdam，地方新闻可持续性/新闻荒漠）、屏幕与电影节（Sian Mitchell）\n  - **`/about` 页正文很短（约 3–5 KB）**：研究领域只写 bio 首段出现的词能过机械证据检查；写在 `TEACHING & SUPERVISION` 的 `Expertise Summary`（如 branding / macro-marketing / ethics）在 `/about` 上抓不到，会被判「无出处」\n  - M900（Business and Law PhD）与 A900（Arts PhD）的项目页：`deakin.edu.au/current-students-courses/course.php?course=M900&version=1&year=2025`、`deakin.edu.au/course/doctor-philosophy-arts`（均 403 对本机，WebFetch 可读）",
   "aliases": []
  },
  {
@@ -204,6 +226,17 @@
   "aliases": [
    "EdUHK"
   ]
+ },
+ {
+  "name": "Georgia State University — Psychology",
+  "rawHeading": "Georgia State University — Psychology（2026-10-09 核实）",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 192,
+  "lineEnd": 198,
+  "body": "- **Program**：PhD in Psychology，concentration：Clinical (CLG)、Clinical-Community (CLC)、**Cognitive Sciences (CGS)**、Community (COR)、Developmental (DEV)。**没有 I-O 方向**。项目页 `https://psychology.gsu.edu/graduate/`。\n- **招生状态页（很好用）**：`https://psychology.gsu.edu/faculty-accepting-students-for-fall-graduate-admissions/` —— 逐人列 Yes / No / Maybe（Fall 2027），并说明无 CLN/CAN 招生。\n- **GRE**：**不要求**（\"The GRE is not required and GRE scores will not be reviewed.\"）。\n- **语言**：托福最低 69（建议 79；**明确接受 Home Edition、My Best、拼分**）／雅思最低 6（建议 6.5；接受 IELTS Online 与 One Skill Retake）。\n- **Access**：`https://psychology.gsu.edu/directory/` 是 **JS 渲染**（curl 拿到 HTML 但表格为空，需渲染通道）；个人页 `https://psychology.gsu.edu/profile/{firstname-lastname}/`（curl 可达，但站点 WAF 时好时坏）。\n- **Last verified**: 2026-10-09",
+  "aliases": []
  },
  {
   "name": "Germany",
@@ -342,8 +375,8 @@
   "section": "Australia",
   "region": "au-nz",
   "source": "school-registry-au-nz.md",
-  "lineStart": 95,
-  "lineEnd": 99,
+  "lineStart": 101,
+  "lineEnd": 105,
   "body": "- **Architecture**: Pure research portal (researchers.mq.edu.au)\n- **Access**: https://researchers.mq.edu.au/en/persons/{name}/\n- **Key endpoint**: https://researchers.mq.edu.au/en/persons/abas-mirzaei/\n- **Last verified**: 2026-06-26",
   "aliases": []
  },
@@ -375,9 +408,9 @@
   "section": "Australia",
   "region": "au-nz",
   "source": "school-registry-au-nz.md",
-  "lineStart": 74,
-  "lineEnd": 85,
-  "body": "- **Architecture**: Pure Portal。**个人页 `research.monash.edu/en/persons/{slug}` 可直接 curl**（75-130KB，标题含姓名），且页面含 `Accepting PhD Students` 徽标 —— **这是判断招生意愿的现成依据**\n- **Layer**: L1\n- **Key endpoint**: `research.monash.edu/en/persons/{name-slug}/`\n- **PhD 项目页**: `www.monash.edu/arts/research/graduate-research`（curl 403，WebFetch 可读；`/arts/graduate-research` 会重定向到此）\n- **⚠️ 戏剧单位已更名**：原 `Centre for Theatre and Performance` 的 Pure 组织页已 302 到 **`research.monash.edu/en/organisations/critical-theatre-performance/`**（旧的 `centre-for-theatre-and-performance/persons/` 显示 0 results）→ 院系/组织页用新 slug；\n  - 但个人页上「所属组织」仍可能标注为 `Literary Studies` 或 `School of Languages, Literatures, Cultures and Linguistics` → **写 Department 时以个人页标注为准**\n  - 旧路径 `monash.edu/arts/theatre-performance/our-staff` 已跳 Okta 登录页，不可用\n- **⚠️ 职称字段值得核对**：页头（Pure 结构化字段）与简介自述可能不一致（实例 Anthony Moore 页头 Professor、简介自称 Associate Professor）→ **以页头字段为准**\n- **⚠️ 姓名署名可能简化**：实例 Stacy Holman Jones 在 Pure 页署名为 `Stacy Jones`（邮箱仍为 Stacy.HolmanJones@monash.edu）\n- **Failed**: `research.monash.edu/en/organisations/*/persons/` 与 `www.monash.edu/arts/*` curl 403（Cloudflare），但 WebFetch 可读全文\n- **Last verified**: 2026-09-20",
+  "lineStart": 79,
+  "lineEnd": 91,
+  "body": "- **Architecture**: Pure Portal。**个人页 `research.monash.edu/en/persons/{slug}` 可直接 curl**（75-130KB，标题含姓名），且页面含 `Accepting PhD Students` 徽标 —— **这是判断招生意愿的现成依据**\n- **Layer**: L1\n- **Key endpoint**: `research.monash.edu/en/persons/{name-slug}/`\n- **PhD 项目页**: `www.monash.edu/arts/research/graduate-research`（curl 403，WebFetch 可读；`/arts/graduate-research` 会重定向到此）\n- **⚠️ 戏剧单位已更名**：原 `Centre for Theatre and Performance` 的 Pure 组织页已 302 到 **`research.monash.edu/en/organisations/critical-theatre-performance/`**（旧的 `centre-for-theatre-and-performance/persons/` 显示 0 results）→ 院系/组织页用新 slug；\n  - 但个人页上「所属组织」仍可能标注为 `Literary Studies` 或 `School of Languages, Literatures, Cultures and Linguistics` → **写 Department 时以个人页标注为准**\n  - 旧路径 `monash.edu/arts/theatre-performance/our-staff` 已跳 Okta 登录页，不可用\n- **⚠️ 职称字段值得核对**：页头（Pure 结构化字段）与简介自述可能不一致（实例 Anthony Moore 页头 Professor、简介自称 Associate Professor）→ **以页头字段为准**\n- **⚠️ 姓名署名可能简化**：实例 Stacy Holman Jones 在 Pure 页署名为 `Stacy Jones`（邮箱仍为 Stacy.HolmanJones@monash.edu）\n- **Failed**: `research.monash.edu/en/organisations/*/persons/` 与 `www.monash.edu/arts/*` curl 403（Cloudflare），但 WebFetch 可读全文\n- **Last verified**: 2026-09-20\n- **✅ 2026-10-21 实测（李芳批次）**：`research.monash.edu/en/organisations/school-of-media-film-and-journalism/persons/?pageSize=100` 一次可拿全院 60+ 师资（姓名 + 职称 + 所属 unit），**加 `?pageSize=100` 可避免首页截断**；但**连续批量请求后同一脚本会转 403**，隔一段时间重试即可。`www.monash.edu/arts/graduate_research`（Arts 博士项目页）curl 403、WebFetch 标题可读为 `Arts Graduate Research | Monash`。人文社科方向的核心池集中在 **School of Media, Film and Journalism**（Film Screen & Culture / Media / Communications 三个 unit）",
   "aliases": []
  },
  {
@@ -442,6 +475,17 @@
   "aliases": []
  },
  {
+  "name": "Ohio University — Psychology",
+  "rawHeading": "Ohio University — Psychology（2026-10-13 核实）",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 200,
+  "lineEnd": 218,
+  "body": "- **Program**：博士只有两个 —— **Clinical Psychology PhD** 与 **Experimental Psychology PhD**（五年制）。**没有独立的 I-O 博士**：I-O 是 **Experimental Psychology PhD 下的一个 specialization**。项目页 `https://www.ohio.edu/cas/psychology/graduate`（子页 `/graduate/clinical`、`/graduate/experimental`；招生页各自 `/admissions`）。另有 Psychological Science M.S. 与在线 M.S./证书（与博士招生无关）。\n- **Experimental 下的四个 specialization（判方向的入口）**：**Cognitive Psychology**（官网原文强项 = \"complex cognition, particularly in the areas of memory and **judgment and decision making**\"）／Experimental Health Psychology／**Social Psychology**（强项 = \"social cognition and **social judgment**\"）／Industrial-Organizational Psychology；另有 Quantitative 选修方向。\n  → **对消费者 / JDM 方向的学生，入口是 Cognitive 或 Social，不是 I-O。**\n- **⚠️ 2026 新聘 I-O 助理教授 Jingyi Li 不对口**（`https://www.ohio.edu/directory/jingyi-li`）：研究对象是**人事测评与选拔**（personnel selection and assessment），用 AI/ML/NLP/LLM 做个体差异（职业兴趣、人格）测评，关注效度与公平性、申请人行为与人—AI 测评。虽有 \"AI / human–AI\" 机制词重合，但对象（测评 vs 决策偏误）、场景（招聘选拔 vs 创业机会识别）、结果变量（测评效度/公平 vs 幸福感）均不同 → 按判据归 **C 档**。她**明确招 2027–2028 学生**，但方向不搭。\n- **Access**：`https://www.ohio.edu/directory/{firstname-lastname}`（Keith Markman 即此路径）。curl 可达（200），无需渲染通道。**师资全名单**在 `https://www.ohio.edu/cas/psychology/about/contact/faculty-staff-directory`（**不是 table，是 `a.views-row.profile-card` 卡片**，解析按卡片取 `.name` + `.titles`；`/cas/psychology/faculty` 是空壳 JS 页，别用）。\n- **招生要求（Experimental PhD，页 `/graduate/experimental/admissions`）**：\n  - **GRE：Optional**（原文 \"Optional Graduate Record Examination (GRE), both Verbal and Quantitative\"；另注 \"We strongly encourage applicants to the cognitive area or those pursuing the quantitative specialization to submit quantitative GRE scores.\" → **\"强烈鼓励\"不等于要求**，不考 G 可投）。\n  - **语言**：\"A TOEFL-iBT of 80 or higher is recommended. The minimum IELTS is 6.5 **across all bands**.\" → **雅思要求各单项 6.5**，单项 6.0 的学生不能递雅思，**须递托福**。\n  - 先修 18 学分心理学（含统计 + 实验研究设计）；GPA 3.0 总 / 3.3 心理；**截止日 12 月 1 日**（申请次年秋入学）。\n- **⚠️ 该校 SOP 有一项特殊要求**：\"Include in your personal statement a **rank-ordered list of the three faculty members** with whom you most want to work.\" → 套磁名单要与 SOP 的三人排序一致，选人时必须提前定序。\n- **Cognitive / Social 两个方向的师资（官方方向页 `/graduate/experimental/manual/specialization-cognitive-psychology` 与 `…-social-psychology` 列出）**：\n  - **Cognitive**：**Claudia González Vallejo**（Professor；\"Social Judgment & Behavioral Decision Making\"，研究 lens model、calibration、判断与选择的数学模型、跨期决策、**nutrition judgments and food studies**，授课含 Judgment and Decision Making 与 \"Food Matters… the Psychology of Food Choices\" 模块 → **对消费/JDM 学生最对口**；⚠️ 她现任 **NSF Decision, Risk, and Management Sciences 项目主任**，个人页未写招生意向，投前需发信确认）／**Ronaldo Vigo**（Professor of Mathematical & Computational Cognitive Science；个人页明写 **\"will not be accepting new graduate students for the upcoming academic year\"** → 不写）。\n  - **Social**：**Keith Markman**（对口的 JDM 线）／Brett Peters（关系中的压力与生理，不对口）。\n  - 两方向的 **Affiliated Faculty：Jeffrey B. Vancouver**（Professor & Byham Chair in I-O；动机与目标的计算模型 → 边界）。\n  - 其余不对口：Mirinda Whitaker（定量 + 疼痛）、Molly Maloney（IPV/物质使用）、Katrina Hamilton（慢性痛）、Jennifer Grant Weinandy（成瘾）、K. Jean Forney（进食障碍）、James Gerhart（慢病管理）、Eric Muth（工效/生理，且任副校长）、Gary Sarver（无近年发表）；另有 Zanesville/Eastern/Lancaster **区域校区教学岗**（Poling/Casebolt/LoSchiavo/Munhall）不属 Athens 博士师资。\n- **Last verified**: 2026-10-13\n\n---",
+  "aliases": []
+ },
+ {
   "name": "PolyU 建设及环境学院（FCE）2026-07-01 大重组 —— 旧系名已失效",
   "rawHeading": "⚠️ PolyU 建设及环境学院（FCE）2026-07-01 大重组 —— 旧系名已失效（2026-10-07 实测）",
   "section": "Hong Kong",
@@ -484,8 +528,8 @@
   "section": "Australia",
   "region": "au-nz",
   "source": "school-registry-au-nz.md",
-  "lineStart": 87,
-  "lineEnd": 93,
+  "lineStart": 93,
+  "lineEnd": 99,
   "body": "- **Architecture**: Cloudflare WAF (全站)\n- **Layer**: L3\n- **Access**: BLOCKED — needs manual browser from user side\n- **Key endpoint**: https://www.qut.edu.au/research/our-people\n- **Failed**: curl + browser both blocked\n- **Last verified**: 2026-06-26",
   "aliases": []
  },
@@ -495,9 +539,9 @@
   "section": "Australia",
   "region": "au-nz",
   "source": "school-registry-au-nz.md",
-  "lineStart": 101,
-  "lineEnd": 107,
-  "body": "- **Architecture**: Pure Portal (academics) + Cloudflare WAF\n- **Layer**: L3\n- **Access**: Cloudflare WAF blocks all curl access; browser required\n- **Key endpoint**: https://www.rmit.edu.au/contact/staff-contacts/academic-staff/\n- **Profile URL pattern**: academics.rmit.edu.au/{name-slug} (SPA)\n- **Last verified**: 2026-07-01",
+  "lineStart": 107,
+  "lineEnd": 123,
+  "body": "- **Architecture**: Pure Portal (academics) + Cloudflare WAF\n- **Layer**: L3\n- **Access**: Cloudflare WAF blocks all curl access; browser required\n- **Key endpoint**: https://www.rmit.edu.au/contact/staff-contacts/academic-staff/\n- **Profile URL pattern**: academics.rmit.edu.au/{name-slug} (SPA)\n- **Last verified**: 2026-07-01\n- **⚠️ 2026-10-21 实测（李芳批次）**：\n  - **个人页正确通道是 `www.rmit.edu.au/profiles/{首字母}/{slug}`，本机 curl 直连 200（200–260 KB），页内含职称、`Department: School - Media & Communication`、`Research interests`、`PhD projects`，部分页有 `Open to Masters Research or PhD student supervision`**\n  - `academics.rmit.edu.au/{slug}/about` 是 **SPA 壳（4 KB，title 恒为 `Discovery`）**，不可用作个人页\n  - 学院 `…/media-and-communication/people` 页只有 7 条静态 `/profiles/` 链接（其余走 JS 目录），不能当完整名录页；`/contact/staff-contacts/academic-staff` 是检索表单，无名单\n  - **可用的个人页发现入口**：数字民族志研究中心成员页 `rmit.edu.au/research/centres-collaborations/digital-ethnography-research-centre/people`（一次给出 32 条 `/profiles/` 链接，含 Meese / Thomas / Yu / Whiting 等）\n  - 博士项目页：`www.rmit.edu.au/study-with-us/levels-of-study/research-programs/phd/phd-media--communication-dr211`（PhD Media & Communication, DR211，直连 200）\n- **⚠️ 2026-10-22 实测补充（李芳补位批次）**：\n  - **RMIT 的「研究中心 / 研究组成员页」明显滞后于个人页**：`…/research/public-communication-research-and-advisory-services` 仍列着 **Ella Chorazy（2024 年已回 QUT）**，且她与 Deborah Wise 的「Find out more」旧式链接（`/content/rmit-ui/…/staff-contacts/academic-staff/…`）已 **404**。收人前必须回个人页核在职状态，成员页不能当在职证明\n  - **slug 不能靠猜**：`/profiles/w/deborah-wise` 直接 404（真实 slug 未必是「名-姓」）。可靠发现顺序：WebSearch 命中 `rmit.edu.au/profiles/...` → 中心成员页 → 研究组页\n  - 广告/公关/品牌方向核心池：Robert Crawford（Professor of Advertising，兼 College of Design and Social Context 的 HDR Director）、Leah Li（Senior Lecturer，PR + 地方/国家品牌）、Lukas Parker（Professor，社会营销）、Linda Brennan（Professor，广告与社会营销）",
   "aliases": []
  },
  {
@@ -587,8 +631,8 @@
   "section": "Australia",
   "region": "au-nz",
   "source": "school-registry-au-nz.md",
-  "lineStart": 64,
-  "lineEnd": 72,
+  "lineStart": 69,
+  "lineEnd": 77,
   "body": "- **Architecture**: Pure Portal。`researchers.anu.edu.au/researchers/{slug}` 是 **React SPA 空壳**；**`researchportalplus.anu.edu.au/en/persons/{slug}` 可直接 curl**（100-450KB，标题含姓名）\n- **Layer**: L1（用 researchportalplus 域名绕开 SPA）\n- **Key endpoint**: `researchportalplus.anu.edu.au/en/persons/{name-slug}`；院系页 `slll.cass.anu.edu.au/people/academics`、`cpas.anu.edu.au/people`（均可 curl）\n- **PhD 项目页**: `cass.anu.edu.au/study/higher-degree-research/applications`\n- **⚠️ 个人页含 `Registered to supervise` 字段**，是判断带博资格的现成依据\n- ❌ `soad.cass.anu.edu.au/people`、`/people/staff`、`/about-us/people` 全部 404 → School of Art & Design 只能用学院首页 `soad.cass.anu.edu.au/` 当院系页\n- **Failed**: `researchportalplus.anu.edu.au/en/organisations/*/persons/` 被 Cloudflare 拦（403）；School of Art & Design 无公开人员列表页\n- **Last verified**: 2026-09-20",
   "aliases": [
    "ANU"
@@ -650,8 +694,8 @@
   "section": "New Zealand",
   "region": "au-nz",
   "source": "school-registry-au-nz.md",
-  "lineStart": 153,
-  "lineEnd": 164,
+  "lineStart": 181,
+  "lineEnd": 192,
   "body": "- **Architecture**: Adobe AEM (www subdomain) + React SPA (profiles subdomain) + Imperva/Incapsula WAF\n- **Layer**: L3→L4 (Mostly blocked; dead end for Communication/Advertising/Brand)\n- **Media and Screen Studies**: 9 staff found via contact page, ALL film/TV/media studies focus — NOT communication/advertising/brand. Auckland has NO dedicated Communication/Advertising/Brand programme.\n- **Accessible**: calendar.auckland.ac.nz (249KB), researchspace.auckland.ac.nz (203KB), arts about/contact page (290-325KB, accessible via curl but names in SPA)\n- **Blocked**: profiles.auckland.ac.nz (JS shell 2122B), unidirectory.auckland.ac.nz (0B/SSL error), business school marketing dept (406/Imperva), most dept pages (403/406), all /our-people/ and /staff/ paths (406)\n- **ORCID Discovery Method**: Found 16+ Auckland researchers via ORCID keyword search but employment data incomplete. Cross-reference with Google Scholar for verification.\n  - `curl \"https://pub.orcid.org/v3.0/search/?q=affiliation-org-name:%22University+of+Auckland%22+AND+(keyword:media+OR+keyword:film+OR+keyword:screen)\"`\n- **Best method**: None working for staff profiles. ORCID fallback yields names but incomplete data.\n- **Manual URL** (last resort): https://www.auckland.ac.nz/en/arts/about-the-faculty/school-of-humanities/our-people/contact-an-academic/contact-an-academic-in-media-and-screen-studies.html\n- **Failed**: All curl, browser, and search engine approaches exhausted; individual profile pages (SPA shells); GraphQL API; profiles search API\n- **Last verified**: 2026-07-01",
   "aliases": []
  },
@@ -683,8 +727,8 @@
   "section": "New Zealand",
   "region": "au-nz",
   "source": "school-registry-au-nz.md",
-  "lineStart": 192,
-  "lineEnd": 197,
+  "lineStart": 220,
+  "lineEnd": 225,
   "body": "- **Architecture**: Modern SPA with redirects\n- **Layer**: L1→L3 (redirects to generic study page)\n- **Access**: Navigate from main site https://www.canterbury.ac.nz/ then find Education staff links\n- **Failed**: Direct URLs redirect to generic study information pages; academic staff page 404; all staff-related URLs dead\n- **Last verified**: 2026-06-29",
   "aliases": []
  },
@@ -708,6 +752,17 @@
   "lineStart": 61,
   "lineEnd": 68,
   "body": "- **Architecture**: Static HTML / Colorado.edu CMS; faculty profiles and program pages directly readable.\n- **Layer**: L1, with WebSearch fallback for doctoral-supervision evidence.\n- **Access**: Use `colorado.edu/geography` for program pages and faculty profiles. Graduate admissions page confirms no GRE required since 2021. PhD requires Master's degree. Application requires listing at least one faculty advisor (up to 4); applicants must contact potential advisors before deadline (December 1). Department reviews applications then remaining faculty provide advisor matching input; faculty must agree to serve as advisor before admission is granted.\n- **Key endpoints**: `https://colorado.edu/geography/node/2026` (admissions domestic); `https://www.colorado.edu/geography-ma-phd` (degrees overview); `https://colorado.edu/geography/grad-program/graduate-curriculum/graduate-admissions` (admissions criteria); `https://catalog.colorado.edu/graduate/colleges-schools/arts-sciences/programs-study/geography/geography-doctor-philosophy-phd/` (catalog).\n- **Faculty profiles**: Emily Yeh (`https://www.colorado.edu/geography/emily-yeh-0`); Mara Goldman (`https://www.colorado.edu/geography/mara-goldman-0`).\n- **Failed / limits**: Department does not publish specific doctoral assistantship dollar amount. Funding page references assistantships but no fixed stipend figure. PhD requires 6 semesters residence (4 at CU). Language requirement: one foreign language.\n- **Last verified**: 2026-08-26",
+  "aliases": []
+ },
+ {
+  "name": "University of Denver — Psychology",
+  "rawHeading": "University of Denver — Psychology（2026-10-09 核实）",
+  "section": "US/Canada",
+  "region": "us",
+  "source": "school-registry-us.md",
+  "lineStart": 175,
+  "lineEnd": 181,
+  "body": "- **Program**：PhD in **Affective, Social & Cognitive Psychology**（另设 Clinical–Child、Developmental）。招生要求页 `https://www.du.edu/academics/admission-steps/psychology-affective-social-cognitive-psychology-phd-2027-2028`。**GRE optional**。\n- **⚠️ 语言口语单项线（罕见且致命）**：TOEFL 80 且 **Speaking ≥ 26**；IELTS 6.5 且 **Speaking ≥ 8**。口语 18 / 6.0 一类的学生**直接不符合**，写入表格时语言列标【不符合】。\n- **最有价值的一页**：`https://liberalarts.du.edu/psychology/psyc-resources-prospective-phd-students` —— 按方向列出**当年招收 PhD 的导师**（2026 秋：ASC 8 人、Developmental 5 人、Clinical 8 人）。比翻全系名录高效得多。\n- **Access**：全站 Cloudflare，**curl 一律 403**，必须渲染通道。People 页是**服务端分页** `?page=0..6`（70 人），不传 `?page` 会被工具截断在字母 D；实验室页同理 `?page=0..1`。\n- **Trap**：个人页页头结构化字段是 `Specialization(s)`（不是 \"Research Interests\"）；少数人的 `What I do`/自述文字是**旧文未更新**（例：E. Paige Lloyd 页头 Associate Professor、自述仍写 Assistant Professor）→ 以页头/名录页的结构化字段为准。\n- **Last verified**: 2026-10-09",
   "aliases": []
  },
  {
@@ -800,8 +855,8 @@
   "region": "au-nz",
   "source": "school-registry-au-nz.md",
   "lineStart": 14,
-  "lineEnd": 31,
-  "body": "- **Architecture**: findanexpert SPA (Pure Portal variant) — /display/person-* returns same SPA shell for all slugs ⚠️; /profile/{id}/{slug} has unique individual profile IDs but still 0-byte SPA via curl\n- **Layer**: L3 (curl useless for content; browser required)\n- **Access**: curl returns 200 with 0 bytes (SPA shell). MSD pages (msd.unimelb.edu.au) return 403 via curl. Browser renders findanexpert correctly.\n- **Key endpoint**: `https://findanexpert.unimelb.edu.au/profile/{id}/{slug}` — individual profile pages with unique IDs\n- **Individual profile URL pattern**: `https://findanexpert.unimelb.edu.au/profile/{numeric_id}/{name-slug}`\n- **Staff directory**: `https://findanexpert.unimelb.edu.au/college/1/faculty-of-architecture-building-and-planning`\n- **PhD info**: `https://study.unimelb.edu.au/find/study-areas/architecture-building-and-planning/`\n- **⚠️ CRITICAL**: /display/person-* endpoint matches ANY slug with same SPA shell → DO NOT use to verify affiliation. Use /profile/{id} format or browser verification.\n- **⚠️ David Beynon lesson**: findanexpert returned 200 for \"person-david-beynon\" but he was actually at UTAS. Always browser-verify or use /profile/{id} format.\n- **Failed**: /display/ endpoint is unreliable; MSD direct pages 403\n- **Last verified**: 2026-06-30\n- **⚠️ 2026-09-20 实测修正**：\n  - `findanexpert.unimelb.edu.au/profile/{数字ID}`（**不带 slug 也可以**）**WebFetch 可读**，能拿到姓名/职称/Research Interests 标签；curl 仍被 Cloudflare 拦（返回 6183B \"Pardon Our Interruption\"，所有 URL 字节数完全相同 → 典型拦截特征，不是死链）\n  - `profileprint/{id}` 也被拦（\"Pardon Our Interruption\"）\n  - 院系学术人员列表页 `arts.unimelb.edu.au/school-of-culture-and-communication/our-people/academic-staff` 与 `finearts-music.unimelb.edu.au/about-us/vca/academic-staff`：curl 403 \"Just a moment...\"，但**WebFetch 可读全文（含每人的电话与邮箱）**——找邮箱首选这两页\n  - **VCA 有非标准编目职称**：教学岗在名录上可能写成 `Specialist in Directing` / `Specialist in Movement` 这类（实例 Kat Henry / Colin Sneesby），而校方其他页面（如 study.unimelb 课程页）又称其为 Lecturer。**判职称时两者都要看，并在备注里按页面实际表述写**；这类岗位的 HDR 带博资格通常无公开字段，按「未明确表明监督资格，可以后放～」处理\n  - VCA 的 RHD 协调人在名录里写作 `Course Coordinator (Research Higher Degrees)`；影视系的研究生协调人写作 `Course Coordinator (Graduate Research)`",
+  "lineEnd": 36,
+  "body": "- **Architecture**: findanexpert SPA (Pure Portal variant) — /display/person-* returns same SPA shell for all slugs ⚠️; /profile/{id}/{slug} has unique individual profile IDs but still 0-byte SPA via curl\n- **Layer**: L3 (curl useless for content; browser required)\n- **Access**: curl returns 200 with 0 bytes (SPA shell). MSD pages (msd.unimelb.edu.au) return 403 via curl. Browser renders findanexpert correctly.\n- **Key endpoint**: `https://findanexpert.unimelb.edu.au/profile/{id}/{slug}` — individual profile pages with unique IDs\n- **Individual profile URL pattern**: `https://findanexpert.unimelb.edu.au/profile/{numeric_id}/{name-slug}`\n- **Staff directory**: `https://findanexpert.unimelb.edu.au/college/1/faculty-of-architecture-building-and-planning`\n- **PhD info**: `https://study.unimelb.edu.au/find/study-areas/architecture-building-and-planning/`\n- **⚠️ CRITICAL**: /display/person-* endpoint matches ANY slug with same SPA shell → DO NOT use to verify affiliation. Use /profile/{id} format or browser verification.\n- **⚠️ David Beynon lesson**: findanexpert returned 200 for \"person-david-beynon\" but he was actually at UTAS. Always browser-verify or use /profile/{id} format.\n- **Failed**: /display/ endpoint is unreliable; MSD direct pages 403\n- **Last verified**: 2026-06-30\n- **⚠️ 2026-09-20 实测修正**：\n  - `findanexpert.unimelb.edu.au/profile/{数字ID}`（**不带 slug 也可以**）**WebFetch 可读**，能拿到姓名/职称/Research Interests 标签；curl 仍被 Cloudflare 拦（返回 6183B \"Pardon Our Interruption\"，所有 URL 字节数完全相同 → 典型拦截特征，不是死链）\n  - `profileprint/{id}` 也被拦（\"Pardon Our Interruption\"）\n  - 院系学术人员列表页 `arts.unimelb.edu.au/school-of-culture-and-communication/our-people/academic-staff` 与 `finearts-music.unimelb.edu.au/about-us/vca/academic-staff`：curl 403 \"Just a moment...\"，但**WebFetch 可读全文（含每人的电话与邮箱）**——找邮箱首选这两页\n  - **VCA 有非标准编目职称**：教学岗在名录上可能写成 `Specialist in Directing` / `Specialist in Movement` 这类（实例 Kat Henry / Colin Sneesby），而校方其他页面（如 study.unimelb 课程页）又称其为 Lecturer。**判职称时两者都要看，并在备注里按页面实际表述写**；这类岗位的 HDR 带博资格通常无公开字段，按「未明确表明监督资格，可以后放～」处理\n  - VCA 的 RHD 协调人在名录里写作 `Course Coordinator (Research Higher Degrees)`；影视系的研究生协调人写作 `Course Coordinator (Graduate Research)`\n- **✅ 2026-10-21 实测（李芳批次）**：\n  - **规范个人页是 `findanexpert.unimelb.edu.au/profile/{数字ID}-{连字符slug}`**（如 `/profile/828435-kirsten-stevens`）。旧写法用 `+`（`profile/828435-kirsten+stevens`）会 **301** 到连字符形式；只写 `/profile/{数字ID}` 也可能 301。**入库一律写连字符 slug 形式**，避免落点判定失败\n  - 慢速单条 curl（间隔 ≥6 s、Safari UA + `Accept-Language`）可拿到 200–350 KB 全文；**连续批量抓（同一脚本 20+ 请求）会转成 6183 B `Pardon Our Interruption`**，这时不是死链，隔一段时间或换 WebFetch 即可\n  - **院系名录页比 findanexpert 更好用**：`arts.unimelb.edu.au/school-of-culture-and-communication/our-people/{arts-and-cultural-management|media-and-communications|academic-staff}` WebFetch 可读全文，**每行带个人页链接 + 职称 + 电话 + 邮箱**，一次拿全一个人文项目的师资与联系方式\n  - 博士项目页：`study.unimelb.edu.au/find/courses/graduate/doctor-of-philosophy-arts/`（DR-PHILART，PhD – Arts，由 GSHSS 下设各 School 开设，含 Culture and Communication）",
   "aliases": []
  },
  {
@@ -884,9 +939,20 @@
   "section": "New Zealand",
   "region": "au-nz",
   "source": "school-registry-au-nz.md",
-  "lineStart": 166,
-  "lineEnd": 172,
+  "lineStart": 194,
+  "lineEnd": 200,
   "body": "- **Architecture**: Static HTML behind Cloudflare WAF (curl returns 403)\n- **Layer**: L3\n- **Access**: In-app browser bypasses Cloudflare. Individual profile URLs follow https://www.otago.ac.nz/{dept}/staff/{name-slug} pattern.\n- **Key endpoint**: https://www.otago.ac.nz/education/staff (Education) / https://www.otago.ac.nz/marketing/staff (Business School)\n- **Failed**: All curl → Cloudflare 403\n- **Last verified**: 2026-06-29",
+  "aliases": []
+ },
+ {
+  "name": "University of Roehampton",
+  "rawHeading": "University of Roehampton（2026-10-12 实测）",
+  "section": "United Kingdom",
+  "region": "uk",
+  "source": "school-registry-uk.md",
+  "lineStart": 250,
+  "lineEnd": 271,
+  "body": "- **Architecture**: 主站静态 + **Pure 研究门户**（`pure.roehampton.ac.uk`）；主站 `/staff/<slug>/` 会映射到 Pure\n- **Layer**: L1（curl 可直连 200，同样**注意 gzip**）\n- **Key endpoint**:\n  - **个人页（首选）**：`https://pure.roehampton.ac.uk/portal/en/persons/<slug>`\n    - 页面含：职称（Professor / Dr, Associate Professor…）、所属中心与学院、ORCID、**`Accepting PhD Students` 标记**、Biography、Research output 计数\n  - 单位人员列表：`https://www.roehampton.ac.uk/research/research-and-knowledge-exchange-centres/arts-and-creative-exchange/staff/`（艺术与创意交流中心 CACE，含姓名＋职称＋邮箱）\n  - 其他可用列表页：`/study/academic-areas/arts-humanities-and-social-sciences/staff/`、`/study/academic-areas/education/staff/`、`/study/academic-areas/psychology/staff/`\n  - 研究学位总页：`/study/academic-areas/graduate-school/research-degrees/`；申请入口 `/study/academic-areas/graduate-school/degrees/`\n  - 全站 sitemap：`https://www.roehampton.ac.uk/sitemap.xml`（约 1305 条，可按 `dance` / `phd` 筛项目页）\n- **⚠️ slug 不可猜（实测）**：Alex Bubb→`alexander-bubb`；Mary Shannon→`mary-l-shannon`；John Moxon→`john-moxon`；Heike Salzer→`dr-heike-salzer`；Sara Houston→`sara-houston`；Chi-Fang Chao→`chi-fang-chao`。**必须从官方页面的 `<a href>` 抄**，不要按「名字-姓」硬拼。\n- **⚠️ 折叠组件会吞内容**：CRICA 页面的导师名单用 WebFetch 读出来是 `[...]`，**必须抓原始 HTML 再正则**才拿得到（人名与链接都在源码 `<a href>` 里）。\n- **⚠️ 无学科级博士项目页（2026-10-16 实测）**：`/study/postgraduate-research-courses/<subject>` 全部 404（dance / phd / mphil-phd 都试过）。该校只有 3 个独立研究学位页：`/study/postgraduate-research-courses/dba/`、`/doctor-of-education/`、`/phd-professional-education/`。**其余学科一律没有自己的项目页** → 此时 `博士申请信息` 应填**该导师实际所属的具体项目页**（如 CRICA：`/study/academic-areas/graduate-school/crica`），仍不要退回全校 how-to-apply 入口。\n- **其他中心 staff 页也带邮箱**（`contact-card` 结构：`<h5>姓名+纯链接</h5>` + `<p>职称</p>` + `mailto:`，可整块正则提取）：\n  - SCSC 中心：`/research/research-and-knowledge-exchange-centres/research-centre-for-society-culture-and-social-change/staff/`（43 人，含 Bubb / Moxon / Shannon）\n  - **⚠️ 该中心已改名**：上述 staff 页的 `<title>` 现在是 **\"Staff in the Research Centre for Inclusive Humanities\"**（新名），但中心首页 H1 与 Pure 个人页仍是旧名 \"Research Centre for Society, Culture, and Social Change\"。过渡期两个名字并存，**Department 字段建议跟 Pure（学生点\"导师主页\"看到的名字）保持一致**，改名情况写进备注。\n  - 商科中心：`/research/research-and-knowledge-exchange-centres/sustainability-and-responsible-management/staff/`（62 人，含姓名＋职称＋邮箱，可用；例：Markieta Domecka → \"Senior Lecturer and RKE Lead, POSE\"）\n- **🚫 空壳页勿用（2026-10-16 实测）**：`/study/academic-areas/business-and-law/business-school/staff/` 页面 200 但**完全没有人员信息**——`contact-card` 数 0、`mailto` 数 0、正文仅导航。**该站以 `/study/academic-areas/.../staff/` 结尾的院系页大多不可靠**，人员一律走 `/research/research-and-knowledge-exchange-centres/<中心>/staff/`。写入前务必验证目标页**确实含该导师姓氏**，不能只看 HTTP 200。\n- **CRICA 是舞蹈/残障方向的落点**：Roehampton × LSE 联合的 AHRC 博士项目（disability × creative economy × 表演与参与式艺术），项目页有官方 Supervisors 名单。名单内的人可直接引用为「该项目认可的博导池」，比自行扫院系权威；且名单外的人在 CRICA 内不收学生（Jana 回信原话）。**名单页在每个人名后括注了官方关键词**（如 \"Dr Alex Bubb (disability history, multilingualism, migration and nineteenth century imperialism)\"），**这是此人能带该项目博士的官方理由，必须优先于个人页的研究兴趣写进 `导师研究领域`**——只读个人页会漏掉机构视角下最重要的那个维度。\n- **学科强项（与舞蹈方向相关）**：Dance 系（`/study/academic-areas/arts-humanities-and-social-sciences/dance/`）是英国舞蹈研究重镇；另有 **Dance Movement Psychotherapy** 与 **International Master in Dance and Movement as Practical Knowledge and Heritage** 等课程。\n- **该校未进 QS 世界大学排名**，QS 主表里本来就没有 → 学校关联需机构先补校记录（见 `vika-school-link.md` 的「搜不到就停」）。\n- **Last verified**: 2026-10-12",
   "aliases": []
  },
  {
@@ -932,8 +998,8 @@
   "section": "Australia",
   "region": "au-nz",
   "source": "school-registry-au-nz.md",
-  "lineStart": 33,
-  "lineEnd": 44,
+  "lineStart": 38,
+  "lineEnd": 49,
   "body": "- **Architecture**: Symplectic Elements Discovery portal (profiles.sydney.edu.au). All individual profiles and group pages are pure SPAs (2118 bytes shell). CSS/JS loaded dynamically.\n- **Layer**: L3 (Symplectic Elements SPA)\n- **Best method**: Main education page (sydney.edu.au/arts/schools/sydney-school-of-education-and-social-work.html) returns 67KB with some profile links embedded. Individual profiles require browser verification.\n- **Key endpoint**: profiles.sydney.edu.au/{username} (SPA)\n- **Failed**: All API paths (v1/api/individuals, api/rest/v1, etc.), model.json feeds, JSON/RDF format parameters, print view\n- **Last verified**: 2026-06-30\n- **✅ 2026-09-20 实测修正**：`profiles.sydney.edu.au/{名}.{姓}` 用 curl 只得 **2118B \"Discovery\" SPA 空壳**，但 **WebFetch 能渲染出完整正文**（含 BIO、研究领域、Availability 段落，如 \"Research supervision\"）——**这类人必须用 WebFetch，不要因 curl 空壳就判死**\n  - 部分教师同时在 `sydney.edu.au/arts/about/our-people/academic-staff/{slug}.html` 有静态页，`sydney.edu.au/arts/staff/profiles/{名}.{姓}.php` 这类旧路径会被 WebFetch 自动跳转并渲染成功\n  - **页首常只显示行政职务**（`Chair of Discipline`、`Associate Dean`），**职级（Lecturer / Senior Lecturer / Associate Professor）可能在 `/teaching` 子页或学科页**——不要因页首没写职级就判定信息缺失；判断现任职务时**以个人主页为准**（学科主席这类职务会换人，过去式表述要当心）\n  - 学院级页面可 curl：`sydney.edu.au/arts/schools/school-of-art-communication-and-english/{film-studies|theatre-and-performance-studies}.html`、`.../sydney-college-of-the-arts.html`、`.../school-of-languages-and-cultures.html`（均 200/60-110KB）\n  - ❌ 不可用：`sydney.edu.au/arts/about/our-people/academic-staff.html`（SPA 空壳）、`.../sydney-college-of-the-arts/academic-staff.html`（SPA 空壳）",
   "aliases": []
  },
@@ -943,8 +1009,8 @@
   "section": "Australia",
   "region": "au-nz",
   "source": "school-registry-au-nz.md",
-  "lineStart": 109,
-  "lineEnd": 114,
+  "lineStart": 125,
+  "lineEnd": 130,
   "body": "- **Architecture**: UTS Profiles (SPA) + Cloudflare/Imperva\n- **Layer**: L3\n- **Access**: Cloudflare/Imperva blocks all curl access; browser required\n- **Key endpoint**: profiles.uts.edu.au/{Firstname}.{Lastname}/about (SPA shell)\n- **Last verified**: 2026-07-01",
   "aliases": [
    "UTS"
@@ -982,8 +1048,8 @@
   "section": "New Zealand",
   "region": "au-nz",
   "source": "school-registry-au-nz.md",
-  "lineStart": 184,
-  "lineEnd": 190,
+  "lineStart": 212,
+  "lineEnd": 218,
   "body": "- **Architecture**: Static HTML staff list + Symplectic/Elsevier JS SPA for individual profiles\n- **Layer**: L1 (staff directory) / L2 (Symplectic SPA for individuals)\n- **Access**: Get names from static staff page; open Symplectic profiles in browser to verify research content (JS renders research areas).\n- **Key endpoint**: https://www.waikato.ac.nz/about/faculties-schools/education/our-staff/\n- **Profile URL**: profiles.waikato.ac.nz/{username} (Symplectic SPA, needs browser)\n- **Last verified**: 2026-06-29",
   "aliases": []
  },
@@ -1026,8 +1092,8 @@
   "section": "Australia",
   "region": "au-nz",
   "source": "school-registry-au-nz.md",
-  "lineStart": 46,
-  "lineEnd": 62,
+  "lineStart": 51,
+  "lineEnd": 67,
   "body": "- **Architecture**: Adobe Experience Manager (AEM) SPA for listing pages. Individual staff profiles at unsw.edu.au/staff/{slug} return real content (100-500KB) with research data embedded in HTML. Research profile pages (research.unsw.edu.au/people/{slug}) also accessible. Main domain may trigger Cloudflare, but staff sub-pages consistently work with curl.\n- **Layer**: L2 (Adobe AEM SPA, staff profiles accessible)\n- **Best method**: Use known staff names to construct unsw.edu.au/staff/{slug} URLs. Parse HTML for research keywords, publications, grants. School of Education research strengths include \"Sociology of education.\" VERIFIED 2026-07-01 with 6 profiles.\n- **Key endpoint**: https://www.unsw.edu.au/staff/{slug}\n- **PhD application**: https://www.unsw.edu.au/study/research-degrees\n- **Note**: Ben Newell moved from UCL/others → UNSW; not at Carleton\n- **Failed**: AEM model.json returns minimal structure only; Our People listing page is SPA; newsroom expert finder API returns HTML only; newsroom.unsw.edu.au/find-an-expert redirects/times out; research.unsw.edu.au/people search returns SPA\n- **Last verified**: 2026-07-01\n- **✅ 2026-09-20 实测**：个人页两条路径**都能直接 curl**：`www.unsw.edu.au/staff/{slug}`（100-235KB，标题即 \"Associate Professor X\"）与 `www.arts.unsw.edu.au/our-people/{slug}`。院系统一人员页 `www.arts.unsw.edu.au/our-people/`（269KB）与 SAM 的 `unsw.edu.au/arts-design-architecture/our-schools/arts-media/about-us/meet-our-people`（472KB）均可 curl\n  - ❌ `unsw.edu.au/arts-design-architecture/our-schools/humanities-languages/about-us/meet-our-people` 为 404 → School of Humanities & Languages 的人改用 ADA 全院页 `arts.unsw.edu.au/our-people/`\n  - ⚠️ 少数人只在 `www.unsw.edu.au/staff/` 有页、在 `arts.unsw.edu.au/our-people/` 没有（如 Miska Mandic）——**两条路径都要试**\n  - ⚠️ **2026-09-20 重要发现：不要只扫 School of the Arts and Media，School of Art & Design（Paddington 校区）是独立的另一个学院**（含动画/VFX/沉浸式影像，以及 iCinema 互动电影研究中心），做影视/影像/动画方向时极易整体漏掉\n    - 该院人员页：`https://www.unsw.edu.au/arts-design-architecture/our-schools/art-design/about/our-people`（**带 \"Available to Supervise\" 筛选器**）\n    - 该院 HDR 导师登记册 PDF（含全部可带博导师）：`https://www.unsw.edu.au/content/dam/pdfs/ada/art-design/resources/2025-03-research/art-and-design-supervisor-register-november-2025.pdf`\n    - 个人页同样走 `www.unsw.edu.au/staff/{slug}`\n  - ⚠️ **`profile-available-to-supervise=1`** 是 UNSW 个人页上的带博资格标记，可作判定依据",
   "aliases": []
  },
@@ -1048,8 +1114,8 @@
   "section": "New Zealand",
   "region": "au-nz",
   "source": "school-registry-au-nz.md",
-  "lineStart": 174,
-  "lineEnd": 182,
+  "lineStart": 202,
+  "lineEnd": 210,
   "body": "- **Architecture**: Hybrid — Squiz CMS for school pages (sim, sam, fhss) with server-rendered staff listings; Angular SPA for /explore/ and people.wgtn.ac.nz\n- **Layer**: L1 (static pages) / L3 (Angular SPA profiles)\n- **Best method**: School staff pages (e.g., /sam/about/staff) contain server-rendered staff data with data-cy email attributes. Extract emails via `grep -Eo 'data-cy=\"[^@]+@vuw\\.ac\\.nz\"' | sort -u`. HTML contains embedded JSON in `<script>` tags (`parsedEmails` key) with firstName, lastName, hrOrgUnitName, hrJobTitle, researchInterests, people.wgtn.ac.nz profile links. Use people.wgtn.ac.nz/{username} for individual profile URLs (JS-rendered, content not accessible via curl).\n- **Key endpoint**: `https://www.wgtn.ac.nz/sam/about/staff` (368KB server-rendered page) / `https://www.wgtn.ac.nz/fehps/about/our-people/school-of-education` (embedded JSON)\n- **Profile URL**: `https://people.wgtn.ac.nz/{email.username}` (e.g., people.wgtn.ac.nz/geoff.stahl) — SPA shell, 4150 bytes\n- **Note**: Communication school is under School of Communication, Journalism and Marketing within Wellington School of Business and Government. SoM staff page only shows management professors. Communication-specific page inaccessible (0 bytes). Wayback Machine: comm staff page not archived (2022-2024).\n- **Failed**: people.wgtn.ac.nz profiles all return 4150B JS shells; researchers subdomain 404; seftms 404; /communication-studies returns 404; /explore/ pages are Angular SPA\n- **Last verified**: 2026-07-01",
   "aliases": [
    "VUW"

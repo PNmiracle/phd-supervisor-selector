@@ -29,6 +29,11 @@
   - 院系学术人员列表页 `arts.unimelb.edu.au/school-of-culture-and-communication/our-people/academic-staff` 与 `finearts-music.unimelb.edu.au/about-us/vca/academic-staff`：curl 403 "Just a moment..."，但**WebFetch 可读全文（含每人的电话与邮箱）**——找邮箱首选这两页
   - **VCA 有非标准编目职称**：教学岗在名录上可能写成 `Specialist in Directing` / `Specialist in Movement` 这类（实例 Kat Henry / Colin Sneesby），而校方其他页面（如 study.unimelb 课程页）又称其为 Lecturer。**判职称时两者都要看，并在备注里按页面实际表述写**；这类岗位的 HDR 带博资格通常无公开字段，按「未明确表明监督资格，可以后放～」处理
   - VCA 的 RHD 协调人在名录里写作 `Course Coordinator (Research Higher Degrees)`；影视系的研究生协调人写作 `Course Coordinator (Graduate Research)`
+- **✅ 2026-10-21 实测（李芳批次）**：
+  - **规范个人页是 `findanexpert.unimelb.edu.au/profile/{数字ID}-{连字符slug}`**（如 `/profile/828435-kirsten-stevens`）。旧写法用 `+`（`profile/828435-kirsten+stevens`）会 **301** 到连字符形式；只写 `/profile/{数字ID}` 也可能 301。**入库一律写连字符 slug 形式**，避免落点判定失败
+  - 慢速单条 curl（间隔 ≥6 s、Safari UA + `Accept-Language`）可拿到 200–350 KB 全文；**连续批量抓（同一脚本 20+ 请求）会转成 6183 B `Pardon Our Interruption`**，这时不是死链，隔一段时间或换 WebFetch 即可
+  - **院系名录页比 findanexpert 更好用**：`arts.unimelb.edu.au/school-of-culture-and-communication/our-people/{arts-and-cultural-management|media-and-communications|academic-staff}` WebFetch 可读全文，**每行带个人页链接 + 职称 + 电话 + 邮箱**，一次拿全一个人文项目的师资与联系方式
+  - 博士项目页：`study.unimelb.edu.au/find/courses/graduate/doctor-of-philosophy-arts/`（DR-PHILART，PhD – Arts，由 GSHSS 下设各 School 开设，含 Culture and Communication）
 
 #### University of Sydney
 - **Architecture**: Symplectic Elements Discovery portal (profiles.sydney.edu.au). All individual profiles and group pages are pure SPAs (2118 bytes shell). CSS/JS loaded dynamically.
@@ -83,6 +88,7 @@
 - **⚠️ 姓名署名可能简化**：实例 Stacy Holman Jones 在 Pure 页署名为 `Stacy Jones`（邮箱仍为 Stacy.HolmanJones@monash.edu）
 - **Failed**: `research.monash.edu/en/organisations/*/persons/` 与 `www.monash.edu/arts/*` curl 403（Cloudflare），但 WebFetch 可读全文
 - **Last verified**: 2026-09-20
+- **✅ 2026-10-21 实测（李芳批次）**：`research.monash.edu/en/organisations/school-of-media-film-and-journalism/persons/?pageSize=100` 一次可拿全院 60+ 师资（姓名 + 职称 + 所属 unit），**加 `?pageSize=100` 可避免首页截断**；但**连续批量请求后同一脚本会转 403**，隔一段时间重试即可。`www.monash.edu/arts/graduate_research`（Arts 博士项目页）curl 403、WebFetch 标题可读为 `Arts Graduate Research | Monash`。人文社科方向的核心池集中在 **School of Media, Film and Journalism**（Film Screen & Culture / Media / Communications 三个 unit）
 
 #### QUT
 - **Architecture**: Cloudflare WAF (全站)
@@ -105,6 +111,16 @@
 - **Key endpoint**: https://www.rmit.edu.au/contact/staff-contacts/academic-staff/
 - **Profile URL pattern**: academics.rmit.edu.au/{name-slug} (SPA)
 - **Last verified**: 2026-07-01
+- **⚠️ 2026-10-21 实测（李芳批次）**：
+  - **个人页正确通道是 `www.rmit.edu.au/profiles/{首字母}/{slug}`，本机 curl 直连 200（200–260 KB），页内含职称、`Department: School - Media & Communication`、`Research interests`、`PhD projects`，部分页有 `Open to Masters Research or PhD student supervision`**
+  - `academics.rmit.edu.au/{slug}/about` 是 **SPA 壳（4 KB，title 恒为 `Discovery`）**，不可用作个人页
+  - 学院 `…/media-and-communication/people` 页只有 7 条静态 `/profiles/` 链接（其余走 JS 目录），不能当完整名录页；`/contact/staff-contacts/academic-staff` 是检索表单，无名单
+  - **可用的个人页发现入口**：数字民族志研究中心成员页 `rmit.edu.au/research/centres-collaborations/digital-ethnography-research-centre/people`（一次给出 32 条 `/profiles/` 链接，含 Meese / Thomas / Yu / Whiting 等）
+  - 博士项目页：`www.rmit.edu.au/study-with-us/levels-of-study/research-programs/phd/phd-media--communication-dr211`（PhD Media & Communication, DR211，直连 200）
+- **⚠️ 2026-10-22 实测补充（李芳补位批次）**：
+  - **RMIT 的「研究中心 / 研究组成员页」明显滞后于个人页**：`…/research/public-communication-research-and-advisory-services` 仍列着 **Ella Chorazy（2024 年已回 QUT）**，且她与 Deborah Wise 的「Find out more」旧式链接（`/content/rmit-ui/…/staff-contacts/academic-staff/…`）已 **404**。收人前必须回个人页核在职状态，成员页不能当在职证明
+  - **slug 不能靠猜**：`/profiles/w/deborah-wise` 直接 404（真实 slug 未必是「名-姓」）。可靠发现顺序：WebSearch 命中 `rmit.edu.au/profiles/...` → 中心成员页 → 研究组页
+  - 广告/公关/品牌方向核心池：Robert Crawford（Professor of Advertising，兼 College of Design and Social Context 的 HDR Director）、Leah Li（Senior Lecturer，PR + 地方/国家品牌）、Lukas Parker（Professor，社会营销）、Linda Brennan（Professor，广告与社会营销）
 
 #### University of Technology Sydney (UTS)
 - **Architecture**: UTS Profiles (SPA) + Cloudflare/Imperva
@@ -122,6 +138,18 @@
 - **Note**: experts.deakin.edu.au is the consistent URL pattern.
 - **Failed**: deakin.edu.au/about-deakin/people/{name} → 403 Cloudflare
 - **Last verified**: 2026-07-01
+- **✅ 2026-10-21 实测修正（李芳批次）**：
+  - **`experts.deakin.edu.au/{id}-{slug}` 形式（如 `28120-anne-kershaw`、`40550-Jian-Xu`）本机 curl 直连 200，页面含职称、`FIELDS OF RESEARCH`、`AREAS OF EXPERTISE`，以及关键的 `AVAILABILITY FOR SUPERVISION: Masters by Research and PhD supervision`——**这是判断带博资格最直接的字段**
+  - 个人页发现入口：`experts.deakin.edu.au/search?q=<关键词>`（服务端渲染、可读，含 id 与 slug）
+  - `deakin.edu.au` 主站 CMS 页（含 `/course/*`、`/faculty-*/…`、`/buslaw/…`）对本机 curl 一律 **403 `Just a moment...`**，WebFetch 可读；`/course/doctor-philosophy`、`/buslaw/research/graduate-research`、`/buslaw/department-of-management/our-people` 均为 **404**（真实路径是 `/course/doctor-philosophy-arts`）
+  - **学位路径陷阱**：**艺术与文化管理硕士/博士挂在 Deakin Business School 的 Department of Management**，博士走 **M900（Faculty of Business and Law）**；文学院 SCCA 走 **A900（Faculty of Arts and Education）**。别默认「艺术管理 = 文学院」
+  - **人名时效陷阱（重要）**：`motionlab.deakin.edu.au/people/katya-johanson/` 仍写她在迪肯任教授，**实际 2023-01 已转 Edith Cowan University**；`Hilary Glow` 页面显示为 **Honorary Professor**（须排除）。收 Deakin 艺术管理方向的人，先查 `experts.deakin.edu.au` 的当前任职，不要只看研究中心旧页
+- **✅ 2026-10-22 实测（李芳迪肯扩池）**：
+  - **`experts.deakin.edu.au/search?q=<关键词>` 是 JS 渲染，curl 拿到的 HTML 里 0 条结果**——发现人选只能靠 WebSearch（`Deakin <方向关键词> experts.deakin.edu.au`），拿到 `{id}-{slug}` 后再直连核页
+  - **迪肯的「品牌 / 营销传播」只在 Deakin Business School 的 Department of Marketing**（Paul Harrison、Jeffrey Rotman、Michael Polonsky、Joshua Newton），文学院 SCCA 没有营销传播师资；「艺术与文化管理」在 Department of Management（Anne Kershaw）。**按方向拆系，不要指望一个学院全包**
+  - 文学院侧对文创/传播方向真正对口的是：数字媒体与文化治理（Jian Xu、Toija Cinque）、批判公关（Kristin Demetrious）、媒体产业经济（Alison McAdam，地方新闻可持续性/新闻荒漠）、屏幕与电影节（Sian Mitchell）
+  - **`/about` 页正文很短（约 3–5 KB）**：研究领域只写 bio 首段出现的词能过机械证据检查；写在 `TEACHING & SUPERVISION` 的 `Expertise Summary`（如 branding / macro-marketing / ethics）在 `/about` 上抓不到，会被判「无出处」
+  - M900（Business and Law PhD）与 A900（Arts PhD）的项目页：`deakin.edu.au/current-students-courses/course.php?course=M900&version=1&year=2025`、`deakin.edu.au/course/doctor-philosophy-arts`（均 403 对本机，WebFetch 可读）
 
 #### Curtin University (2026-07-03 update — SPA CORRECTION)
 

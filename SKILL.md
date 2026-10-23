@@ -39,6 +39,7 @@ agent_created: true
 - 禁止修改已填写选导意向的记录　→　`rules-write.md`
 - 新增记录去重　→　`rules-write.md`
 - 排除退休/名誉教授　→　`rules-write.md`
+- 🔴 提到「欧洲」时默认排除**挪威与瑞典**（除非用户当次明确点名）　→　`selection-rules.md`
 - ⚠️ Vika 同记录多字段修改：必须合并为一次 PATCH　→　`rules-write.md`
 - 禁止猜测 URL　→　`rules-write.md`
 - 导师主页必须是个人 URL　→　`rules-write.md`
@@ -54,6 +55,7 @@ agent_created: true
 - 📛 元注释禁止规则　→　`notes-and-fields.md`
 - 链接层级三分法　→　`field-rules.md`
 - 🚦 学生可执行性**三座闸门**（研究对象 / 跨学科先修背景 / **博士项目的学位学科必须对口**）　→　`selection-rules.md`
+- 🚦 **硬门 C：学校层面的核心方向必须有人**（整校去留先过这一关；「方向相邻」不算）　→　`selection-rules.md`
 
 ## 搜索编排（首先阅读）
 
@@ -184,6 +186,8 @@ agent_created: true
 | 表格验证工作流（验证已有表格时触发） | `verification-workflows.md`（3 个子节） |
 | 申请截止日期核查（2026-09-17 沉淀，CRITICAL） | `verification-workflows.md`（5 个子节） |
 | 申请信息汇编文档的批量核查（2026-09-24 沉淀） | `verification-workflows.md`（8 个子节） |
+| 博士项目学位类型核查（PhD vs DVM/执业学位，2026-10-10 沉淀） | `verification-workflows.md`（见「博士项目学位类型核查」节） |
+| 客户同步编辑表格的检测纪律（2026-10-10 沉淀） | `vika-batch-ops.md` |
 | 学生方向偏好逆向分析（2026-09-14 贺禧案例沉淀） | `analysis-workflows.md`（4 个子节） |
 | 套磁结果归因分析（2026-09-20 刘艺佳案例沉淀） | `analysis-workflows.md`（11 个子节） |
 | 证据纪律：候选生成 ≠ 写入依据（2026-09-17 沉淀，务必执行） | `evidence-discipline.md`（3 个子节） |
@@ -202,3 +206,35 @@ agent_created: true
 | ⚠️ 「备选」与「后放」是两套机制，别混，也别只写一种（2026-09-29 王润泽批次复盘） | `notes-and-fields.md` |
 | 🔁 批量修订已有记录的备注（2026-09-29 实操，可直接复用） | `vika-troubleshooting.md` |
 
+
+---
+
+## 🏫 PolyU BME → BEST 更名（2026-10-01，路径全变，务必更新）
+
+**Department of Biomedical Engineering 于 2026-10-01 正式更名为 Department of Biomedical Engineering and Sports Technology（BEST）。**
+
+| | 旧 | 新 |
+|---|---|---|
+| 系名 | Department of Biomedical Engineering | **Department of Biomedical Engineering and Sports Technology** |
+| 站点 | `polyu.edu.hk/bme/` | **`polyu.edu.hk/best/`** |
+| 师资名录 | `/bme/people/academic-and-teaching-staff/` | **`/best/people/academic-and-teaching-staff/`**（⚠️ urllib 返回 0，**必须 WebFetch**） |
+| 博士项目 | `/bme/study/research-postgraduate-programme/` | **`/best/study/research-postgraduate-programme/doctor-of-philosophy-and-master-of-philosophy/`** |
+
+- 更名动因是向**体育科技**扩张：新增 BSc in Sports Science and Technology、MSc in Sports Technology and Management；系主任仍为 **Ir Prof Ming ZHANG（Chair Professor of Biomechanics）**，同时兼任 Research Institute for Sports Science and Technology 主任。
+- **已入库的 PolyU BME 记录（James CHEUNG、M.S. WONG 等）Department 字段仍是旧系名**，遇到这类机构变更要同步改，否则与官网对不上。
+- 该系现有 **9 位 Research Assistant Professor**（Man Ting AU / Tony Linwei CHEN / Bingyang DAI / Yanhuan HUANG / Edmond LAM / Timothy LEE / Jingyu SHI / Matthew Qitao TAN / Meizi WANG / Quanxiang XIAN）——RAP 是否具备独立指导资格仍需逐个核。
+
+## 👤 「即将入职」的学者怎么判（2026-10-21，Tian Tan 案例）
+
+GitHub Pages / 个人站上写 *"I will join X in Spring 2027, actively recruiting PhD students"* 的人越来越多。**这类线索有价值，但不能直接入库。**
+
+判定顺序：
+1. **查目标院系官方师资名录有没有他** —— 没有 = 尚未入职，官方职称未知。`polyu.edu.hk/best/people/academic-and-teaching-staff/` 实测无 Tian Tan。
+2. **职称无法取证就不要猜** —— 「博后转 AP」是常见路径，但也可能是 Research Assistant Professor（部分院校该序列不能独立带博）。**没有官方页面 = 无法确认，只能标「待确认」。**
+3. **看邮箱域名** —— 仍是原单位（如 `@stanford.edu`）说明确实还没到岗。
+4. **入库条件**：等他在目标校官网上出现个人页（含职称）后再收。此前只能放进「待入职观察名单」，写清预计到岗时间与联系方式。
+5. **时间口径要说清**：2027 春季到岗 → 可接 2027 Fall 入学；但若学生要更早入学，此人不可用。
+
+**判断「算法侧/硬件侧」的快速方法**：看一作论文的产出物是**模型+代码+数据集**，还是**样机+机构+实验台**。
+- 前者（如 GaitDynamics 放出 Paper/Code/Data/Colab/HuggingFace 全套）＝纯数据侧，**给不了外骨骼机构与俘能硬件**；
+- 后者才是硬件导师。**两者不可互相替代**，即使都叫「康复机器人」。
