@@ -371,3 +371,19 @@
 
 - 港中文 2027/28 学费 HK$49,500／年；HKPFS 2027/28 在港中文的最高资助总额约 HK$1.81M；研究生助学金 2026/27 为 HK$229,200／年。
 - ⚠️ `gradsch.hku.hk/prospective_students/admissions/application_deadlines` 为 **404**（2026-10-16 实测）；港大轮次日期以**各系项目页**为准，不要用猜出来的研究生院路径。
+
+### 🔀 两处 2026 年系名变更（语言/翻译方向必须先看，2026-10-23 实测）
+
+| 学校 | 旧称与旧路径 | 现称与现路径 | 备注 |
+|---|---|---|---|
+| **PolyU** | Department of Chinese and Bilingual Studies，`/cbs/people/academic-staff/` | **Department of Language Science and Technology (LST)**，`https://www.polyu.edu.hk/lst/people/academic-staff/` | 旧 URL 301 到 `/lst/` 首页，**不会报错但拿不到名单**（容易误判成"名录页失效"）。LST 现有 44 人，翻译方向集中在 Dechao LI / Kanglong LIU / Chonglong GU / Rachel Yu WENG / Han XU / Zhiwei WU；Chu-Ren HUANG 已是 Emeritus |
+| **Lingnan** | Department of Translation，`/tran/` | **Department of Language Industry and Technology (LIT)**，`https://www.ln.edu.hk/lit/` | `/tran/` 301 到 `/lit/`；仍开 PhD/MPhil in Translation。王斌华（Interpreting + Human-AI Interactions in T&I）、苏艳芳（CAT 学习 + ChatGPT 翻译反馈）在 LIT |
+
+### 🇭🇰 EdUHK 英语教育学系（ELE）个人页：研究方向在 tab 子页（2026-10-23 实测）
+
+- 名录：`https://www.eduhk.hk/ele/people`（静态 HTML，curl 可读，含职称分组）
+- 个人页：`https://www.eduhk.hk/ele/people/<slug>` —— **静态正文里 `Research Interests` 只有标题、没有内容**
+- 研究方向真实地址：`https://www.eduhk.hk/ele/people/<slug>/research-interests`（小写连字符）；个别老师为首字母大写带空格（Angel Lin：`/angel-lin/Research%20Interests`）
+- **写 `导师主页` 时直接用 tab 子页**，否则任何「正文是否含研究方向」的核查都会判失效
+- LML 系：个人页统一外链 `https://repository.eduhk.hk/en/persons/<slug>`，邮箱藏在 `data-md5`（base64 解出即 `mailto:`+邮箱）
+- EdUHK 无系级博士项目页，`博士申请信息` 用 `https://gs.eduhk.hk/prospective/rpg/`（例外条款）

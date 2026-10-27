@@ -257,3 +257,18 @@ topuniversities.com 已切到 2027 版，**不要用它判 2026**。QS 2026（�
 | UCL | `profiles.ucl.ac.uk/<id>-<slug>` 是 SPA 壳（恒 3327 字节）；`www.ucl.ac.uk` 对 curl 403 | 用 `https://profiles.ucl.ac.uk/api/users/<id>`：`positions[0].position` 给职称、`tabSummaryAbout.value` 给研究简介（HTML，需 strip）、`customFilterFour` 含 `Supervision of research degrees` 即标示可带博 |
 
 **UCL 带博证据三源**（本轮验证）：① `/api/users/<id>` 的 `customFilterFour`；② `https://www.ucl.ac.uk/bartlett/construction/people/phd-students` 页的在读博士生导师团队名单（35 人中 24 人命中，**这是最硬的证据**）；③ 个人页明文。
+
+## 🇬🇧 英国扩校抓取实测（2026-10-23，张天钰第三轮 17 条 / 8 校）
+
+| 学校 | 现象 | 做法 |
+|---|---|---|
+| Durham | `durham.ac.uk` 对 urllib 一律 **202 + 0 字节**（bot challenge），个人页与 staff 页都如此 | 换 **WebFetch** 可完整读取。判「站点挂了」之前必须先过一遍 WebFetch |
+| Imperial | 同上（202 + 0），且 `civil-engineering/people/academic-and-research-staff/` 是 **404**，正确入口走 `engineering/departments/civil-engineering/...` | 先用 WebFetch 打开系首页看研究主题，再决定是否判「无对口」 |
+| Bristol | 个人页 `bristol.ac.uk/people/person/<Name>-<uuid>/` 200；**Pure 名录页 `research-information.bris.ac.uk` 对 curl 403**（Cloudflare） | 名录页浏览器可开，保留；姓名命中检查会误判，改用页面标题判层级 |
+| Birmingham / Nottingham / Leeds | 系师资名录页**客户端渲染**，HTML 里只有 1–2 条，grep 姓名必落空 | 不要据此判「名录页不对」；看 `<title>` 是否为该系 People 页即可 |
+| UCD | `people.ucd.ie/<slug>` 对 urllib 只回 **2120 字节 JS 壳**；`ucd.ie/civileng/people/...` 404 | **WebFetch 能渲染**，可拿到姓名/职称/邮箱/BIO；正式链接就用 `people.ucd.ie` |
+| KIT | `tmb.kit.edu` 已恢复；个人页邮箱常被混淆成 `sekretariat [at] tmb kit edu` | 教授个人页只给秘书处邮箱属正常，填秘书处地址并在备注注明 |
+
+**判定「无对口」的证据标准**（本轮 18 校）：必须写出「该院系的研究组/研究主题清单」，例如 KU Leuven 40 人只归 5 组（建筑物理、材料与结构、结构力学、水工岩土、测绘）、TCD 土木 24 人分 5 支柱（能源、环境、岩土、结构、交通）。只写「没找到」不算证据。
+
+**Warwick 特别提醒**：WMG 的 Complex Programme Management 教授 Naomi Brookes 已离职（现为 Leeds 的 Visiting Professor），在职的 Rezaei、Kapogiannis 均为 **Teaching Focussed**，按职级硬门不能收 —— 这类「名头在、人已走」的情况要用在职名单复核，不能靠记忆或旧资料。
