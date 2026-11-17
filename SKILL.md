@@ -39,7 +39,7 @@ agent_created: true
 - 禁止修改已填写选导意向的记录　→　`rules-write.md`
 - 新增记录去重　→　`rules-write.md`
 - 排除退休/名誉教授　→　`rules-write.md`
-- 🔴 提到「欧洲」时默认排除**挪威、瑞典、葡萄牙**（除非用户当次明确点名）　→　`selection-rules.md`
+- 🔴 **国家黑名单：挪威、瑞典、葡萄牙一律不看**（瑞典含 Lund/Uppsala/Stockholm/KTH/Chalmers…；挪威含 Oslo/Bergen/NTNU/NMBU…；葡萄牙含 Lisbon/Porto/Coimbra/NOVA…）。**不依赖「欧洲」是否出现**，一带一路等路径同样过黑名单；「欧洲 QS 前 100」「澳欧可看」「北欧 6 所」**都不算点名**，只有说出国家名或该国具体校名才放开　→　`selection-rules.md`
 - 🎓 默认排除**顶尖名校**：牛津、剑桥、Stanford、MIT、Harvard、美国 Top 15（除非用户当次单独点名）　→　`selection-rules.md`
 - ⚠️ Vika 同记录多字段修改：必须合并为一次 PATCH　→　`rules-write.md`
 - 禁止猜测 URL　→　`rules-write.md`

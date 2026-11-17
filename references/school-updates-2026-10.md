@@ -886,3 +886,11 @@ LSE 社会学的 Jana Melkumova-Reynolds 回信：**在 CRICA 项目之外不收
    - 德语/意语校名带变音符号与本地语言：Kiel = `Christian-Albrechts-Universität zu Kiel`、Bonn = `Rheinische Friedrich-Wilhelms-Universität Bonn`、Bremen/Leipzig = `Universität Bremen/Leipzig`、Zurich = `University of Zurich (UZH)`。
    - **做法**：先建 ALIAS 表指定每校 2–3 个候选写法，再兜底做 NFKD + 子串双向匹配；本轮 58 校一次性命中 57，剩 1 校靠子串补上。
 3. **批量创建时可以直接把 OneWayLink 写进 POST**（`{"学校名字":[schoolRid]}` + `fieldKey="name"`），**不必先建后 PATCH**。实测 89 条一次成型，Location / QS排名 由 MagicLookUp 立即回填，零缺失。
+
+### 备注字段反例（2026-11-17）
+
+学生当场读出一处「自相矛盾」：某条备注前面写「2027 年博士招生目录在列」，结尾又写「不在 2027 年博士目录，不能单独招博士」。核对后确认数据没错——**是同一段话里写了两个人**（结尾那句的主语是同研究所的一位副教授）。但读者不会去猜主语，只会判定数据打架。
+
+- 硬规则：**一条备注只写一个人**。合作导师、同组副教授、课题组行政这类「路径信息」不进备注。
+- 需要保留时，写成独立的说明文件（例：`domestic/兰大-补充说明-刘晓燕.md`），或放进「其他导师信息」这类链接字段，不要混进备注句子。
+- 自检方法：把备注通读一遍，凡出现第二个人名，先问「这句话的主语还是本记录的人吗」，答不上就删。
