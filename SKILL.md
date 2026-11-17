@@ -40,6 +40,7 @@ agent_created: true
 - 新增记录去重　→　`rules-write.md`
 - 排除退休/名誉教授　→　`rules-write.md`
 - 🔴 提到「欧洲」时默认排除**挪威、瑞典、葡萄牙**（除非用户当次明确点名）　→　`selection-rules.md`
+- 🎓 默认排除**顶尖名校**：牛津、剑桥、Stanford、MIT、Harvard、美国 Top 15（除非用户当次单独点名）　→　`selection-rules.md`
 - ⚠️ Vika 同记录多字段修改：必须合并为一次 PATCH　→　`rules-write.md`
 - 禁止猜测 URL　→　`rules-write.md`
 - 导师主页必须是个人 URL　→　`rules-write.md`
@@ -89,12 +90,13 @@ agent_created: true
 | `search-orchestrator.md` | 搜索编排细节（Step 0 身份硬门、项目底座、状态续传、P0-P3、Pass1/2、子代理派发） |
 | `batch-audit.md` | 写完 10 条 / 搜完一所学校 / 要 spawn auditor 之前 |
 | `vika-guide.md` | Vika 核心读写（§0–§5：Setup、建表、schema、读、批量创建、更新、删除） |
-| `vika-batch-ops.md` | 批量补链 / 查空记录 / 跨校链接审计 / 批量补研究领域 / Excel 导入 |
+| `vika-batch-ops.md` | 批量补链 / 查空记录 / 跨校链接审计 / 批量补研究领域 / Excel 导入 / **跨表整表迁移（旧表→新版空表）** |
 | `vika-troubleshooting.md` | 写入失败（309 / POST 超时 / 返回 0 条 / 字段写不进）、批量修订备注、新版表结构 |
 | `vika-school-link.md` | 给记录设**学校关联字段**时（识别新/老学生、建学校、四层搜索、搜不到就停） |
 | `field-rules.md` | 校验/修正字段时：「博士申请信息」层级、职称、其他导师信息、链接检查 |
 | `notes-and-fields.md` | 写「备注」「项目综合情况」「funding 三段式」等字段前 |
 | `selection-rules.md` | 判断导师是否合格、筛选口径、排除标准、搜索标准、主页类型前置过滤、导师转校 |
+| `tiering-rules.md` | 给选校名单定冲刺/主力/稳妥/保底档位时（**先取年录取人数再给档位**；两轴判定；五类高频误判） |
 | `verification-workflows.md` | 交付前机械复查 SOP、链接修复、链接健康审计、截止日核查、汇编文档核查 |
 | `language-requirements.md` | 填「语言要求」列前（7 项必录清单、新旧分制换算、口语分档） |
 | `spreadsheet-rules.md` | Excel 回退模式下的列格式规则与 Excel 模式说明 |
@@ -163,7 +165,12 @@ agent_created: true
   - **国内学校**：重点阅读文档末尾的「国内学校选导规则」（招生目录优先、A/B/C 分类、邮箱必填）
 - 创建/编辑/验证表格前，阅读 `references/spreadsheet-rules.md`
   - **国内学校**：重点阅读文档末尾的「国内学校表格规则」（导师联系方式列、主页来源、备注链接格式）
+- **给名单分档（冲刺/主力/稳妥/保底）前，必读 `references/tiering-rules.md`**
+  - 铁律：**先拿到「年录取人数」再给档位**，拿不到就写「未公布」，不许拍
+  - 只按对口导师数排序会把 5% 录取率的项目排成保底（2026-11-02 Emory 事故）
 - 开始搜索前，阅读 `references/search-orchestrator.md`
+- **学生说「我的项目属于某个大项目/中心」**时，读 `references/project-network.md`（官网 team 页反查 PI、团队页职称滞后、同名不同人、postdoc 不进表）
+- **学生持英国/英联邦 1 年制硕士、要申欧陆博士**时，先读 `references/degree-equivalence.md`（180 UK credits = 90 ECTS，丹麦只认 60；三类门槛 A/B/C 与已核实校别口径）
 - 访问学校前，检查 `references/school-strategies.md`
 - SPA/API 发现技巧，见 `references/search-techniques.md`
 - Vika 完整 CRUD 操作 + API 代码模板，见 `references/vika-guide.md`

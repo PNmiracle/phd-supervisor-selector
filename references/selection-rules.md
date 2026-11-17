@@ -89,6 +89,35 @@ When only a title is visible and no other supervision evidence is available:
 
 **不确定时问用户**，不要自己推断「这次应该可以」。本条与用户其他地区要求叠加时，**以更严格的为准**。
 
+## 🎓 默认排除顶尖名校（层级型排除，与地区无关）
+
+**规则**：下表学校**默认不纳入搜索范围**——不搜索、不写入、不进候选池。除非用户**当次单独点名**。
+
+| 地区 | 学校 | 排除原因 |
+|---|---|---|
+| 🇬🇧 英国 | University of Oxford、University of Cambridge | 申请门槛极高 |
+| 🇺🇸 美国 | Stanford、MIT、Harvard + 美国 Top 15（US News） | 同上 |
+
+**三种情形**：
+
+| 用户说法 | 动作 |
+|---|---|
+| 「QS 前 xxx」「英国 QS 前 100」这类**范围描述** | 自动跳过下表学校，不需要额外确认 |
+| **单独点名**某校（如「加上剑桥」） | 只纳入被点名的那一所，其余照常排除 |
+| **明确说不要排除**（「顶尖的也可以试试」「牛剑也加上」） | 该批次全部放开 |
+
+**与地区默认排除的区别**：本条按**学校层级**排除，与地区无关；挪威/瑞典/葡萄牙那条按**国家**排除。两条可能同时命中——例如「欧洲 QS 前 100」→ 既要跳过牛剑，也要跳过挪瑞葡。
+
+**三阶段执行口径**：同地区默认排除——搜索列候选校时剔除、写入时不写、审核时发现标「范围外（默认排除）」并在报告里点出。
+
+### ⚠️ 2026-11-17 复盘：这条规则在 2026-10-07 瘦身后失效了一个多月
+
+- 瘦身（提交 `879f026`，SKILL.md 274KB → 25.7KB）把原 `### 排除顶尖名校（默认规则）` 从 **SKILL.md 正文**搬进了 `rules-write.md` §8。
+- 但 `rules-write.md` 的定位是「**任何写入动作之前**必读、可整读」——**搜索阶段建候选校名单时根本不加载它**。而搜索阶段真正会读的 `search-phase.md` 和 SKILL.md「写入前硬门速查」里都没有这条。
+- 结果：搜索阶段加载的任何文件都不含这条规则 → 牛津、剑桥被重新纳入候选，直到用户发现才反馈。
+- **教训（重要）**：一条**作用于搜索阶段**的规则，必须落在搜索阶段会读的文件里（`search-phase.md` 或 SKILL.md 常驻速查）。搬进「写入前必读」文件 = 在该阶段不可见，等于规则失效。**以后任何瘦身/搬迁，都要核对规则的「生效阶段」与「文件加载时机」是否仍然匹配。**
+- 对照：2026-10-23 新增的挪威/瑞典/葡萄牙规则因为同时写进了 `search-phase.md` 与 SKILL.md 速查，所以搜索阶段能正常生效。
+
 ## Usually Acceptable Titles
 
 `Chair Professor`, `Professor`, `Associate Professor`, `Assistant Professor`, `Reader`, and equivalent full-time research/teaching-and-research faculty titles.
@@ -512,6 +541,12 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 3. 如果方向定义书有额外的学生专属排除项，一并对照
 4. **先看身份标签，再看关键词**：字段/主页中的 `health economist`、`policy economics`、`payment design`、`cost-effectiveness`、`CEA/QALY/ICER` 是强红线信号，即使同段出现"理赔数据/药物安全/真实世界"等正面词也要以身份标签为准
 
+**排除词子串误杀（2026-10-30 实战教训，与身份标签陷阱方向相反）**：上条是「漏杀」（该排除的放过），这条是「误杀」（不该排除的被排除）。用脚本批量跑排除词时，**子串匹配会制造假阳性**，实测两例：
+1. `omics` 命中 `outcomes` / `pharmacoeconomics` → 做纯药流 + claims 的 Youngran Kim（UTHealth）被误判触「组学」红线；
+2. `药物经济` 命中中心名 `Center for Pharmacoepidemiology & Pharmacoeconomic Research` → 纯药流的系主任 Todd A. Lee（UIC）被误判「偏药物经济学」。
+
+**规则**：① 排除词一律用词边界正则（`\bgenomic`、`\bllm\b`），禁止裸 `omics` / `算法` / `经济` 这类短词；② 必须区分「本人研究方向」与「所属中心 / 系 / 项目的名称」——机构名里出现排除词不代表本人做该方向；③ 脚本判定出的「排除」名单**必须逐条回原文人工复核**，尤其是方法词命中 ≥2 项却被打成排除的，这类几乎都是误杀。
+
 **注意**：方向定义书中的学生专属排除项由各学生任务单独提供，不写入此通用规则。但 auditor 审核时必须拿到方向定义书原文，独立对照。
 
 #### 硬门 C：学校层面的「核心方向」必须有人（2026-10-13 姜一丁 GSU 案例）
@@ -560,3 +595,29 @@ WorkBuddy 不能打开真实浏览器，但可以通过以下方式验证：
 **示例**：Mike Ryan 2026年3月从 Monash DVC Research 转到 Sydney DVC Research → 学校从 Monash (QS 31) 更新为 Sydney (QS 28)，主页、邮箱、PhD项目等全部更新。
 
 ---
+
+
+---
+
+## 方法门：「要量化方法」≠「要建模型」（商科 / 运营管理类必读）
+
+学生写「非常强调要量化方法，建模这一类的不选」时，这句话在 OM / 商科语境里必须拆成两类：
+
+| 类别 | 具体方法 | 处理 |
+|---|---|---|
+| **量化实证（学生要的）** | 计量与因果推断、面板/档案数据、DID、工具变量、田野实验、行为实验、问卷与量表、案例研究、LCA 与碳核算（工具型定量）、数据驱动实证（用 ML 做预测或因果识别） | 收 |
+| **解析建模（学生不要的）** | optimization / operations research / game theory / stochastic modelling / analytical modelling / algorithm design / dynamic programming / queueing / mechanism design / 仿真优化（simulation-optimization） | 以**主线**为准则剔除 |
+
+**判定方法（三步，缺一不可）**
+1. 读个人页 `Research interests` 原文：若只写方法词（optimisation、game theory、stochastic）而无实证落点 → 直接排除。
+2. **看代表论文的期刊与标题**——这是最可靠的信号：
+   - 偏建模：*Operations Research*、*M&SOM*、*European Journal of Operational Research*、*Mathematical Programming*、*IJPR*、*Computers & Industrial Engineering*、*Transportation Research Part B/E*、*Naval Research Logistics*
+   - 偏实证：*Journal of Operations Management*、*IJOPM*、*Journal of Supply Chain Management*、*IJPDLM*、*Production and Operations Management*（需看文章类型）、*Business Strategy and the Environment*、*Supply Chain Management: An International Journal*
+3. 实证与建模并存者，判**主线**，不要一刀切：保留并在备注写明「方法＝实证＋…，另有建模子线」，同时给出「若只做纯实证需与导师确认课题」的提示。
+
+**反面教训（2026-11-10 英国轮）**
+- 把「数字供应链孪生（digital supply chain twins）」当成数据驱动实证收录——它本质是仿真建模。
+- 收了一位论文落在电动车能耗、微电网 techno-economic planning 的学者——方法（工程仿真）与研究对象（企业供应链决策）双不符。
+- 反过来漏掉一位官网明写 "sustainable and socially responsible operations … combining mathematical modelling, data analytics and field experiments" 的助理教授——因为她页面上出现 modelling 就跳过。**有田野实验 + 数据分析的人不能因为同时有建模就排除**，应标注后交由用户裁定。
+
+**一句话口诀**：**用数据估计/检验关系 → 收；构建模型求解最优 → 不收；两者都做 → 看主线、写清楚、让用户定。**
